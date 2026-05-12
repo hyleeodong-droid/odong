@@ -3,288 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 실시간 관리 v72</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <title>배드민턴 클럽 관리 v85</title>
     <style>
-        :root { --bg-green: #5d8a58; --court-line: rgba(255,255,255,0.8); --border-color: #dee2e6; --accent: #4a6d46; --female-bg: #fff0f3; --female-border: #ff85a2; --title-bg: #eef2ed; --btn-red: #e63946; --btn-blue: #007bff; --btn-green: #28a745; }
-        body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 8px; margin: 0; overflow-x: hidden; }
-        .main-container { background: white; width: 100%; max-width: 1600px; padding: 12px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; }
-        .header-top { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; gap: 8px; }
-        .club-name-box { text-align: center; width: 100%; background: var(--title-bg); padding: 8px 0; border-radius: 50px; border: 1px solid #d0dccf; }
-        .club-name-box input { width: 80%; border: none; font-size: 18px; font-weight: 900; text-align: center; outline: none; color: var(--accent); background: transparent; }
-        .time-display-box { display: flex; gap: 8px; align-items: center; font-weight: 800; }
-        .live-date { font-size: 13px; background: #fff; padding: 4px 10px; border-radius: 15px; border: 1px solid #ddd; }
-        .live-clock { font-size: 15px; background: #333; color: #fff; padding: 4px 12px; border-radius: 15px; letter-spacing: 1px; }
-        .content-wrapper { display: flex; gap: 12px; flex-wrap: wrap; }
-        .left-panel { flex: 3; min-width: 320px; }
-        .right-panel { flex: 2; min-width: 320px; }
-        .courts-wrapper, .waiting-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
-        .court-base { background: var(--bg-green); border: 2px solid #3e5c3a; border-radius: 8px; position: relative; display: flex; padding-top: 38px; min-height: 140px; box-sizing: border-box; }
-        .court-wait { min-height: 115px; padding-top: 35px; }
-        .court-base.disabled { opacity: 0.25; filter: grayscale(0.8); pointer-events: none; }
-        .court-header { position: absolute; top: 6px; left: 6px; right: 6px; z-index: 20; display: flex; justify-content: space-between; align-items: center; color: white; font-weight: 800; font-size: 11px; pointer-events: auto; }
-        .court-base::before { content: ''; position: absolute; left: 50%; top: 38px; bottom: 6px; width: 2px; background: var(--court-line); z-index: 1; transform: translateX(-50%); }
-        .team-zone { flex: 1; min-height: 80px; margin: 2px; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 2; padding: 4px; box-sizing: border-box; }
-        .player-tag { background: white; border: 1.5px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 11px; font-weight: 800; height: 32px; color: #111; padding: 0 2px; text-align: center; position: relative; }
+        :root { --bg-green: #5d8a58; --court-line: rgba(255,255,255,0.8); --border-color: #dee2e6; --accent: #4a6d46; --female-bg: #fff0f3; --female-border: #ff85a2; --btn-red: #e63946; --btn-blue: #007bff; }
+        body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
+        .main-container { background: white; width: 100%; max-width: 1600px; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .content-wrapper { display: flex; flex-direction: column; gap: 20px; }
+        @media (min-width: 1100px) { .content-wrapper { flex-direction: row; } }
+        .left-panel { flex: 1.8; display: flex; flex-direction: column; gap: 15px; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 350px; }
+        .courts-wrapper, .waiting-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 600px) { .waiting-row { grid-template-columns: repeat(4, 1fr); } }
+        .court-base { background: var(--bg-green); border: 2.5px solid #3e5c3a; border-radius: 10px; position: relative; display: flex; padding-top: 45px; min-height: 180px; box-sizing: border-box; transition: 0.3s; }
+        .court-base.disabled { opacity: 0.3 !important; filter: grayscale(0.8) brightness(0.8); pointer-events: none; }
+        .court-header { position: absolute; top: 0; left: 0; right: 0; height: 45px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 100; color: white; font-weight: 900; font-size: 14px; }
+        .team-zone { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border-right: 1.5px solid var(--court-line); min-height: 100px; }
+        .team-zone:last-child { border-right: none; }
+        .player-tag { background: white; border: 1.5px solid #444; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 14px; font-weight: 800; height: 42px; color: #111; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; }
         .player-tag.female { background: var(--female-bg); border-color: var(--female-border); color: #d63384; }
-        .player-tag.is-out { opacity: 0.2; filter: grayscale(1); border-style: dashed; pointer-events: none; }
-        .player-tag.on-game { opacity: 0.35; border-style: dotted; color: #777; }
-        .game-count-tag { color: #d63384; margin-left: 3px; font-weight: 900; font-size: 10px; }
-        .section-box { background: #fdfdfd; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-        .section-title { font-weight: 800; margin-bottom: 8px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .grid-layout-10 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #f8f9fa; padding: 6px; border-radius: 8px; min-height: 40px; }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; }
-        .login-box input { padding: 10px; font-size: 18px; width: 150px; text-align: center; margin-bottom: 10px; }
+        .player-tag.is-out { opacity: 0.5 !important; filter: grayscale(0.5); border-style: dashed; pointer-events: none; }
+        .player-tag.on-game { opacity: 0.25 !important; background: #e9ecef !important; filter: grayscale(0.8); pointer-events: none; }
+        .grid-layout-10 { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .section-title { font-weight: 900; border-left: 5px solid var(--accent); padding-left: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+        .count-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #666; margin-left: 5px; }
     </style>
 </head>
 <body>
-
-<div id="login-overlay">
-    <div class="login-box">
-        <h3>오동 클럽 관리자 인증</h3>
-        <input type="password" id="adminPw" placeholder="비밀번호" onkeypress="if(event.keyCode==13) checkPw()">
-        <br><button onclick="checkPw()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:5px; cursor:pointer;">입장</button>
-    </div>
-</div>
-
-<div class="main-container" id="mainApp">
-    <div class="header-top">
-        <div class="club-name-box"><input type="text" id="clubName" value="오동 화목 배드민턴 클럽" onchange="saveRemoteData()"></div>
-        <div class="time-display-box">
-            <div id="liveDate" class="live-date"></div>
-            <div id="liveClock" class="live-clock">00:00:00</div>
-        </div>
-    </div>
+<div class="main-container">
     <div class="content-wrapper">
         <div class="left-panel">
+            <div class="section-title">🏸 실시간 코트</div>
             <div class="courts-wrapper">
-                <div class="court-base" id="court-1"><div class="court-header"><span><input type="checkbox" id="chk-1" checked onchange="saveRemoteData()"> 1코트</span><button onclick="finishGame(1)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z1-L"></div><div class="team-zone" id="z1-R"></div></div>
-                <div class="court-base" id="court-2"><div class="court-header"><span><input type="checkbox" id="chk-2" checked onchange="saveRemoteData()"> 2코트</span><button onclick="finishGame(2)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z2-L"></div><div class="team-zone" id="z2-R"></div></div>
-                <div class="court-base" id="court-3"><div class="court-header"><span><input type="checkbox" id="chk-3" checked onchange="saveRemoteData()"> 3코트</span><button onclick="finishGame(3)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z3-L"></div><div class="team-zone" id="z3-R"></div></div>
+                <script>
+                    for(let i=1; i<=4; i++) {
+                        document.write(`
+                            <div class="court-base" id="court-${i}">
+                                <div class="court-header">
+                                    <span><input type="checkbox" id="chk-${i}" checked onchange="lhy_toggleCourt(${i})"> ${i}코트</span>
+                                    <button onclick="lhy_finish(${i})" style="background:var(--btn-red); color:white; border:none; border-radius:5px; padding:6px 12px; font-weight:bold; cursor:pointer;">종료</button>
+                                </div>
+                                <div class="team-zone" id="z${i}-L"></div>
+                                <div class="team-zone" id="z${i}-R"></div>
+                            </div>
+                        `);
+                    }
+                </script>
             </div>
-            <div class="section-box" style="background:transparent; border:none; padding:0;"><div class="section-title"><span>⏳ 대기 명단</span></div>
-                <div class="waiting-row">
-                    <div class="court-base court-wait" id="wait-1"><div class="court-header"><span>①</span><button onclick="manualMoveWait(1)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w1-L"></div><div class="team-zone" id="w1-R"></div></div>
-                    <div class="court-base court-wait" id="wait-2"><div class="court-header"><span>②</span><button onclick="manualMoveWait(2)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w2-L"></div><div class="team-zone" id="w2-R"></div></div>
-                    <div class="court-base court-wait" id="wait-3"><div class="court-header"><span>③</span><button onclick="manualMoveWait(3)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w3-L"></div><div class="team-zone" id="w3-R"></div></div>
-                </div>
+            <div class="section-title">⏳ 경기 대기열</div>
+            <div class="waiting-row">
+                <script>
+                    for(let i=1; i<=4; i++) {
+                        document.write(`
+                            <div class="court-base" style="min-height:140px; background:#eef2ed; border-color:#adb5bd;">
+                                <div class="court-header" style="color:#333;">
+                                    <span>${['①','②','③','④'][i-1]} 대기</span>
+                                    <button onclick="lhy_moveWait(${i})" style="background:var(--btn-blue); color:white; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer;">입장</button>
+                                </div>
+                                <div class="team-zone" id="w${i}-L"></div>
+                                <div class="team-zone" id="w${i}-R"></div>
+                            </div>
+                        `);
+                    }
+                </script>
             </div>
         </div>
         <div class="right-panel">
             <div class="section-box">
-                <div class="section-title"><span>🏃 금일 출석 <span id="currentAttCount" class="count-badge">0명</span></span><button onclick="manualReset()" style="background:#6c757d; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">🔄 초기화</button></div>
+                <div class="section-title">🏃 금일 출석 <span class="count-badge" id="attCount">0명</span> <button onclick="lhy_manualReset()" style="background:#6c757d; color:white; border:none; border-radius:5px; padding:4px 10px; font-size:11px; cursor:pointer;">초기화</button></div>
                 <div id="attList" class="grid-layout-10"></div>
             </div>
-            <div class="section-box"><div class="section-title"><span>📂 회원 명부 <span id="totalMemberCount" class="count-badge blue">0명</span></span></div>
-                <div style="display:flex; gap:4px;">
-                    <input type="text" id="pName" placeholder="이름" style="width:70px; padding:5px; border-radius:4px; border:1.5px solid var(--accent);">
-                    <button onclick="addMember()" style="background:var(--accent); color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">등록</button>
-                    <span style="font-size: 10px; color: #666; align-self: center; margin-left: 5px;">(이름 클릭 시 탈퇴 가능)</span>
-                </div>
-                <div id="memberGrid" class="grid-layout-10" style="margin-top:10px;"></div>
+            <div class="section-box">
+                <div class="section-title">📂 회원 명부 <span class="count-badge" id="totalCount">0명</span></div>
+                <div id="memberGrid" class="grid-layout-10"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyCU7KLQQC2glx_zYSgORrJiqXwjR47xJvs",
-        authDomain: "odong-badminton.firebaseapp.com",
-        projectId: "odong-badminton",
-        databaseURL: "https://odong-badminton-default-rtdb.asia-southeast1.firebasedatabase.app",
-        storageBucket: "odong-badminton.firebasestorage.app",
-        messagingSenderId: "216159538093",
-        appId: "1:216159538093:web:7a0c3ac45986b84cb6af24"
-    };
+    // [수정] 회원 명단 데이터를 가나다순으로 미리 정렬
+    const MEMBER_DATA = ["박찬경", "한순직", "박순이(여)", "신기흥", "강기호", "조만희", "이명선", "강송중", "김선주", "김성동", "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅", "이후열", "도성학", "이운영", "신동윤", "고재선", "김영혜(여)", "이근영", "이달주", "김기수", "금성옥(여)", "조윤진(여)", "유영춘", "김방수", "김묘임(여)", "양희동", "정노숙(여)", "권혜진(여)", "최경숙(여)", "백숙현(여)", "안현욱", "윤상철", "최정열", "김영민", "송재현"].sort();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const ADMIN_PW = "odong"; 
+    function lhy_init() {
+        const saved = localStorage.getItem('badminton_v85');
+        const data = saved ? JSON.parse(saved) : { members: MEMBER_DATA.map(n => ({name:n, isOut:false})), atts: [], actives: [], courtStatus: [true,true,true,true] };
 
-    // - 명단 유실 방지를 위한 하드코딩 리스트 (기본값)
-    const INITIAL_MEMBERS = [
-        "박찬경", "한순직", "박순이(여)", "신기흥", "강기호", "조만희", "이명선", "강송중", "김선주", "김성동",
-        "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅", "이후열", "도성학", "이운영", "신동윤", "고재선",
-        "김영혜(여)", "이근영", "이달주", "김기수", "금성옥(여)", "조윤진(여)", "유영춘", "김방수", "김묘임(여)", "양희동",
-        "정노숙(여)", "권혜진(여)", "최경숙(여)", "백숙현(여)", "안현욱", "윤상철", "최정열", "김영민", "송재현"
-    ];
-
-    function checkPw() {
-        if (document.getElementById('adminPw').value === ADMIN_PW) {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadRealtimeData();
-        } else { alert("비밀번호가 틀렸습니다."); }
-    }
-
-    function loadRealtimeData() {
-        // - 가장 데이터가 많았던 v67 경로를 우선 참조합니다.
-        db.ref("odong_v67/state").on("value", (snapshot) => {
-            const data = snapshot.val();
-            const memberGrid = document.getElementById('memberGrid');
-            memberGrid.innerHTML = '';
-            
-            // - 서버 명단이 없으면 INITIAL_MEMBERS 사용
-            let membersToRender = (data && data.members && data.members.length > 0) ? data.members : INITIAL_MEMBERS.map(name => ({id: 'm_'+Math.random(), name: name, isOut: false}));
-            membersToRender.forEach(m => createMemberTag(m.name, m.id, m.isOut));
-
-            if (!data) { saveRemoteData(); return; }
-            
-            document.getElementById('clubName').value = data.club || "오동 화목 배드민턴 클럽";
-            const attList = document.getElementById('attList'); attList.innerHTML = '';
-            if(data.atts) data.atts.forEach(a => createAttTag(a.name, a.originId, a.id, a.gameCount));
-            document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
-            if(data.actives) data.actives.forEach(ac => createActiveTag(ac.name, ac.originId, ac.attId, ac.parentId, ac.id));
-            if(data.courtStatus) data.courtStatus.forEach((s, i) => {
-                const chk = document.getElementById(`chk-${i+1}`);
-                if(chk) { chk.checked = s; document.getElementById(`court-${i+1}`).classList.toggle('disabled', !s); }
-            });
-            updateCounters(); syncGhostStatus();
+        const mGrid = document.getElementById('memberGrid'); mGrid.innerHTML = '';
+        data.members.forEach((m, idx) => {
+            const t = document.createElement('div');
+            t.className = `player-tag ${m.name.includes('여')?'female':''} ${m.isOut?'is-out':''}`;
+            t.textContent = m.name; t.id = 'm_'+idx;
+            t.onclick = () => { if(!m.isOut) { m.isOut = true; t.classList.add('is-out'); lhy_addAtt(m.name, t.id); lhy_save(); } };
+            mGrid.appendChild(t);
         });
-    }
 
-    function saveRemoteData() {
-        const state = {
-            club: document.getElementById('clubName').value,
-            members: [...document.querySelectorAll('#memberGrid .player-tag')].map(m => ({ id: m.id, name: m.textContent, isOut: m.classList.contains('is-out') })),
-            atts: [...document.querySelectorAll('#attList .player-tag')].map(a => ({ id: a.id, name: a.querySelector('span').textContent, originId: a.dataset.originId, gameCount: a.dataset.gameCount })),
-            actives: [...document.querySelectorAll('[id^="act_"]')].map(ac => ({ id: ac.id, name: ac.textContent, originId: ac.dataset.originId, attId: ac.dataset.attId, parentId: ac.parentElement.id })),
-            courtStatus: [1,2,3].map(i => document.getElementById(`chk-${i}`).checked)
-        };
-        // - 모든 변경사항은 v67 경로에 영구 저장됩니다.
-        db.ref("odong_v67/state").set(state);
-    }
+        const aList = document.getElementById('attList'); aList.innerHTML = '';
+        data.atts.forEach(a => lhy_renderAttTag(a.name, a.originId, a.id, a.gameCount));
 
-    function createMemberTag(name, id, isOut) {
-        const t = document.createElement('div'); 
-        t.className = 'player-tag' + (name.includes('여') ? ' female' : '') + (isOut ? ' is-out' : '');
-        t.id = id; t.textContent = name;
-        t.onclick = () => {
-            if (isOut) {
-                if (confirm(`'${name}' 회원을 명부에서 영구 삭제(탈퇴) 하시겠습니까?`)) { t.remove(); saveRemoteData(); }
-            } else {
-                t.classList.add('is-out'); createAttTag(name, id); saveRemoteData();
+        document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
+        data.actives.forEach(ac => lhy_renderActiveTag(ac.name, ac.attId, ac.parentId, ac.id));
+
+        data.courtStatus.forEach((s, i) => {
+            const chk = document.getElementById(`chk-${i+1}`);
+            if(chk) { 
+                chk.checked = s; 
+                document.getElementById(`court-${i+1}`).classList.toggle('disabled', !s); 
             }
-        };
-        document.getElementById('memberGrid').appendChild(t);
+        });
+        lhy_updateCounters();
+        lhy_syncGhost();
     }
 
-    function createAttTag(name, originId, id = null, gCount = 0) {
-        const aid = id || 'att_' + Date.now();
-        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '');
-        t.id = aid; t.dataset.originId = originId; t.dataset.gameCount = gCount;
-        t.innerHTML = `<span>${name}</span><span class="game-count-tag">(${gCount})</span>`;
-        t.onclick = () => { if(!t.classList.contains('on-game')) findSpaceAndMove(name, originId, aid); };
+    function lhy_toggleCourt(n) {
+        const isChecked = document.getElementById(`chk-${n}`).checked;
+        document.getElementById(`court-${n}`).classList.toggle('disabled', !isChecked);
+        lhy_save();
+    }
+
+    function lhy_renderAttTag(name, originId, id, gCount) {
+        const t = document.createElement('div');
+        t.className = `player-tag ${name.includes('여')?'female':''}`;
+        t.id = id; t.dataset.originId = originId; t.dataset.gameCount = gCount;
+        t.innerHTML = `<span>${name}</span><span style="color:#d63384; font-size:12px; margin-left:4px;">(${gCount})</span>`;
+        t.onclick = () => lhy_pushToWait(name, id);
+        t.oncontextmenu = (e) => {
+            e.preventDefault();
+            const mTag = document.getElementById(originId);
+            if(mTag) mTag.classList.remove('is-out');
+            t.remove(); lhy_save();
+        };
         document.getElementById('attList').appendChild(t);
     }
 
-    function createActiveTag(name, originId, attId, parentId, actId) {
-        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '');
-        t.id = actId; t.textContent = name; t.dataset.attId = attId; t.dataset.originId = originId;
-        t.onclick = () => { t.remove(); saveRemoteData(); };
-        const parent = document.getElementById(parentId);
-        if(parent) parent.appendChild(t);
-        if(parentId.startsWith('z')) addGameCount(attId);
+    function lhy_addAtt(name, originId) {
+        const aid = 'att_' + Date.now() + Math.random().toString(36).substr(2, 4);
+        lhy_renderAttTag(name, originId, aid, 0);
     }
 
-    function addGameCount(attId) {
-        const att = document.getElementById(attId);
-        if(att) {
-            let count = parseInt(att.dataset.gameCount || 0) + 1;
-            att.dataset.gameCount = count;
-            att.querySelector('.game-count-tag').textContent = `(${count})`;
-        }
-    }
-
-    function findSpaceAndMove(name, originId, attId) {
-        for(let i=1; i<=3; i++) {
-            if(!document.getElementById(`chk-${i}`).checked) continue;
+    function lhy_pushToWait(name, attId) {
+        for(let i=1; i<=4; i++) {
             const zones = [`w${i}-L`, `w${i}-R`];
             for(let zid of zones) {
                 const z = document.getElementById(zid);
-                if(z && z.children.length < 2) { 
-                    createActiveTag(name, originId, attId, zid, 'act_'+Date.now()+Math.random()); 
-                    saveRemoteData(); return; 
+                if(z.children.length < 2) {
+                    lhy_renderActiveTag(name, attId, zid, 'act_'+Date.now()+Math.random().toString(36).substr(2,4));
+                    lhy_save(); return;
                 }
             }
         }
     }
 
-    function finishGame(n) {
-        document.getElementById(`z${n}-L`).innerHTML = '';
-        document.getElementById(`z${n}-R`).innerHTML = '';
-        for (let i = 1; i <= 3; i++) autoMoveWaitToCourt(i);
-        shiftWaitingList();
-        saveRemoteData();
+    function lhy_renderActiveTag(name, attId, parentId, actId) {
+        const t = document.createElement('div');
+        t.className = `player-tag ${name.includes('여')?'female':''}`;
+        t.id = actId; t.textContent = name; t.dataset.attId = attId;
+        t.onclick = () => { t.remove(); lhy_save(); };
+        const p = document.getElementById(parentId);
+        if(p) p.appendChild(t);
     }
 
-    function manualMoveWait(slot) {
-        autoMoveWaitToCourt(slot);
-        shiftWaitingList();
-        saveRemoteData();
+    function lhy_syncGhost() {
+        document.querySelectorAll('#attList .player-tag').forEach(att => {
+            const isPlaying = !!document.querySelector(`[data-att-id="${att.id}"]`);
+            att.classList.toggle('on-game', isPlaying);
+        });
     }
 
-    function autoMoveWaitToCourt(slot) {
+    function lhy_updateCounters() {
+        document.getElementById('attCount').textContent = document.getElementById('attList').children.length + "명";
+        document.getElementById('totalCount').textContent = document.getElementById('memberGrid').children.length + "명";
+    }
+
+    function lhy_save() {
+        const state = {
+            members: [...document.querySelectorAll('#memberGrid .player-tag')].map(t => ({name: t.textContent, isOut: t.classList.contains('is-out')})),
+            atts: [...document.querySelectorAll('#attList .player-tag')].map(t => ({id: t.id, name: t.querySelector('span').textContent, originId: t.dataset.originId, gameCount: t.dataset.gameCount})),
+            actives: [...document.querySelectorAll('[data-att-id]')].filter(t => !t.id.startsWith('att_')).map(t => ({id: t.id, name: t.textContent, attId: t.dataset.attId, parentId: t.parentElement.id})),
+            courtStatus: [1,2,3,4].map(i => {
+                const c = document.getElementById(`chk-${i}`);
+                return c ? c.checked : true;
+            })
+        };
+        localStorage.setItem('badminton_v85', JSON.stringify(state));
+        lhy_updateCounters();
+        lhy_syncGhost();
+    }
+
+    function lhy_finish(n) {
+        const zones = [`z${n}-L`, `z${n}-R`];
+        zones.forEach(zid => {
+            const z = document.getElementById(zid);
+            [...z.children].forEach(p => {
+                const att = document.getElementById(p.dataset.attId);
+                if(att) {
+                    let newCount = parseInt(att.dataset.gameCount) + 1;
+                    att.dataset.gameCount = newCount;
+                    att.querySelector('span:last-child').textContent = `(${newCount})`;
+                }
+                p.remove();
+            });
+        });
+        lhy_moveWait(1);
+    }
+
+    function lhy_moveWait(slot) {
         const players = [...document.getElementById(`w${slot}-L`).children, ...document.getElementById(`w${slot}-R`).children];
         players.forEach(p => {
-            const target = findEmptyCourt();
-            if(target) target.appendChild(p);
-        });
-    }
-
-    // - 대기열 전진(Shift) 기능 유지
-    function shiftWaitingList() {
-        for (let i = 1; i < 3; i++) {
-            const currentL = document.getElementById(`w${i}-L`), currentR = document.getElementById(`w${i}-R`);
-            const nextL = document.getElementById(`w${i+1}-L`), nextR = document.getElementById(`w${i+1}-R`);
-            if (currentL.children.length === 0 && currentR.children.length === 0) {
-                while (nextL.firstChild) currentL.appendChild(nextL.firstChild);
-                while (nextR.firstChild) currentR.appendChild(nextR.firstChild);
+            let moved = false;
+            for(let i=1; i<=4; i++) {
+                if(document.getElementById(`chk-${i}`).checked) {
+                    const targetL = document.getElementById(`z${i}-L`), targetR = document.getElementById(`z${i}-R`);
+                    if(targetL.children.length < 2) { targetL.appendChild(p); moved=true; break; }
+                    else if(targetR.children.length < 2) { targetR.appendChild(p); moved=true; break; }
+                }
             }
-        }
-    }
-
-    function findEmptyCourt() {
-        for(let i=1; i<=3; i++) {
-            if(!document.getElementById(`chk-${i}`).checked) continue;
-            const l = document.getElementById(`z${i}-L`), r = document.getElementById(`z${i}-R`);
-            if(l.children.length < 2) return l; if(r.children.length < 2) return r;
-        }
-        return null;
-    }
-
-    function addMember() {
-        const i = document.getElementById('pName'); if(!i.value.trim()) return;
-        createMemberTag(i.value.trim(), 'm_'+Date.now()); i.value = ''; saveRemoteData();
-    }
-
-    function manualReset() {
-        if(confirm("모든 현황을 초기화하시겠습니까? (회원 명부는 유지됩니다)")) {
-            db.ref("odong_v67/state").update({ atts: [], actives: [] });
-            setTimeout(() => location.reload(), 500);
-        }
-    }
-
-    function updateCounters() {
-        document.getElementById('currentAttCount').textContent = document.getElementById('attList').children.length + "명";
-        document.getElementById('totalMemberCount').textContent = document.getElementById('memberGrid').children.length + "명";
-    }
-
-    function syncGhostStatus() {
-        document.querySelectorAll('#attList .player-tag').forEach(att => {
-            att.classList.toggle('on-game', !!document.querySelector(`[data-att-id="${att.id}"]`));
         });
+        for(let i = slot; i < 4; i++) {
+            const nextL = document.getElementById(`w${i+1}-L`), nextR = document.getElementById(`w${i+1}-R`);
+            const currL = document.getElementById(`w${i}-L`), currR = document.getElementById(`w${i}-R`);
+            while(nextL.firstChild) currL.appendChild(nextL.firstChild);
+            while(nextR.firstChild) currR.appendChild(nextR.firstChild);
+        }
+        lhy_save();
     }
 
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('liveDate').textContent = now.toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit', weekday:'short'});
-        document.getElementById('liveClock').textContent = now.toTimeString().split(' ')[0];
+    function lhy_manualReset() {
+        if(confirm("초기화하시겠습니까?")) { localStorage.removeItem('badminton_v85'); lhy_init(); }
     }
-    setInterval(updateClock, 1000); updateClock();
+
+    window.onload = lhy_init;
 </script>
 </body>
 </html>
