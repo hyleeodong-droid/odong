@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 실시간 관리 v71.2</title>
+    <title>배드민턴 클럽 실시간 관리 v72</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
@@ -104,7 +104,7 @@
     const db = firebase.database();
     const ADMIN_PW = "odong"; 
 
-    // 기존에 잘 나오던 인원 명단 (초기값)
+    // - 명단 유실 방지를 위한 하드코딩 리스트 (기본값)
     const INITIAL_MEMBERS = [
         "박찬경", "한순직", "박순이(여)", "신기흥", "강기호", "조만희", "이명선", "강송중", "김선주", "김성동",
         "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅", "이후열", "도성학", "이운영", "신동윤", "고재선",
@@ -121,14 +121,14 @@
     }
 
     function loadRealtimeData() {
-        // 기존 데이터를 찾기 위해 v67 경로로 다시 연결합니다.
+        // - 가장 데이터가 많았던 v67 경로를 우선 참조합니다.
         db.ref("odong_v67/state").on("value", (snapshot) => {
             const data = snapshot.val();
             const memberGrid = document.getElementById('memberGrid');
             memberGrid.innerHTML = '';
             
-            // 서버에 데이터가 없으면 INITIAL_MEMBERS를 사용
-            const membersToRender = (data && data.members && data.members.length > 0) ? data.members : INITIAL_MEMBERS.map(name => ({id: 'm_'+Math.random(), name: name, isOut: false}));
+            // - 서버 명단이 없으면 INITIAL_MEMBERS 사용
+            let membersToRender = (data && data.members && data.members.length > 0) ? data.members : INITIAL_MEMBERS.map(name => ({id: 'm_'+Math.random(), name: name, isOut: false}));
             membersToRender.forEach(m => createMemberTag(m.name, m.id, m.isOut));
 
             if (!data) { saveRemoteData(); return; }
@@ -154,6 +154,7 @@
             actives: [...document.querySelectorAll('[id^="act_"]')].map(ac => ({ id: ac.id, name: ac.textContent, originId: ac.dataset.originId, attId: ac.dataset.attId, parentId: ac.parentElement.id })),
             courtStatus: [1,2,3].map(i => document.getElementById(`chk-${i}`).checked)
         };
+        // - 모든 변경사항은 v67 경로에 영구 저장됩니다.
         db.ref("odong_v67/state").set(state);
     }
 
@@ -234,6 +235,7 @@
         });
     }
 
+    // - 대기열 전진(Shift) 기능 유지
     function shiftWaitingList() {
         for (let i = 1; i < 3; i++) {
             const currentL = document.getElementById(`w${i}-L`), currentR = document.getElementById(`w${i}-R`);
