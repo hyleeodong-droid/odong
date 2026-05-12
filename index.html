@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 관리 v86</title>
+    <title>배드민턴 클럽 관리 v87</title>
     <style>
         :root { --bg-green: #5d8a58; --court-line: rgba(255,255,255,0.8); --border-color: #dee2e6; --accent: #4a6d46; --female-bg: #fff0f3; --female-border: #ff85a2; --btn-red: #e63946; --btn-blue: #007bff; }
         body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
@@ -42,9 +42,9 @@
 <body>
 
 <div id="login-overlay">
-    <h2>Access Required</h2>
+    <h2>Badminton Club Login</h2>
     <input type="password" id="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) lhy_checkPw()">
-    <button onclick="lhy_checkPw()" style="padding:10px 20px; font-weight:bold; cursor:pointer;">확인</button>
+    <button onclick="lhy_checkPw()" style="padding:10px 20px; font-weight:bold; cursor:pointer; border-radius:8px;">확인</button>
 </div>
 
 <div class="main-container" id="main-ui">
@@ -99,10 +99,9 @@
 </div>
 
 <script>
-    const P_W = "0531"; // 설정하신 비밀번호
+    const P_W = "odong"; // [수정] 비밀번호 변경
     const MEMBER_DATA = ["박찬경", "한순직", "박순이(여)", "신기흥", "강기호", "조만희", "이명선", "강송중", "김선주", "김성동", "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅", "이후열", "도성학", "이운영", "신동윤", "고재선", "김영혜(여)", "이근영", "이달주", "김기수", "금성옥(여)", "조윤진(여)", "유영춘", "김방수", "김묘임(여)", "양희동", "정노숙(여)", "권혜진(여)", "최경숙(여)", "백숙현(여)", "안현욱", "윤상철", "최정열", "김영민", "송재현"].sort();
 
-    // [복구] 비밀번호 체크 함수
     function lhy_checkPw() {
         const input = document.getElementById('pw-input').value;
         if(input === P_W) {
@@ -116,7 +115,7 @@
     }
 
     function lhy_init() {
-        const saved = localStorage.getItem('badminton_v86');
+        const saved = localStorage.getItem('badminton_v87');
         const data = saved ? JSON.parse(saved) : { members: MEMBER_DATA.map(n => ({name:n, isOut:false})), atts: [], actives: [], courtStatus: [true,true,true,true] };
 
         const mGrid = document.getElementById('memberGrid'); mGrid.innerHTML = '';
@@ -215,7 +214,7 @@
                 return c ? c.checked : true;
             })
         };
-        localStorage.setItem('badminton_v86', JSON.stringify(state));
+        localStorage.setItem('badminton_v87', JSON.stringify(state));
         lhy_updateCounters();
         lhy_syncGhost();
     }
@@ -259,7 +258,7 @@
     }
 
     function lhy_manualReset() {
-        if(confirm("초기화하시겠습니까?")) { localStorage.removeItem('badminton_v86'); lhy_init(); }
+        if(confirm("초기화하시겠습니까?")) { localStorage.removeItem('badminton_v87'); location.reload(); }
     }
 </script>
 </body>
