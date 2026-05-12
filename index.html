@@ -3,33 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 관리 v85</title>
+    <title>배드민턴 클럽 관리 v86</title>
     <style>
         :root { --bg-green: #5d8a58; --court-line: rgba(255,255,255,0.8); --border-color: #dee2e6; --accent: #4a6d46; --female-bg: #fff0f3; --female-border: #ff85a2; --btn-red: #e63946; --btn-blue: #007bff; }
         body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
-        .main-container { background: white; width: 100%; max-width: 1600px; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        
+        /* 암호 입력 화면 */
+        #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; color:white; }
+        #login-overlay input { padding:15px; font-size:20px; border-radius:10px; border:none; text-align:center; width:200px; margin-bottom:15px; color:#000; }
+        
+        .main-container { background: white; width: 100%; max-width: 1600px; padding: 15px; border-radius: 15px; display: none; flex-direction: column; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         .content-wrapper { display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 1100px) { .content-wrapper { flex-direction: row; } }
+        
         .left-panel { flex: 1.8; display: flex; flex-direction: column; gap: 15px; }
         .right-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 350px; }
+        
         .courts-wrapper, .waiting-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 600px) { .waiting-row { grid-template-columns: repeat(4, 1fr); } }
+        
         .court-base { background: var(--bg-green); border: 2.5px solid #3e5c3a; border-radius: 10px; position: relative; display: flex; padding-top: 45px; min-height: 180px; box-sizing: border-box; transition: 0.3s; }
         .court-base.disabled { opacity: 0.3 !important; filter: grayscale(0.8) brightness(0.8); pointer-events: none; }
+        
         .court-header { position: absolute; top: 0; left: 0; right: 0; height: 45px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; z-index: 100; color: white; font-weight: 900; font-size: 14px; }
         .team-zone { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border-right: 1.5px solid var(--court-line); min-height: 100px; }
         .team-zone:last-child { border-right: none; }
+        
         .player-tag { background: white; border: 1.5px solid #444; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 14px; font-weight: 800; height: 42px; color: #111; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; }
         .player-tag.female { background: var(--female-bg); border-color: var(--female-border); color: #d63384; }
         .player-tag.is-out { opacity: 0.5 !important; filter: grayscale(0.5); border-style: dashed; pointer-events: none; }
         .player-tag.on-game { opacity: 0.25 !important; background: #e9ecef !important; filter: grayscale(0.8); pointer-events: none; }
+        
         .grid-layout-10 { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
         .section-title { font-weight: 900; border-left: 5px solid var(--accent); padding-left: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
         .count-badge { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #666; margin-left: 5px; }
     </style>
 </head>
 <body>
-<div class="main-container">
+
+<div id="login-overlay">
+    <h2>Access Required</h2>
+    <input type="password" id="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) lhy_checkPw()">
+    <button onclick="lhy_checkPw()" style="padding:10px 20px; font-weight:bold; cursor:pointer;">확인</button>
+</div>
+
+<div class="main-container" id="main-ui">
     <div class="content-wrapper">
         <div class="left-panel">
             <div class="section-title">🏸 실시간 코트</div>
@@ -81,11 +99,24 @@
 </div>
 
 <script>
-    // [수정] 회원 명단 데이터를 가나다순으로 미리 정렬
+    const P_W = "0531"; // 설정하신 비밀번호
     const MEMBER_DATA = ["박찬경", "한순직", "박순이(여)", "신기흥", "강기호", "조만희", "이명선", "강송중", "김선주", "김성동", "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅", "이후열", "도성학", "이운영", "신동윤", "고재선", "김영혜(여)", "이근영", "이달주", "김기수", "금성옥(여)", "조윤진(여)", "유영춘", "김방수", "김묘임(여)", "양희동", "정노숙(여)", "권혜진(여)", "최경숙(여)", "백숙현(여)", "안현욱", "윤상철", "최정열", "김영민", "송재현"].sort();
 
+    // [복구] 비밀번호 체크 함수
+    function lhy_checkPw() {
+        const input = document.getElementById('pw-input').value;
+        if(input === P_W) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            lhy_init();
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            document.getElementById('pw-input').value = "";
+        }
+    }
+
     function lhy_init() {
-        const saved = localStorage.getItem('badminton_v85');
+        const saved = localStorage.getItem('badminton_v86');
         const data = saved ? JSON.parse(saved) : { members: MEMBER_DATA.map(n => ({name:n, isOut:false})), atts: [], actives: [], courtStatus: [true,true,true,true] };
 
         const mGrid = document.getElementById('memberGrid'); mGrid.innerHTML = '';
@@ -184,7 +215,7 @@
                 return c ? c.checked : true;
             })
         };
-        localStorage.setItem('badminton_v85', JSON.stringify(state));
+        localStorage.setItem('badminton_v86', JSON.stringify(state));
         lhy_updateCounters();
         lhy_syncGhost();
     }
@@ -228,10 +259,8 @@
     }
 
     function lhy_manualReset() {
-        if(confirm("초기화하시겠습니까?")) { localStorage.removeItem('badminton_v85'); lhy_init(); }
+        if(confirm("초기화하시겠습니까?")) { localStorage.removeItem('badminton_v86'); lhy_init(); }
     }
-
-    window.onload = lhy_init;
 </script>
 </body>
 </html>
