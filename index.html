@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 실시간 관리 v66</title>
+    <title>배드민턴 클럽 실시간 관리 v67</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
@@ -40,7 +40,7 @@
         .login-box input { padding: 10px; font-size: 18px; width: 150px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
-<body onclick="hideMenu()">
+<body>
 
 <div id="login-overlay">
     <div class="login-box">
@@ -61,15 +61,15 @@
     <div class="content-wrapper">
         <div class="left-panel">
             <div class="courts-wrapper">
-                <div class="court-base" id="court-1"><div class="court-header"><span><input type="checkbox" id="chk-1" checked onchange="saveRemoteData()"> 1코트</span><button onclick="finishGame(1)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z1-L"></div><div class="team-zone drop-zone" id="z1-R"></div></div>
-                <div class="court-base" id="court-2"><div class="court-header"><span><input type="checkbox" id="chk-2" checked onchange="saveRemoteData()"> 2코트</span><button onclick="finishGame(2)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z2-L"></div><div class="team-zone drop-zone" id="z2-R"></div></div>
-                <div class="court-base" id="court-3"><div class="court-header"><span><input type="checkbox" id="chk-3" checked onchange="saveRemoteData()"> 3코트</span><button onclick="finishGame(3)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z3-L"></div><div class="team-zone drop-zone" id="z3-R"></div></div>
+                <div class="court-base" id="court-1"><div class="court-header"><span><input type="checkbox" id="chk-1" checked onchange="saveRemoteData()"> 1코트</span><button onclick="finishGame(1)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z1-L"></div><div class="team-zone" id="z1-R"></div></div>
+                <div class="court-base" id="court-2"><div class="court-header"><span><input type="checkbox" id="chk-2" checked onchange="saveRemoteData()"> 2코트</span><button onclick="finishGame(2)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z2-L"></div><div class="team-zone" id="z2-R"></div></div>
+                <div class="court-base" id="court-3"><div class="court-header"><span><input type="checkbox" id="chk-3" checked onchange="saveRemoteData()"> 3코트</span><button onclick="finishGame(3)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone" id="z3-L"></div><div class="team-zone" id="z3-R"></div></div>
             </div>
             <div class="section-box" style="background:transparent; border:none; padding:0;"><div class="section-title"><span>⏳ 대기 명단</span></div>
                 <div class="waiting-row">
-                    <div class="court-base court-wait" id="wait-1"><div class="court-header"><span>①</span><button onclick="moveWaitToCourt(1)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w1-L"></div><div class="team-zone drop-zone" id="w1-R"></div></div>
-                    <div class="court-base court-wait" id="wait-2"><div class="court-header"><span>②</span><button onclick="moveWaitToCourt(2)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w2-L"></div><div class="team-zone drop-zone" id="w2-R"></div></div>
-                    <div class="court-base court-wait" id="wait-3"><div class="court-header"><span>③</span><button onclick="moveWaitToCourt(3)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w3-L"></div><div class="team-zone drop-zone" id="w3-R"></div></div>
+                    <div class="court-base court-wait" id="wait-1"><div class="court-header"><span>①</span><button onclick="manualMoveWait(1)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w1-L"></div><div class="team-zone" id="w1-R"></div></div>
+                    <div class="court-base court-wait" id="wait-2"><div class="court-header"><span>②</span><button onclick="manualMoveWait(2)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w2-L"></div><div class="team-zone" id="w2-R"></div></div>
+                    <div class="court-base court-wait" id="wait-3"><div class="court-header"><span>③</span><button onclick="manualMoveWait(3)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone" id="w3-L"></div><div class="team-zone" id="w3-R"></div></div>
                 </div>
             </div>
         </div>
@@ -105,7 +105,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ADMIN_PW = "오동화목"; // 요청하신 한글 비밀번호
+    const ADMIN_PW = "odong"; // 비밀번호 odong으로 수정 완료
 
     function checkPw() {
         if (document.getElementById('adminPw').value === ADMIN_PW) {
@@ -116,7 +116,7 @@
     }
 
     function loadRealtimeData() {
-        db.ref("odong_v66/state").on("value", (snapshot) => {
+        db.ref("odong_v67/state").on("value", (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
             renderUI(data);
@@ -131,8 +131,6 @@
         if(data.atts) data.atts.forEach(a => createAttTag(a.name, a.originId, a.id, a.gameCount));
         document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
         if(data.actives) data.actives.forEach(ac => createActiveTag(ac.name, ac.originId, ac.attId, ac.parentId, ac.id));
-        
-        // 코트 상태 동기화 (1, 2, 3번 모두 동일 로직 적용)
         if(data.courtStatus) data.courtStatus.forEach((s, i) => {
             const chk = document.getElementById(`chk-${i+1}`);
             if(chk) {
@@ -151,7 +149,7 @@
             actives: [...document.querySelectorAll('[id^="act_"]')].map(ac => ({ id: ac.id, name: ac.textContent, originId: ac.dataset.originId, attId: ac.dataset.attId, parentId: ac.parentElement.id })),
             courtStatus: [1,2,3].map(i => document.getElementById(`chk-${i}`).checked)
         };
-        db.ref("odong_v66/state").set(state);
+        db.ref("odong_v67/state").set(state);
     }
 
     function createMemberTag(name, id, isOut) {
@@ -201,18 +199,25 @@
         }
     }
 
+    // [v67 개선] 종료 버튼 시 대기 순서대로 채우기
     function finishGame(n) {
-        ['L','R'].forEach(s => document.getElementById(`z${n}-${s}`).innerHTML = '');
-        moveWaitToCourt(1); saveRemoteData();
+        document.getElementById(`z${n}-L`).innerHTML = '';
+        document.getElementById(`z${n}-R`).innerHTML = '';
+        for (let i = 1; i <= 3; i++) autoMoveWaitToCourt(i);
+        saveRemoteData();
     }
 
-    function moveWaitToCourt(slot) {
+    function manualMoveWait(slot) {
+        autoMoveWaitToCourt(slot);
+        saveRemoteData();
+    }
+
+    function autoMoveWaitToCourt(slot) {
         const players = [...document.getElementById(`w${slot}-L`).children, ...document.getElementById(`w${slot}-R`).children];
         players.forEach(p => {
             const target = findEmptyCourt();
             if(target) target.appendChild(p);
         });
-        saveRemoteData();
     }
 
     function findEmptyCourt() {
@@ -254,7 +259,7 @@
 
     function manualReset() {
         if(confirm("모든 현황을 초기화하시겠습니까?")) {
-            db.ref("odong_v66/state").update({ atts: [], actives: [] });
+            db.ref("odong_v67/state").update({ atts: [], actives: [] });
             setTimeout(() => location.reload(), 500);
         }
     }
