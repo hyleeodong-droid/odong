@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>배드민턴 클럽 실시간 관리 v67</title>
+    <title>배드민턴 클럽 실시간 관리 v71</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
@@ -26,7 +26,7 @@
         .court-header { position: absolute; top: 6px; left: 6px; right: 6px; z-index: 20; display: flex; justify-content: space-between; align-items: center; color: white; font-weight: 800; font-size: 11px; pointer-events: auto; }
         .court-base::before { content: ''; position: absolute; left: 50%; top: 38px; bottom: 6px; width: 2px; background: var(--court-line); z-index: 1; transform: translateX(-50%); }
         .team-zone { flex: 1; min-height: 80px; margin: 2px; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 2; padding: 4px; box-sizing: border-box; }
-        .player-tag { background: white; border: 1.5px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 11px; font-weight: 800; height: 32px; color: #111; padding: 0 2px; text-align: center; }
+        .player-tag { background: white; border: 1.5px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 11px; font-weight: 800; height: 32px; color: #111; padding: 0 2px; text-align: center; position: relative; }
         .player-tag.female { background: var(--female-bg); border-color: var(--female-border); color: #d63384; }
         .player-tag.is-out { opacity: 0.2; filter: grayscale(1); border-style: dashed; pointer-events: none; }
         .player-tag.on-game { opacity: 0.35; border-style: dotted; color: #777; }
@@ -34,7 +34,6 @@
         .section-box { background: #fdfdfd; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
         .section-title { font-weight: 800; margin-bottom: 8px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
         .grid-layout-10 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #f8f9fa; padding: 6px; border-radius: 8px; min-height: 40px; }
-        .btn-csv { color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; }
         .login-box input { padding: 10px; font-size: 18px; width: 150px; text-align: center; margin-bottom: 10px; }
@@ -78,13 +77,11 @@
                 <div class="section-title"><span>🏃 금일 출석 <span id="currentAttCount" class="count-badge">0명</span></span><button onclick="manualReset()" style="background:#6c757d; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">🔄 초기화</button></div>
                 <div id="attList" class="grid-layout-10"></div>
             </div>
-            <div class="section-box"><div class="section-title"><span>📂 회원 관리 <span id="totalMemberCount" class="count-badge blue">0명</span></span></div>
+            <div class="section-box"><div class="section-title"><span>📂 회원 명부 <span id="totalMemberCount" class="count-badge blue">0명</span></span></div>
                 <div style="display:flex; gap:4px;">
                     <input type="text" id="pName" placeholder="이름" style="width:70px; padding:5px; border-radius:4px; border:1.5px solid var(--accent);">
                     <button onclick="addMember()" style="background:var(--accent); color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">등록</button>
-                    <button onclick="exportCSV()" class="btn-csv" style="background:var(--btn-green);">내보내기</button>
-                    <button onclick="document.getElementById('csvFileInput').click()" class="btn-csv" style="background:var(--btn-blue);">불러오기</button>
-                    <input type="file" id="csvFileInput" style="display:none" accept=".csv" onchange="importCSV(this)">
+                    <span style="font-size: 10px; color: #666; align-self: center; margin-left: 5px;">(이름 클릭 시 탈퇴 가능)</span>
                 </div>
                 <div id="memberGrid" class="grid-layout-10" style="margin-top:10px;"></div>
             </div>
@@ -105,7 +102,18 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ADMIN_PW = "odong"; // 비밀번호 odong으로 수정 완료
+    const ADMIN_PW = "odong"; 
+
+    const INITIAL_MEMBERS = [
+        "박찬경", "한순직", "박순이(여)", "신기흥", "강기호", 
+        "조만희", "이명선", "강송중", "김선주", "김성동",
+        "정다영(여)", "박명식", "김영임(여)", "강경순(여)", "천병웅",
+        "이후열", "도성학", "이운영", "신동윤", "고재선",
+        "김영혜(여)", "이근영", "이달주", "김기수", "금성옥(여)",
+        "조윤진(여)", "유영춘", "김방수", "김묘임(여)", "양희동",
+        "정노숙(여)", "권혜진(여)", "최경숙(여)", "백숙현(여)", "안현욱",
+        "윤상철", "최정열", "김영민", "송재현"
+    ];
 
     function checkPw() {
         if (document.getElementById('adminPw').value === ADMIN_PW) {
@@ -116,29 +124,27 @@
     }
 
     function loadRealtimeData() {
-        db.ref("odong_v67/state").on("value", (snapshot) => {
+        db.ref("odong_v71/state").on("value", (snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
-            renderUI(data);
-        });
-    }
+            const memberGrid = document.getElementById('memberGrid');
+            memberGrid.innerHTML = '';
+            
+            const membersToRender = (data && data.members) ? data.members : INITIAL_MEMBERS.map(name => ({id: 'm_'+Math.random(), name: name, isOut: false}));
+            membersToRender.forEach(m => createMemberTag(m.name, m.id, m.isOut));
 
-    function renderUI(data) {
-        document.getElementById('clubName').value = data.club || "오동 화목 배드민턴 클럽";
-        const memberGrid = document.getElementById('memberGrid'); memberGrid.innerHTML = '';
-        if(data.members) data.members.forEach(m => createMemberTag(m.name, m.id, m.isOut));
-        const attList = document.getElementById('attList'); attList.innerHTML = '';
-        if(data.atts) data.atts.forEach(a => createAttTag(a.name, a.originId, a.id, a.gameCount));
-        document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
-        if(data.actives) data.actives.forEach(ac => createActiveTag(ac.name, ac.originId, ac.attId, ac.parentId, ac.id));
-        if(data.courtStatus) data.courtStatus.forEach((s, i) => {
-            const chk = document.getElementById(`chk-${i+1}`);
-            if(chk) {
-                chk.checked = s;
-                document.getElementById(`court-${i+1}`).classList.toggle('disabled', !s);
-            }
+            if (!data) { saveRemoteData(); return; }
+            
+            document.getElementById('clubName').value = data.club || "오동 화목 배드민턴 클럽";
+            const attList = document.getElementById('attList'); attList.innerHTML = '';
+            if(data.atts) data.atts.forEach(a => createAttTag(a.name, a.originId, a.id, a.gameCount));
+            document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
+            if(data.actives) data.actives.forEach(ac => createActiveTag(ac.name, ac.originId, ac.attId, ac.parentId, ac.id));
+            if(data.courtStatus) data.courtStatus.forEach((s, i) => {
+                const chk = document.getElementById(`chk-${i+1}`);
+                if(chk) { chk.checked = s; document.getElementById(`court-${i+1}`).classList.toggle('disabled', !s); }
+            });
+            updateCounters(); syncGhostStatus();
         });
-        updateCounters(); syncGhostStatus();
     }
 
     function saveRemoteData() {
@@ -149,13 +155,25 @@
             actives: [...document.querySelectorAll('[id^="act_"]')].map(ac => ({ id: ac.id, name: ac.textContent, originId: ac.dataset.originId, attId: ac.dataset.attId, parentId: ac.parentElement.id })),
             courtStatus: [1,2,3].map(i => document.getElementById(`chk-${i}`).checked)
         };
-        db.ref("odong_v67/state").set(state);
+        db.ref("odong_v71/state").set(state);
     }
 
     function createMemberTag(name, id, isOut) {
-        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '') + (isOut ? ' is-out' : '');
-        t.id = id; t.textContent = name;
-        t.onclick = () => { if(!isOut) { t.classList.add('is-out'); createAttTag(name, id); saveRemoteData(); } };
+        const t = document.createElement('div'); 
+        t.className = 'player-tag' + (name.includes('여') ? ' female' : '') + (isOut ? ' is-out' : '');
+        t.id = id; 
+        t.textContent = name;
+        t.onclick = (e) => {
+            if (isOut) {
+                if (confirm(`'${name}' 회원을 명부에서 영구 삭제(탈퇴) 하시겠습니까?`)) {
+                    t.remove(); saveRemoteData();
+                }
+            } else {
+                t.classList.add('is-out'); 
+                createAttTag(name, id); 
+                saveRemoteData();
+            }
+        };
         document.getElementById('memberGrid').appendChild(t);
     }
 
@@ -188,27 +206,30 @@
 
     function findSpaceAndMove(name, originId, attId) {
         for(let i=1; i<=3; i++) {
+            if(!document.getElementById(`chk-${i}`).checked) continue;
             const zones = [`w${i}-L`, `w${i}-R`];
             for(let zid of zones) {
                 const z = document.getElementById(zid);
                 if(z && z.children.length < 2) { 
-                    createActiveTag(name, originId, attId, zid, 'act_'+Date.now() + Math.random()); 
+                    createActiveTag(name, originId, attId, zid, 'act_'+Date.now()+Math.random()); 
                     saveRemoteData(); return; 
                 }
             }
         }
     }
 
-    // [v67 개선] 종료 버튼 시 대기 순서대로 채우기
     function finishGame(n) {
         document.getElementById(`z${n}-L`).innerHTML = '';
         document.getElementById(`z${n}-R`).innerHTML = '';
+        // 빈자리 채우고 대기열 당기기
         for (let i = 1; i <= 3; i++) autoMoveWaitToCourt(i);
+        shiftWaitingList();
         saveRemoteData();
     }
 
     function manualMoveWait(slot) {
         autoMoveWaitToCourt(slot);
+        shiftWaitingList();
         saveRemoteData();
     }
 
@@ -218,6 +239,20 @@
             const target = findEmptyCourt();
             if(target) target.appendChild(p);
         });
+    }
+
+    // [v71 추가] 대기열 전진 로직 (Shift)
+    function shiftWaitingList() {
+        for (let i = 1; i < 3; i++) {
+            const currentL = document.getElementById(`w${i}-L`), currentR = document.getElementById(`w${i}-R`);
+            const nextL = document.getElementById(`w${i+1}-L`), nextR = document.getElementById(`w${i+1}-R`);
+            
+            // 현재 칸이 비어있으면 다음 칸 인원을 가져옴
+            if (currentL.children.length === 0 && currentR.children.length === 0) {
+                while (nextL.firstChild) currentL.appendChild(nextL.firstChild);
+                while (nextR.firstChild) currentR.appendChild(nextR.firstChild);
+            }
+        }
     }
 
     function findEmptyCourt() {
@@ -234,32 +269,9 @@
         createMemberTag(i.value.trim(), 'm_'+Date.now()); i.value = ''; saveRemoteData();
     }
 
-    function exportCSV() {
-        const names = [...document.querySelectorAll('#memberGrid .player-tag')].map(t => t.textContent);
-        const blob = new Blob(["\uFEFF회원명단\n" + names.join("\n")], { type: 'text/csv;charset=utf-8;' });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-        a.download = `명단_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    }
-
-    function importCSV(input) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const rows = e.target.result.split(/\r?\n/);
-            rows.forEach(row => {
-                const n = row.split(',')[0].trim();
-                if(n && n !== "회원명단") {
-                    const exists = [...document.querySelectorAll('#memberGrid .player-tag')].some(t => t.textContent === n);
-                    if(!exists) createMemberTag(n, 'm_'+Date.now()+Math.random());
-                }
-            });
-            saveRemoteData();
-        };
-        reader.readAsText(input.files[0], "UTF-8");
-    }
-
     function manualReset() {
-        if(confirm("모든 현황을 초기화하시겠습니까?")) {
-            db.ref("odong_v67/state").update({ atts: [], actives: [] });
+        if(confirm("모든 현황을 초기화하시겠습니까? (회원 명부는 유지됩니다)")) {
+            db.ref("odong_v71/state").update({ atts: [], actives: [] });
             setTimeout(() => location.reload(), 500);
         }
     }
