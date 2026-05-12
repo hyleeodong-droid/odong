@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>배드민턴 클럽 실시간 관리 v66</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        :root { --bg-green: #5d8a58; --court-line: rgba(255,255,255,0.8); --border-color: #dee2e6; --accent: #4a6d46; --female-bg: #fff0f3; --female-border: #ff85a2; --title-bg: #eef2ed; --btn-red: #e63946; --btn-blue: #007bff; --btn-green: #28a745; }
+        body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 8px; margin: 0; overflow-x: hidden; }
+        .main-container { background: white; width: 100%; max-width: 1600px; padding: 12px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; }
+        .header-top { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; gap: 8px; }
+        .club-name-box { text-align: center; width: 100%; background: var(--title-bg); padding: 8px 0; border-radius: 50px; border: 1px solid #d0dccf; }
+        .club-name-box input { width: 80%; border: none; font-size: 18px; font-weight: 900; text-align: center; outline: none; color: var(--accent); background: transparent; }
+        .time-display-box { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+        .live-date { font-size: 13px; background: #fff; padding: 4px 10px; border-radius: 15px; border: 1px solid #ddd; }
+        .live-clock { font-size: 15px; background: #333; color: #fff; padding: 4px 12px; border-radius: 15px; letter-spacing: 1px; }
+        .content-wrapper { display: flex; gap: 12px; flex-wrap: wrap; }
+        .left-panel { flex: 3; min-width: 320px; }
+        .right-panel { flex: 2; min-width: 320px; }
+        .courts-wrapper, .waiting-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+        .court-base { background: var(--bg-green); border: 2px solid #3e5c3a; border-radius: 8px; position: relative; display: flex; padding-top: 38px; min-height: 140px; box-sizing: border-box; }
+        .court-wait { min-height: 115px; padding-top: 35px; }
+        .court-base.disabled { opacity: 0.25; filter: grayscale(0.8); pointer-events: none; }
+        .court-header { position: absolute; top: 6px; left: 6px; right: 6px; z-index: 20; display: flex; justify-content: space-between; align-items: center; color: white; font-weight: 800; font-size: 11px; pointer-events: auto; }
+        .court-base::before { content: ''; position: absolute; left: 50%; top: 38px; bottom: 6px; width: 2px; background: var(--court-line); z-index: 1; transform: translateX(-50%); }
+        .team-zone { flex: 1; min-height: 80px; margin: 2px; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 2; padding: 4px; box-sizing: border-box; }
+        .player-tag { background: white; border: 1.5px solid #555; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; font-size: 11px; font-weight: 800; height: 32px; color: #111; padding: 0 2px; text-align: center; }
+        .player-tag.female { background: var(--female-bg); border-color: var(--female-border); color: #d63384; }
+        .player-tag.is-out { opacity: 0.2; filter: grayscale(1); border-style: dashed; pointer-events: none; }
+        .player-tag.on-game { opacity: 0.35; border-style: dotted; color: #777; }
+        .game-count-tag { color: #d63384; margin-left: 3px; font-weight: 900; font-size: 10px; }
+        .section-box { background: #fdfdfd; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+        .section-title { font-weight: 800; margin-bottom: 8px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .grid-layout-10 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #f8f9fa; padding: 6px; border-radius: 8px; min-height: 40px; }
+        .btn-csv { color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; }
+        .login-box input { padding: 10px; font-size: 18px; width: 150px; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body onclick="hideMenu()">
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h3>오동 클럽 관리자 인증</h3>
+        <input type="password" id="adminPw" placeholder="비밀번호" onkeypress="if(event.keyCode==13) checkPw()">
+        <br><button onclick="checkPw()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:5px; cursor:pointer;">입장</button>
+    </div>
+</div>
+
+<div class="main-container" id="mainApp">
+    <div class="header-top">
+        <div class="club-name-box"><input type="text" id="clubName" value="오동 화목 배드민턴 클럽" onchange="saveRemoteData()"></div>
+        <div class="time-display-box">
+            <div id="liveDate" class="live-date"></div>
+            <div id="liveClock" class="live-clock">00:00:00</div>
+        </div>
+    </div>
+    <div class="content-wrapper">
+        <div class="left-panel">
+            <div class="courts-wrapper">
+                <div class="court-base" id="court-1"><div class="court-header"><span><input type="checkbox" id="chk-1" checked onchange="saveRemoteData()"> 1코트</span><button onclick="finishGame(1)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z1-L"></div><div class="team-zone drop-zone" id="z1-R"></div></div>
+                <div class="court-base" id="court-2"><div class="court-header"><span><input type="checkbox" id="chk-2" checked onchange="saveRemoteData()"> 2코트</span><button onclick="finishGame(2)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z2-L"></div><div class="team-zone drop-zone" id="z2-R"></div></div>
+                <div class="court-base" id="court-3"><div class="court-header"><span><input type="checkbox" id="chk-3" checked onchange="saveRemoteData()"> 3코트</span><button onclick="finishGame(3)" style="background:var(--btn-red); color:white; border:none; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">종료</button></div><div class="team-zone drop-zone" id="z3-L"></div><div class="team-zone drop-zone" id="z3-R"></div></div>
+            </div>
+            <div class="section-box" style="background:transparent; border:none; padding:0;"><div class="section-title"><span>⏳ 대기 명단</span></div>
+                <div class="waiting-row">
+                    <div class="court-base court-wait" id="wait-1"><div class="court-header"><span>①</span><button onclick="moveWaitToCourt(1)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w1-L"></div><div class="team-zone drop-zone" id="w1-R"></div></div>
+                    <div class="court-base court-wait" id="wait-2"><div class="court-header"><span>②</span><button onclick="moveWaitToCourt(2)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w2-L"></div><div class="team-zone drop-zone" id="w2-R"></div></div>
+                    <div class="court-base court-wait" id="wait-3"><div class="court-header"><span>③</span><button onclick="moveWaitToCourt(3)" style="background:var(--btn-red); color:white; border:none; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">입장</button></div><div class="team-zone drop-zone" id="w3-L"></div><div class="team-zone drop-zone" id="w3-R"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="section-box">
+                <div class="section-title"><span>🏃 금일 출석 <span id="currentAttCount" class="count-badge">0명</span></span><button onclick="manualReset()" style="background:#6c757d; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">🔄 초기화</button></div>
+                <div id="attList" class="grid-layout-10"></div>
+            </div>
+            <div class="section-box"><div class="section-title"><span>📂 회원 관리 <span id="totalMemberCount" class="count-badge blue">0명</span></span></div>
+                <div style="display:flex; gap:4px;">
+                    <input type="text" id="pName" placeholder="이름" style="width:70px; padding:5px; border-radius:4px; border:1.5px solid var(--accent);">
+                    <button onclick="addMember()" style="background:var(--accent); color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">등록</button>
+                    <button onclick="exportCSV()" class="btn-csv" style="background:var(--btn-green);">내보내기</button>
+                    <button onclick="document.getElementById('csvFileInput').click()" class="btn-csv" style="background:var(--btn-blue);">불러오기</button>
+                    <input type="file" id="csvFileInput" style="display:none" accept=".csv" onchange="importCSV(this)">
+                </div>
+                <div id="memberGrid" class="grid-layout-10" style="margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCU7KLQQC2glx_zYSgORrJiqXwjR47xJvs",
+        authDomain: "odong-badminton.firebaseapp.com",
+        projectId: "odong-badminton",
+        databaseURL: "https://odong-badminton-default-rtdb.asia-southeast1.firebasedatabase.app",
+        storageBucket: "odong-badminton.firebasestorage.app",
+        messagingSenderId: "216159538093",
+        appId: "1:216159538093:web:7a0c3ac45986b84cb6af24"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const ADMIN_PW = "오동화목"; // 요청하신 한글 비밀번호
+
+    function checkPw() {
+        if (document.getElementById('adminPw').value === ADMIN_PW) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadRealtimeData();
+        } else { alert("비밀번호가 틀렸습니다."); }
+    }
+
+    function loadRealtimeData() {
+        db.ref("odong_v66/state").on("value", (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+            renderUI(data);
+        });
+    }
+
+    function renderUI(data) {
+        document.getElementById('clubName').value = data.club || "오동 화목 배드민턴 클럽";
+        const memberGrid = document.getElementById('memberGrid'); memberGrid.innerHTML = '';
+        if(data.members) data.members.forEach(m => createMemberTag(m.name, m.id, m.isOut));
+        const attList = document.getElementById('attList'); attList.innerHTML = '';
+        if(data.atts) data.atts.forEach(a => createAttTag(a.name, a.originId, a.id, a.gameCount));
+        document.querySelectorAll('.team-zone').forEach(z => z.innerHTML = '');
+        if(data.actives) data.actives.forEach(ac => createActiveTag(ac.name, ac.originId, ac.attId, ac.parentId, ac.id));
+        
+        // 코트 상태 동기화 (1, 2, 3번 모두 동일 로직 적용)
+        if(data.courtStatus) data.courtStatus.forEach((s, i) => {
+            const chk = document.getElementById(`chk-${i+1}`);
+            if(chk) {
+                chk.checked = s;
+                document.getElementById(`court-${i+1}`).classList.toggle('disabled', !s);
+            }
+        });
+        updateCounters(); syncGhostStatus();
+    }
+
+    function saveRemoteData() {
+        const state = {
+            club: document.getElementById('clubName').value,
+            members: [...document.querySelectorAll('#memberGrid .player-tag')].map(m => ({ id: m.id, name: m.textContent, isOut: m.classList.contains('is-out') })),
+            atts: [...document.querySelectorAll('#attList .player-tag')].map(a => ({ id: a.id, name: a.querySelector('span').textContent, originId: a.dataset.originId, gameCount: a.dataset.gameCount })),
+            actives: [...document.querySelectorAll('[id^="act_"]')].map(ac => ({ id: ac.id, name: ac.textContent, originId: ac.dataset.originId, attId: ac.dataset.attId, parentId: ac.parentElement.id })),
+            courtStatus: [1,2,3].map(i => document.getElementById(`chk-${i}`).checked)
+        };
+        db.ref("odong_v66/state").set(state);
+    }
+
+    function createMemberTag(name, id, isOut) {
+        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '') + (isOut ? ' is-out' : '');
+        t.id = id; t.textContent = name;
+        t.onclick = () => { if(!isOut) { t.classList.add('is-out'); createAttTag(name, id); saveRemoteData(); } };
+        document.getElementById('memberGrid').appendChild(t);
+    }
+
+    function createAttTag(name, originId, id = null, gCount = 0) {
+        const aid = id || 'att_' + Date.now();
+        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '');
+        t.id = aid; t.dataset.originId = originId; t.dataset.gameCount = gCount;
+        t.innerHTML = `<span>${name}</span><span class="game-count-tag">(${gCount})</span>`;
+        t.onclick = () => { if(!t.classList.contains('on-game')) findSpaceAndMove(name, originId, aid); };
+        document.getElementById('attList').appendChild(t);
+    }
+
+    function createActiveTag(name, originId, attId, parentId, actId) {
+        const t = document.createElement('div'); t.className = 'player-tag' + (name.includes('여') ? ' female' : '');
+        t.id = actId; t.textContent = name; t.dataset.attId = attId; t.dataset.originId = originId;
+        t.onclick = () => { t.remove(); saveRemoteData(); };
+        const parent = document.getElementById(parentId);
+        if(parent) parent.appendChild(t);
+        if(parentId.startsWith('z')) addGameCount(attId);
+    }
+
+    function addGameCount(attId) {
+        const att = document.getElementById(attId);
+        if(att) {
+            let count = parseInt(att.dataset.gameCount || 0) + 1;
+            att.dataset.gameCount = count;
+            att.querySelector('.game-count-tag').textContent = `(${count})`;
+        }
+    }
+
+    function findSpaceAndMove(name, originId, attId) {
+        for(let i=1; i<=3; i++) {
+            const zones = [`w${i}-L`, `w${i}-R`];
+            for(let zid of zones) {
+                const z = document.getElementById(zid);
+                if(z && z.children.length < 2) { 
+                    createActiveTag(name, originId, attId, zid, 'act_'+Date.now() + Math.random()); 
+                    saveRemoteData(); return; 
+                }
+            }
+        }
+    }
+
+    function finishGame(n) {
+        ['L','R'].forEach(s => document.getElementById(`z${n}-${s}`).innerHTML = '');
+        moveWaitToCourt(1); saveRemoteData();
+    }
+
+    function moveWaitToCourt(slot) {
+        const players = [...document.getElementById(`w${slot}-L`).children, ...document.getElementById(`w${slot}-R`).children];
+        players.forEach(p => {
+            const target = findEmptyCourt();
+            if(target) target.appendChild(p);
+        });
+        saveRemoteData();
+    }
+
+    function findEmptyCourt() {
+        for(let i=1; i<=3; i++) {
+            if(!document.getElementById(`chk-${i}`).checked) continue;
+            const l = document.getElementById(`z${i}-L`), r = document.getElementById(`z${i}-R`);
+            if(l.children.length < 2) return l; if(r.children.length < 2) return r;
+        }
+        return null;
+    }
+
+    function addMember() {
+        const i = document.getElementById('pName'); if(!i.value.trim()) return;
+        createMemberTag(i.value.trim(), 'm_'+Date.now()); i.value = ''; saveRemoteData();
+    }
+
+    function exportCSV() {
+        const names = [...document.querySelectorAll('#memberGrid .player-tag')].map(t => t.textContent);
+        const blob = new Blob(["\uFEFF회원명단\n" + names.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = `명단_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    }
+
+    function importCSV(input) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const rows = e.target.result.split(/\r?\n/);
+            rows.forEach(row => {
+                const n = row.split(',')[0].trim();
+                if(n && n !== "회원명단") {
+                    const exists = [...document.querySelectorAll('#memberGrid .player-tag')].some(t => t.textContent === n);
+                    if(!exists) createMemberTag(n, 'm_'+Date.now()+Math.random());
+                }
+            });
+            saveRemoteData();
+        };
+        reader.readAsText(input.files[0], "UTF-8");
+    }
+
+    function manualReset() {
+        if(confirm("모든 현황을 초기화하시겠습니까?")) {
+            db.ref("odong_v66/state").update({ atts: [], actives: [] });
+            setTimeout(() => location.reload(), 500);
+        }
+    }
+
+    function updateCounters() {
+        document.getElementById('currentAttCount').textContent = document.getElementById('attList').children.length + "명";
+        document.getElementById('totalMemberCount').textContent = document.getElementById('memberGrid').children.length + "명";
+    }
+
+    function syncGhostStatus() {
+        document.querySelectorAll('#attList .player-tag').forEach(att => {
+            att.classList.toggle('on-game', !!document.querySelector(`[data-att-id="${att.id}"]`));
+        });
+    }
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('liveDate').textContent = now.toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit', weekday:'short'});
+        document.getElementById('liveClock').textContent = now.toTimeString().split(' ')[0];
+    }
+    setInterval(updateClock, 1000); updateClock();
+</script>
+</body>
+</html>
