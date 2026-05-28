@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260528-18</title>
+    <title>화목모임_260528-20</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -177,7 +177,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260528-18.html</div>
+    <div class="lhy-footer-filename">화목모임_260528-20.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -254,7 +254,7 @@
 
 <script>
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
-    let DB = { members: [], config: { c: [true,true], w: [true], matchRule: 'balance' }, matchHistory: {} };
+    let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; let selectedPopId = null;
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
 
@@ -286,7 +286,7 @@
     }
 
     function lhy_renderRuleButtons() {
-        let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'balance';
+        let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         document.querySelectorAll('.rule-btn').forEach(btn => {
             if (btn.dataset.rule === rule) {
                 btn.style.background = '#FFD700'; btn.style.color = '#000'; btn.style.border = '2px solid #000';
@@ -437,9 +437,8 @@
         }
     }
 
-    // 요구사항 3 반영: 파트너 중복을 회피하며 팀을 편성하는 기존 고도화 로직 보강
     function lhy_pickAndPlace4(pool, boardPrefix) {
-        let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'balance';
+        let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
         
         let selected4 = [];
@@ -472,7 +471,6 @@
         selected4.forEach(p => p._score = lhy_calcMemberScore(p));
         selected4.sort((a,b) => b._score - a._score);
 
-        // 3가지 레이아웃: 조합(페어링) 테스트 및 중복 방지 평가
         let layouts = [
             { t1: [selected4[0], selected4[3]], t2: [selected4[1], selected4[2]] },
             { t1: [selected4[0], selected4[2]], t2: [selected4[1], selected4[3]] },
@@ -480,7 +478,6 @@
         ];
 
         layouts.forEach(l => {
-            // 같이 경기한 횟수가 가장 높은 것을 페널티로 부여
             l.dupPenalty = Math.max(
                 lhy_getMatchScore(l.t1[0].id, l.t1[1].id),
                 lhy_getMatchScore(l.t2[0].id, l.t2[1].id)
@@ -490,8 +487,6 @@
             l.scoreDiff = Math.abs(score1 - score2);
         });
 
-        // 1. 중복 기록이 적은 조합 최우선 (중복 매칭 방지)
-        // 2. 패널티가 같다면 점수 차이가 가장 적게 나는 조합 (균형)
         layouts.sort((a, b) => {
             if (a.dupPenalty !== b.dupPenalty) return a.dupPenalty - b.dupPenalty; 
             return a.scoreDiff - b.scoreDiff; 
@@ -504,19 +499,16 @@
         boardState[`${boardPrefix}-R1`] = bestLayout.t2[0].id;
         boardState[`${boardPrefix}-R2`] = bestLayout.t2[1].id;
         
-        // 확정된 파트너십 기록 누적
         lhy_addMatchHistory(bestLayout.t1[0].id, bestLayout.t1[1].id);
         lhy_addMatchHistory(bestLayout.t2[0].id, bestLayout.t2[1].id);
         
         return true;
     }
 
-    // 요구사항 2 반영: 대기팀의 편성을 그대로 코트로 밀어올리는 통합 엔진
     function lhy_rotationalMatchEngine() {
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let shiftedAny = false;
         
-        // 1. 코트가 비어있다면, 대기조의 2명 1팀 편성(L조/R조)을 전혀 변경하지 않고 코트로 복사 이동
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -527,10 +519,10 @@
                             if (hasWaitTeam) {
                                 posOrder.forEach(p => {
                                     boardState[`c${i}-${p}`] = boardState[`w${w}-${p}`];
-                                    boardState[`w${w}-${p}`] = null; // 이동 후 기존 대기석 비움
+                                    boardState[`w${w}-${p}`] = null;
                                 });
                                 shiftedAny = true;
-                                break; // 해당 코트가 채워지면 대기팀 탐색 종료
+                                break;
                             }
                         }
                     }
@@ -538,21 +530,17 @@
             }
         }
         
-        // 대기팀이 코트로 이동하여 앞자리가 비었다면 슬롯 당겨주기
         if (shiftedAny) { lhy_compactWaitSlots(); }
 
-        // 2. 배치되지 않은 가용 인원 풀 구성
         let playingIds = Object.values(boardState).filter(id => id !== null);
         let pool = DB.members.filter(m => m.isAtt && !playingIds.includes(m.id));
             
-        // 3. 우선순위 정렬
         pool.sort((a, b) => {
             if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); 
             if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0); 
             return a.name.localeCompare(b.name, 'ko');
         });
 
-        // 4. 비어있는 구역(코트 -> 대기석 순) 순차 배정
         const allAreas = [
             ...[1,2,3,4,5,6].map(i => ({ id: `c${i}`, active: DB.config.c[i-1] })),
             ...[1,2,3,4,5,6].map(i => ({ id: `w${i}`, active: DB.config.w[i-1] }))
@@ -583,13 +571,12 @@
                 const m = DB.members.find(x => x.id === pid);
                 if (m) { 
                     m.cnt = (m.cnt || 0) + 1;
-                    m.attTime = Date.now(); // 갱신 
+                    m.attTime = Date.now();
                 }
                 boardState[`c${idx}-${p}`] = null;
             }
         });
 
-        // (수정) 기존에 게임 종료 시 모든 대기석을 초기화하여 팀 구성이 깨지던 현상 방지
         lhy_rotationalMatchEngine();
     }
 
@@ -652,7 +639,6 @@
         if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
     }
 
-    // 요구사항 1 반영: 페이지 로드 시 오류 유발 요소(유령 데이터)를 정리하는 방어 로직 추가
     function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
@@ -664,13 +650,13 @@
             try {
                 DB = JSON.parse(saved);
                 if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
-                // DB 객체 안전성 검증
+                
                 if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
-                    DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; 
+                    DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
                 }
                 DB.members.filter(m => !m.isG).forEach(m => { if(!m.joinDate) m.joinDate = "260101"; });
                 if(!DB.matchHistory) DB.matchHistory = {};
-                if(!DB.config.matchRule) DB.config.matchRule = 'balance';
+                if(!DB.config.matchRule) DB.config.matchRule = 'grade';
                 
             } catch(e) { lhy_loadDefaultDB(); }
         } else { lhy_loadDefaultDB(); }
@@ -685,12 +671,37 @@
             for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
         }
 
-        // 안정성 강화: 명단(DB.members)에 없는 유령 아이디가 보드판에 잔존할 경우 자동 청소
+        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
+        if (isNewSession) {
+            DB.members.forEach(m => {
+                m.isAtt = false;
+                m.cnt = 0;
+                delete m.attTime;
+            });
+            DB.members = DB.members.filter(m => !m.isG);
+
+            DB.config.c = [true, true, false, false, false, false];
+            DB.config.w = [true, false, false, false, false, false];
+            DB.config.matchRule = 'grade'; // 초기 세션 시작 시 등급별로 강제 고정
+
+            Object.keys(boardState).forEach(key => { boardState[key] = null; });
+            DB.matchHistory = {};
+
+            sessionStorage.setItem('hwamok_session_v19', 'true');
+            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
+        }
+
         const validIds = new Set(DB.members.map(m => m.id));
         Object.keys(boardState).forEach(key => {
             if (boardState[key] && !validIds.has(boardState[key])) {
                 boardState[key] = null;
             }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
         new Sortable(document.getElementById('ui-list'), { ...dragOpt, sort: false, filter: ".player", preventOnFilter: false, onAdd: (evt) => { if(evt.item) evt.item.remove(); lhy_syncBoardDOMToState(); } });
@@ -702,7 +713,7 @@
             const isFemale = n.includes('여');
             return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, isG: false };
         });
-        DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; DB.matchHistory = {};
+        DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {};
     }
 
     function toggleUnit(t, i) { 
@@ -978,7 +989,6 @@
             if (a.isAtt && !b.isAtt) return -1;
             if (!a.isAtt && b.isAtt) return 1;
             if (a.isAtt && b.isAtt) {
-                // 출석 리스트 정렬 시: 출석 빠른 순
                 if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0);
             }
             if (a.isG !== b.isG) return b.isG - a.isG;
@@ -1000,11 +1010,11 @@
                 } else {
                     delete m.attTime;
                     Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
-                    if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } // 손님 즉각 삭제
+                    if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
                 }
                 
                 lhy_dominoShiftSystem();
-                lhy_applyOrientationLogic(); // 화면 동기화
+                lhy_applyOrientationLogic(); 
             };
             list.appendChild(d);
         });
@@ -1020,10 +1030,11 @@
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; });
             DB.members = DB.members.filter(m => !m.isG);
-            DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' };
+            DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
             DB.matchHistory = {};
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
+            sessionStorage.removeItem('hwamok_session_v19'); 
             lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
             if (document.fullscreenElement) { document.exitFullscreen(); }
             window.close();
