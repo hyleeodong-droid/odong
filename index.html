@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260528-2</title>
+    <title>화목모임_20260528-18</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -17,15 +17,6 @@
         html, body { height: 100%; width: 100%; overflow: hidden; background: #000; position: fixed; left: 0; top: 0; }
         
         body { display: flex; flex-direction: column; transform-origin: top left; transition: transform 0.15s ease-out; }
-
-#lhy-modal-overlay {
-    display: none; /* 평소에는 안 보임 */
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.4); /* 배경을 어둡게 (투명도 조절 가능) */
-    z-index: 999; /* 다른 모든 기능보다 위로 올라옴 */
-}
 
         .lhy-header { height: 35px; background: #1a237e; border-bottom: 1px solid #fff; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; gap: 5px; }
         .lhy-box-date { background: #fff; color: #000; font-weight: 950; padding: 2px 5px; border-radius: 2px; font-size: 0.7rem; }
@@ -162,7 +153,7 @@
 
     <header class="lhy-header">
         <div class="lhy-box-date" id="ui-date"></div>
-        <button class="lhy-hd-btn" onclick="lhy_openHelpPop()">설명</button>
+        <button class="lhy-hd-btn" onclick="lhy_openHelpPop()">도움말</button>
         <div class="lhy-box-title">화목모임</div>
         <button class="lhy-hd-btn" id="btn-admin-toggle" onclick="lhy_fnToggleAdminMode()">관리자</button>
         <div class="lhy-box-stat" id="ui-stat" onclick="lhy_openMasterPop()">0/0</div>
@@ -186,7 +177,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260528-1.html</div>
+    <div class="lhy-footer-filename">화목모임_20260528-18.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -263,7 +254,7 @@
 
 <script>
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
-    let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }, pairs: {}, matchHistory: {} };
+    let DB = { members: [], config: { c: [true,true], w: [true], matchRule: 'balance' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; let selectedPopId = null;
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
 
@@ -286,40 +277,24 @@
         DB.matchHistory[key] = (DB.matchHistory[key] || 0) + 1;
     }
 
-function lhy_setMatchRule(rule) {
-// DB가 없으면 초기화 (안전장치)
-    if (!DB.config) DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' };
-    
-    // 1. 규칙 업데이트
-    DB.config.matchRule = rule;
+    function lhy_setMatchRule(rule) {
+        if (!DB.config) DB.config = {};
+        DB.config.matchRule = rule;
+        lhy_renderRuleButtons();
+        lhy_saveUndoState();
+        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+    }
 
-    // 2. 즉시 저장 (전체 DB를 저장함)
-    localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-
-    // 3. 버튼 색상 즉시 변경
-    lhy_renderRuleButtons();
-    
-    // 4. 실행취소 기록 (필요 시)
-    lhy_saveUndoState();
-    
-    console.log("우선순위 저장 완료: " + rule);
-}
-
-function lhy_renderRuleButtons() {
-    // 모든 버튼의 색을 초기화
-    const buttons = document.querySelectorAll('.rule-btn');
-    const currentRule = DB.config.matchRule || 'balance'; // 저장된 규칙이 없으면 기본값
-
-    buttons.forEach(btn => {
-        if (btn.getAttribute('data-rule') === currentRule) {
-            btn.style.background = '#FFD700'; // 선택된 버튼은 노란색
-            btn.style.color = '#000';
-        } else {
-            btn.style.background = '#fff'; // 선택 안 된 버튼은 흰색
-            btn.style.color = '#000';
-        }
-    });
-}
+    function lhy_renderRuleButtons() {
+        let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'balance';
+        document.querySelectorAll('.rule-btn').forEach(btn => {
+            if (btn.dataset.rule === rule) {
+                btn.style.background = '#FFD700'; btn.style.color = '#000'; btn.style.border = '2px solid #000';
+            } else {
+                btn.style.background = '#ccc'; btn.style.color = '#777'; btn.style.border = '1px solid #aaa';
+            }
+        });
+    }
 
     function lhy_exportMembers() {
         if (!confirm("현재 회원 명단을 CSV 파일로 내보내시겠습니까?")) return;
@@ -462,6 +437,7 @@ function lhy_renderRuleButtons() {
         }
     }
 
+    // 요구사항 3 반영: 파트너 중복을 회피하며 팀을 편성하는 기존 고도화 로직 보강
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'balance';
         if (pool.length < 4) return false;
@@ -480,32 +456,23 @@ function lhy_renderRuleButtons() {
             let sortedPool = [...pool].sort((a,b) => {
                 let diffA = Math.abs(getGVal(a.grade) - targetG);
                 let diffB = Math.abs(getGVal(b.grade) - targetG);
-                if(diffA !== diffB) return diffA - diffB; // 1차: 등급 차이
+                if(diffA !== diffB) return diffA - diffB;
                 
-                // 2차: 최우선 원칙 (1. 대기시간 빠른 순, 2. 게임누적횟수 적은 순)
                 if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0);
                 if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0);
                 return a.name.localeCompare(b.name, 'ko');
             });
             selected4 = sortedPool.slice(0, 4);
         } else {
-            // 점수균형 (최우선 원칙으로 상위 4명 선발)
-            // 풀(pool) 자체가 이미 1. 대기시간 빠른 순 2. 게임누적횟수 적은 순으로 정렬되어 있음
             selected4 = pool.slice(0, 4);
         }
         
-        // 선발된 4명 풀에서 제거
         selected4.forEach(s => { let idx = pool.findIndex(p => p.id === s.id); if(idx > -1) pool.splice(idx, 1); });
         
-        // 선발된 4명 점수 산정
         selected4.forEach(p => p._score = lhy_calcMemberScore(p));
-        // 점수 높은 순 정렬 (0:최고점, 3:최저점)
         selected4.sort((a,b) => b._score - a._score);
 
-        // 3가지 레이아웃: 조합(페어링) 테스트 및 중복 방지
-        // L0: (최고+최하) vs (2위+3위) -> 기본 추천 (점수균형)
-        // L1: (최고+3위) vs (2위+최하) -> 차선 (중복 회피 시)
-        // L2: (최고+2위) vs (3위+최하) -> 차차선
+        // 3가지 레이아웃: 조합(페어링) 테스트 및 중복 방지 평가
         let layouts = [
             { t1: [selected4[0], selected4[3]], t2: [selected4[1], selected4[2]] },
             { t1: [selected4[0], selected4[2]], t2: [selected4[1], selected4[3]] },
@@ -513,6 +480,7 @@ function lhy_renderRuleButtons() {
         ];
 
         layouts.forEach(l => {
+            // 같이 경기한 횟수가 가장 높은 것을 페널티로 부여
             l.dupPenalty = Math.max(
                 lhy_getMatchScore(l.t1[0].id, l.t1[1].id),
                 lhy_getMatchScore(l.t2[0].id, l.t2[1].id)
@@ -522,8 +490,8 @@ function lhy_renderRuleButtons() {
             l.scoreDiff = Math.abs(score1 - score2);
         });
 
-        // 1. 중복 기록이 적은 조합 최우선 (중복 1번 편성된 2인조 차기 매칭 방지)
-        // 2. 중복 패널티가 같다면 점수 차이가 가장 안 나는 조합 (점수균형)
+        // 1. 중복 기록이 적은 조합 최우선 (중복 매칭 방지)
+        // 2. 패널티가 같다면 점수 차이가 가장 적게 나는 조합 (균형)
         layouts.sort((a, b) => {
             if (a.dupPenalty !== b.dupPenalty) return a.dupPenalty - b.dupPenalty; 
             return a.scoreDiff - b.scoreDiff; 
@@ -531,42 +499,73 @@ function lhy_renderRuleButtons() {
 
         let bestLayout = layouts[0];
 
-        // 보드에 할당
         boardState[`${boardPrefix}-L1`] = bestLayout.t1[0].id;
         boardState[`${boardPrefix}-L2`] = bestLayout.t1[1].id;
         boardState[`${boardPrefix}-R1`] = bestLayout.t2[0].id;
         boardState[`${boardPrefix}-R2`] = bestLayout.t2[1].id;
         
+        // 확정된 파트너십 기록 누적
         lhy_addMatchHistory(bestLayout.t1[0].id, bestLayout.t1[1].id);
         lhy_addMatchHistory(bestLayout.t2[0].id, bestLayout.t2[1].id);
         
         return true;
     }
 
+    // 요구사항 2 반영: 대기팀의 편성을 그대로 코트로 밀어올리는 통합 엔진
     function lhy_rotationalMatchEngine() {
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
+        let shiftedAny = false;
+        
+        // 1. 코트가 비어있다면, 대기조의 2명 1팀 편성(L조/R조)을 전혀 변경하지 않고 코트로 복사 이동
+        for (let i = 1; i <= 6; i++) {
+            if (DB.config.c[i-1]) {
+                let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
+                if (isCourtEmpty) {
+                    for (let w = 1; w <= 6; w++) {
+                        if (DB.config.w[w-1]) {
+                            let hasWaitTeam = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
+                            if (hasWaitTeam) {
+                                posOrder.forEach(p => {
+                                    boardState[`c${i}-${p}`] = boardState[`w${w}-${p}`];
+                                    boardState[`w${w}-${p}`] = null; // 이동 후 기존 대기석 비움
+                                });
+                                shiftedAny = true;
+                                break; // 해당 코트가 채워지면 대기팀 탐색 종료
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 대기팀이 코트로 이동하여 앞자리가 비었다면 슬롯 당겨주기
+        if (shiftedAny) { lhy_compactWaitSlots(); }
+
+        // 2. 배치되지 않은 가용 인원 풀 구성
         let playingIds = Object.values(boardState).filter(id => id !== null);
         let pool = DB.members.filter(m => m.isAtt && !playingIds.includes(m.id));
-        
-        // 대원칙: 1. 빨리 출석한 사람(attTime 빠른순) 2. 게임누적횟수 적은사람(cnt 적은순)
+            
+        // 3. 우선순위 정렬
         pool.sort((a, b) => {
             if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); 
             if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0); 
             return a.name.localeCompare(b.name, 'ko');
         });
 
-        for (let i = 1; i <= 6; i++) {
-            if (DB.config.c[i - 1]) {
-                let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
-                if (isCourtEmpty) { lhy_pickAndPlace4(pool, `c${i}`); }
+        // 4. 비어있는 구역(코트 -> 대기석 순) 순차 배정
+        const allAreas = [
+            ...[1,2,3,4,5,6].map(i => ({ id: `c${i}`, active: DB.config.c[i-1] })),
+            ...[1,2,3,4,5,6].map(i => ({ id: `w${i}`, active: DB.config.w[i-1] }))
+        ];
+
+        allAreas.forEach(area => {
+            if (area.active) {
+                let isEmpty = posOrder.every(p => boardState[`${area.id}-${p}`] === null);
+                if (isEmpty && pool.length >= 4) {
+                    lhy_pickAndPlace4(pool, area.id);
+                }
             }
-        }
-        for (let i = 1; i <= 6; i++) {
-            if (DB.config.w[i - 1]) {
-                let isWaitEmpty = posOrder.every(p => boardState[`w${i}-${p}`] === null);
-                if (isWaitEmpty) { lhy_pickAndPlace4(pool, `w${i}`); }
-            }
-        }
+        });
         
         lhy_renderBoardFromState();
         lhy_updateResetButtonUI();
@@ -590,9 +589,7 @@ function lhy_renderRuleButtons() {
             }
         });
 
-        for (let i = 1; i <= 6; i++) {
-            if (DB.config.w[i - 1]) { posOrder.forEach(p => { boardState[`w${i}-${p}`] = null; }); }
-        }
+        // (수정) 기존에 게임 종료 시 모든 대기석을 초기화하여 팀 구성이 깨지던 현상 방지
         lhy_rotationalMatchEngine();
     }
 
@@ -655,35 +652,26 @@ function lhy_renderRuleButtons() {
         if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
     }
 
+    // 요구사항 1 반영: 페이지 로드 시 오류 유발 요소(유령 데이터)를 정리하는 방어 로직 추가
     function lhy_init() {
-
-
-// 1. 저장된 데이터 불러오기 (가장 먼저 실행)
-    const savedData = localStorage.getItem('lhy_v260520_storage');
-    
-    if (savedData) {
-        try {
-            // 저장된 데이터가 있으면 DB에 덮어씀
-            DB = JSON.parse(savedData);
-            console.log("저장된 데이터를 불러왔습니다.");
-        } catch (e) {
-            console.error("데이터 불러오기 실패, 기본값 사용", e);
-        }
-    }
-
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
         
         const saved = localStorage.getItem('lhy_v260520_storage');
+
         if(saved) {
             try {
                 DB = JSON.parse(saved);
                 if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
+                // DB 객체 안전성 검증
+                if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
+                    DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; 
+                }
                 DB.members.filter(m => !m.isG).forEach(m => { if(!m.joinDate) m.joinDate = "260101"; });
-                if(!DB.pairs) DB.pairs = {}; if(!DB.matchHistory) DB.matchHistory = {};
-                if(!DB.config || DB.config.c.length < 6) { DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; }
+                if(!DB.matchHistory) DB.matchHistory = {};
                 if(!DB.config.matchRule) DB.config.matchRule = 'balance';
+                
             } catch(e) { lhy_loadDefaultDB(); }
         } else { lhy_loadDefaultDB(); }
         
@@ -697,12 +685,16 @@ function lhy_renderRuleButtons() {
             for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
         }
 
+        // 안정성 강화: 명단(DB.members)에 없는 유령 아이디가 보드판에 잔존할 경우 자동 청소
+        const validIds = new Set(DB.members.map(m => m.id));
+        Object.keys(boardState).forEach(key => {
+            if (boardState[key] && !validIds.has(boardState[key])) {
+                boardState[key] = null;
+            }
+        });
+
         new Sortable(document.getElementById('ui-list'), { ...dragOpt, sort: false, filter: ".player", preventOnFilter: false, onAdd: (evt) => { if(evt.item) evt.item.remove(); lhy_syncBoardDOMToState(); } });
-lhy_drawBoard(); 
-    lhy_renderBoardFromState(); 
-    lhy_updateResetButtonUI(); 
-    lhy_renderHelpViewer(1);
-lhy_renderRuleButtons();
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_renderHelpViewer(1);
     }
 
     function lhy_loadDefaultDB() {
@@ -710,7 +702,7 @@ lhy_renderRuleButtons();
             const isFemale = n.includes('여');
             return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, isG: false };
         });
-        DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; DB.pairs = {}; DB.matchHistory = {};
+        DB.config = { c: [true,true,false,false,false,false], w: [true,true,true,true,false,false], matchRule: 'balance' }; DB.matchHistory = {};
     }
 
     function toggleUnit(t, i) { 
@@ -829,29 +821,13 @@ lhy_renderRuleButtons();
     function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
     function lhy_openHelpPop() { document.getElementById('lhy-pop-help').style.display = 'flex'; }
     function lhy_closeHelpPop() { document.getElementById('lhy-pop-help').style.display = 'none'; }
-function lhy_openMasterPop() { 
-        if(!lhy_checkAdminPermission()) return; 
-        lhy_renderMasterTable(); 
-        lhy_renderRuleButtons(); 
-        
-        // [수정] 관리자 창을 확실하게 최상단으로 올리고 화면을 덮습니다.
-        const modal = document.getElementById('lhy-pop-master');
-        modal.style.display = 'flex';
-        modal.style.zIndex = '9999'; // 다른 모든 기능보다 항상 위에 있도록 강제 설정
-    }
-
+    function lhy_openMasterPop() { if(!lhy_checkAdminPermission()) return; lhy_renderMasterTable(); lhy_renderRuleButtons(); document.getElementById('lhy-pop-master').style.display = 'flex'; }
     function lhy_closeMasterPop() {
-        // [수정] 확인창을 통해 닫을지 결정
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
-            lhy_saveUndoState(); 
-            lhy_syncInlineInputsToState();
+            lhy_saveUndoState(); lhy_syncInlineInputsToState();
             document.getElementById('lhy-pop-master').style.display = 'none'; 
             lhy_dominoShiftSystem();
-        } else { 
-            // 취소 시 그냥 닫기만 하고 싶다면 아래 주석을 참고하세요.
-            // location.reload(); // 기존처럼 새로고침하고 싶으면 유지하세요.
-            document.getElementById('lhy-pop-master').style.display = 'none';
-        }
+        } else { location.reload(); }
     }
 
     function lhy_syncInlineInputsToState() {
@@ -1055,7 +1031,6 @@ function lhy_openMasterPop() {
     }
 </script>
 
-    <!-- 신입/손님 추가 모달 -->
     <div class="lhy-modal-overlay" id="lhy-pop-add-member" onclick="document.getElementById('lhy-pop-add-member').style.display='none'">
         <div class="lhy-modal-content" style="height:auto; max-width:320px; padding:20px; display:flex; flex-direction:column; gap:10px; background:#fff; border-radius:8px;" onclick="event.stopPropagation()">
             <div class="lhy-modal-header" id="add-member-title" style="margin-bottom:10px; border-radius:4px; font-weight:bold; background:#1a237e; color:#fff; padding:10px; text-align:center;">신입/손님 추가</div>
