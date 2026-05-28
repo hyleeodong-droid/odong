@@ -1024,7 +1024,7 @@
         localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     }
 
-    function lhy_fnExit(event) {
+function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까?")) {
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
@@ -1037,7 +1037,17 @@
             sessionStorage.removeItem('hwamok_session_v19'); 
             lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
             if (document.fullscreenElement) { document.exitFullscreen(); }
+            
+            // [수정 핵심] 창 닫기를 시도하고, 브라우저가 차단하면 화면을 마감 완료 상태로 전환합니다.
             window.close();
+            setTimeout(() => {
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#111; color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
+                        <div style="font-size:1.6rem; font-weight:950; color:#27ae60; margin-bottom:12px;">✓ 오늘 모임 마감 완료</div>
+                        <div style="font-size:1rem; color:#bbb; line-height:1.4;">현재 상태가 안전하게 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
+                    </div>
+                `;
+            }, 100);
         }
     }
 </script>
