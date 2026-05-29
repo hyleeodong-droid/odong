@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_260528-20</title>
+    <title>화목모임_20260529-3</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -61,7 +61,7 @@
         .player { display: flex; align-items: center; justify-content: center; cursor: move; background: #fff; width: 100%; height: 100%; overflow: hidden; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px; }
         
         .p-name { 
-            line-height: 1.0; 
+            line-height: 1.1; 
             text-align: center; 
             pointer-events: none; 
             word-break: keep-all; 
@@ -76,11 +76,20 @@
         .lhy-slot .player.in-game { background: transparent !important; border: none !important; box-shadow: none !important; }
         .lhy-slot .player.is-selected-target { background: #FF0 !important; border: 2px dashed #000 !important; }
 
+        /* 자동 레이아웃 글자크기 CSS */
+        .layout-c1-r1 .in-game .p-name { font-size: 3.4rem !important; font-weight: 950 !important; }
+        .layout-c1-r2 .in-game .p-name { font-size: 2.6rem !important; font-weight: 950 !important; }
+        .layout-c2-r2 .in-game .p-name { font-size: 1.6rem !important; font-weight: 950 !important; }
+        .layout-c2-r3 .in-game .p-name { font-size: 1.2rem !important; font-weight: 950 !important; }
+
+        .real-landscape .layout-c1-r1 .in-game .p-name { font-size: 2.8rem !important; }
+        .real-landscape .layout-c1-r2 .in-game .p-name { font-size: 2.0rem !important; }
+        .real-landscape .layout-c2-r2 .in-game .p-name { font-size: 1.4rem !important; }
+        .real-landscape .layout-c2-r3 .in-game .p-name { font-size: 1.1rem !important; }
+
         .in-game .p-name { 
-            font-size: clamp(1.4rem, 4vw + 1vh, 2.2rem) !important; 
             letter-spacing: -1.8px;
             text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0px 0 #fff, 2.5px 0px 0 #fff, 0px -2.5px 0 #fff, 0px 2.5px 0 #fff; 
-            pointer-events: none; white-space: nowrap;
         }
 
         .lhy-slot .player.is-selected-target .p-name { text-shadow: none !important; color: #000 !important; }
@@ -177,7 +186,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260528-20.html</div>
+    <div class="lhy-footer-filename">화목모임_20260529-3.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -200,7 +209,7 @@
                 </div>
                 <div style="font-size: 0.75rem; color: #555; font-weight: bold;">
                     ※ 기본 우선순위: 1. 빨리 출석한 순 ➔ 2. 게임누적횟수 적은 순<br>
-                    ※ 1번 편성된 2인조는 다음 매칭 시 중복 방지 로직 적용
+                    ※ 절대 중복 방지: 파트너를 찾을 때 매칭 이력이 0번인 회원을 모든 등급에서 최우선 탐색합니다.
                 </div>
             </div>
             
@@ -342,30 +351,6 @@
         reader.readAsText(file, 'utf-8');
     }
 
-    function lhy_calcMemberScore(m) {
-        let score = 0;
-        score += (m.sex === '여' || (m.name && m.name.includes('여'))) ? 1 : 2;
-        const age = parseInt(m.age);
-        if(!isNaN(age)) {
-             if(age >= 75) score += 1;
-             else if(age >= 70) score += 2;
-             else if(age >= 65) score += 3;
-             else if(age >= 60) score += 4;
-             else if(age >= 55) score += 5;
-             else if(age >= 50) score += 6;
-             else if(age >= 45) score += 7;
-             else if(age >= 40) score += 8;
-             else if(age >= 35) score += 9;
-             else if(age >= 30) score += 10;
-             else if(age >= 25) score += 11;
-             else if(age >= 20) score += 12;
-        }
-        const g = m.grade;
-        const gMap = {"D2":1, "D1":2, "C2":3, "C1":4, "B2":5, "B1":6, "A2":7, "A1":8};
-        if(g && gMap[g]) score += gMap[g];
-        return score;
-    }
-
     const dragOpt = { 
         group: 'sh', animation: 150, delay: 0,
         onStart: function() { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } lhy_saveUndoState(); },
@@ -373,15 +358,6 @@
             document.querySelectorAll('.player').forEach(p => p.classList.remove('is-selected-target'));
             lhy_syncBoardDOMToState();
         } 
-    };
-
-    const HELP_DATA = {
-        1: { title: "1. 일반 회원 자율 출석 및 가변형 제어 단추 시스템", steps: [ "<b>자율 출석 기능:</b> 미출석 상태인 회원은 명부에서 이름을 가볍게 탭하면 즉시 출석 불빛이 들어옵니다.", "<b>가변형 [입장] / [초기화] 단추:</b> 보드판에 선수가 한 명도 없을 때는 버튼이 녹색 [입장]으로 변합니다.", "<b>초기화 기능:</b> 보드판에 선수가 한 명이라도 있을 때 버튼을 누르면 코트/대기판 내부의 모든 인원이 즉시 우측 출석 대기열로 빠져나갑니다." ] },
-        2: { title: "2. 회원관리 마스터 제어 규칙", steps: [ "<b>회원관리 진입:</b> [관리자] 모드 전환 상태에서 상단 우측의 <b>[회원관리]</b> 버튼을 클릭하면 편집 창이 호출됩니다." ] },
-        3: { title: "3. 실행취소 및 시스템 안전 마감", steps: [ "<b>실행취소 (Undo):</b> 드래그 실수나 입력 오류 발생 시 하단의 [실행취소] 버튼을 누르면 최대 20단계 전으로 복구합니다." ] },
-        4: { title: "4. [상황] 빈 코트/대기팀 자동 배치 시스템", steps: [ "우측 명부에서 회원을 터치하여 출석(불빛 들어옴)을 활성화시킵니다." ] },
-        5: { title: "5. [상황] 코트 선수간 자리 교체 (드래그 조율)", steps: [ "코트나 대기판에 배치 완료된 특정 선수 아이콘을 코트 내에서 드래그하여 조율합니다." ] },
-        6: { title: "6. [상황] 경기 중 무르기 및 조기 귀가 처리", steps: [ "코트 보드판에서 조율하거나 제외해야 하는 선수의 이름을 <b>0.6초간 움직임 없이 꾹 누릅니다(롱클릭).</b>" ] }
     };
 
     function lhy_fnToggleAdminMode() {
@@ -399,6 +375,8 @@
             document.getElementById('btn-admin-toggle').classList.remove('admin-mode');
             document.getElementById('btn-admin-toggle').innerText = "관리자";
             statEl.classList.remove('admin-active');
+            // 닫을 때 현재 인원수로 다시 표기 복구
+            statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`;
             lhy_applyOrientationLogic();
         }
     }
@@ -441,66 +419,63 @@
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
         
-        let selected4 = [];
-
-        if (rule === 'grade') {
-            let p1 = pool[0]; 
-            function getGVal(g) {
-                if(!g) return 0;
-                let c = g.charAt(0).toUpperCase();
-                return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
-            }
-            let targetG = getGVal(p1.grade);
-            
-            let sortedPool = [...pool].sort((a,b) => {
-                let diffA = Math.abs(getGVal(a.grade) - targetG);
-                let diffB = Math.abs(getGVal(b.grade) - targetG);
-                if(diffA !== diffB) return diffA - diffB;
-                
-                if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0);
-                if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0);
-                return a.name.localeCompare(b.name, 'ko');
-            });
-            selected4 = sortedPool.slice(0, 4);
-        } else {
-            selected4 = pool.slice(0, 4);
+        function getGVal(g) {
+            if(!g) return 0;
+            let c = g.charAt(0).toUpperCase();
+            return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
         }
+
+        function findPartner(pA, searchPool) {
+            let bestIdx = -1;
+            let minScore = Infinity;
+            let minGradeDiff = Infinity;
+            let targetG = getGVal(pA.grade);
+
+            for (let i = 0; i < searchPool.length; i++) {
+                let pB = searchPool[i];
+                let score = lhy_getMatchScore(pA.id, pB.id);
+                let gradeDiff = Math.abs(getGVal(pB.grade) - targetG);
+
+                if (score < minScore) {
+                    minScore = score;
+                    minGradeDiff = gradeDiff;
+                    bestIdx = i;
+                } 
+                else if (score === minScore) {
+                    if (rule === 'grade') {
+                        if (gradeDiff < minGradeDiff) {
+                            minGradeDiff = gradeDiff;
+                            bestIdx = i;
+                        }
+                    }
+                }
+            }
+            return bestIdx;
+        }
+
+        let p1 = pool[0];
+        let p2Idx = findPartner(p1, pool.slice(1));
+        let p2 = pool[1 + p2Idx];
+
+        let remaining = pool.filter(p => p.id !== p1.id && p.id !== p2.id);
+        let p3 = remaining[0];
+        let p4Idx = findPartner(p3, remaining.slice(1));
+        let p4 = remaining[1 + p4Idx];
+
+        let selectedIds = [p1.id, p2.id, p3.id, p4.id];
+        for (let i = pool.length - 1; i >= 0; i--) {
+            if (selectedIds.includes(pool[i].id)) {
+                pool.splice(i, 1);
+            }
+        }
+
+        boardState[`${boardPrefix}-L1`] = p1.id;
+        boardState[`${boardPrefix}-L2`] = p2.id;
+        boardState[`${boardPrefix}-R1`] = p3.id;
+        boardState[`${boardPrefix}-R2`] = p4.id;
         
-        selected4.forEach(s => { let idx = pool.findIndex(p => p.id === s.id); if(idx > -1) pool.splice(idx, 1); });
-        
-        selected4.forEach(p => p._score = lhy_calcMemberScore(p));
-        selected4.sort((a,b) => b._score - a._score);
-
-        let layouts = [
-            { t1: [selected4[0], selected4[3]], t2: [selected4[1], selected4[2]] },
-            { t1: [selected4[0], selected4[2]], t2: [selected4[1], selected4[3]] },
-            { t1: [selected4[0], selected4[1]], t2: [selected4[2], selected4[3]] }
-        ];
-
-        layouts.forEach(l => {
-            l.dupPenalty = Math.max(
-                lhy_getMatchScore(l.t1[0].id, l.t1[1].id),
-                lhy_getMatchScore(l.t2[0].id, l.t2[1].id)
-            );
-            let score1 = l.t1[0]._score + l.t1[1]._score;
-            let score2 = l.t2[0]._score + l.t2[1]._score;
-            l.scoreDiff = Math.abs(score1 - score2);
-        });
-
-        layouts.sort((a, b) => {
-            if (a.dupPenalty !== b.dupPenalty) return a.dupPenalty - b.dupPenalty; 
-            return a.scoreDiff - b.scoreDiff; 
-        });
-
-        let bestLayout = layouts[0];
-
-        boardState[`${boardPrefix}-L1`] = bestLayout.t1[0].id;
-        boardState[`${boardPrefix}-L2`] = bestLayout.t1[1].id;
-        boardState[`${boardPrefix}-R1`] = bestLayout.t2[0].id;
-        boardState[`${boardPrefix}-R2`] = bestLayout.t2[1].id;
-        
-        lhy_addMatchHistory(bestLayout.t1[0].id, bestLayout.t1[1].id);
-        lhy_addMatchHistory(bestLayout.t2[0].id, bestLayout.t2[1].id);
+        lhy_addMatchHistory(p1.id, p2.id);
+        lhy_addMatchHistory(p3.id, p4.id);
         
         return true;
     }
@@ -682,7 +657,7 @@
 
             DB.config.c = [true, true, false, false, false, false];
             DB.config.w = [true, false, false, false, false, false];
-            DB.config.matchRule = 'grade'; // 초기 세션 시작 시 등급별로 강제 고정
+            DB.config.matchRule = 'grade';
 
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.matchHistory = {};
@@ -730,10 +705,17 @@
         let actC = 0, actW = 0;
         for(let i=1; i<=6; i++) { if(DB.config.c[i-1]) actC++; if(DB.config.w[i-1]) actW++; }
 
-        cG.style.gridTemplateColumns = (actC <= 2) ? '1fr' : '1fr 1fr';
-        cG.style.gridTemplateRows = (actC <= 2) ? `repeat(${actC}, 1fr)` : `repeat(${Math.ceil(actC / 2)}, 1fr)`;
-        wG.style.gridTemplateColumns = (actW <= 2) ? '1fr' : '1fr 1fr';
-        wG.style.gridTemplateRows = (actW <= 2) ? `repeat(${actW}, 1fr)` : `repeat(${Math.ceil(actW / 2)}, 1fr)`;
+        let cCols = (actC <= 2) ? 1 : 2;
+        let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
+        cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`;
+        cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
+        cG.className = `grid-wrapper layout-c${cCols}-r${cRows}`;
+
+        let wCols = (actW <= 2) ? 1 : 2;
+        let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
+        wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`;
+        wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
+        wG.className = `grid-wrapper layout-c${wCols}-r${wRows}`;
 
         for(let i=1; i<=6; i++) {
             ['c','w'].forEach(t => {
@@ -773,31 +755,15 @@
         });
     }
 
-    function lhy_renderBoardFromState() {
-        Object.keys(boardState).forEach(key => {
-            const slot = document.getElementById(key);
-            if (slot) {
-                slot.innerHTML = '';
-                const pid = boardState[key];
-                if (pid) {
-                    const m = DB.members.find(x => x.id === pid);
-                    if (m && m.isAtt) { lhy_insertPlayerToSlot(slot, m); } else { boardState[key] = null; }
-                }
-            }
-        });
-    }
-
-    function lhy_updateResetButtonUI() {
-        const btn = document.getElementById('btn-reset-enter'); if (!btn) return;
-        let hasPlayers = Object.values(boardState).some(id => id !== null);
-        if (!hasPlayers) { btn.innerText = "입장"; btn.style.background = "#27ae60"; } 
-        else { btn.innerText = "초기화"; btn.style.background = "#e67e22"; }
-    }
-
     function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return; 
-        const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name);
-        const p = document.createElement('div'); p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id;
+        const sexClass = lhy_getSexClass(memberObj); 
+        const pureName = lhy_getPureName(memberObj.name);
+        const p = document.createElement('div'); 
+        p.className = `player in-game ${sexClass}`; 
+        p.dataset.id = memberObj.id;
+        
+        p.innerHTML = `<div class="p-name">${pureName}</div>`; 
         
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
@@ -826,19 +792,60 @@
 
         p.addEventListener('mousedown', startHandler); p.addEventListener('touchstart', startHandler, { passive: true });
         p.addEventListener('touchmove', moveHandler, { passive: false }); p.addEventListener('mouseup', endHandler); p.addEventListener('touchend', endHandler);
-        p.innerHTML = `<div class="p-name">${pureName}</div>`; slot.appendChild(p);
+        
+        slot.appendChild(p);
+    }
+
+    function lhy_renderBoardFromState() {
+        Object.keys(boardState).forEach(key => {
+            const slot = document.getElementById(key);
+            if (slot) {
+                slot.innerHTML = '';
+                const pid = boardState[key];
+                if (pid) {
+                    const m = DB.members.find(x => x.id === pid);
+                    if (m && m.isAtt) { lhy_insertPlayerToSlot(slot, m); } else { boardState[key] = null; }
+                }
+            }
+        });
+    }
+
+    function lhy_updateResetButtonUI() {
+        const btn = document.getElementById('btn-reset-enter'); if (!btn) return;
+        let hasPlayers = Object.values(boardState).some(id => id !== null);
+        if (!hasPlayers) { btn.innerText = "입장"; btn.style.background = "#27ae60"; } 
+        else { btn.innerText = "초기화"; btn.style.background = "#e67e22"; }
     }
 
     function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
     function lhy_openHelpPop() { document.getElementById('lhy-pop-help').style.display = 'flex'; }
     function lhy_closeHelpPop() { document.getElementById('lhy-pop-help').style.display = 'none'; }
-    function lhy_openMasterPop() { if(!lhy_checkAdminPermission()) return; lhy_renderMasterTable(); lhy_renderRuleButtons(); document.getElementById('lhy-pop-master').style.display = 'flex'; }
+    
+    function lhy_openMasterPop() { 
+        if(!lhy_checkAdminPermission()) return; 
+        lhy_renderMasterTable(); 
+        lhy_renderRuleButtons(); 
+        document.getElementById('lhy-pop-master').style.display = 'flex'; 
+    }
+    
+    // =========================================================================
+    // [요구사항 반영] 회원관리 팝업에서 "닫기" 클릭 시 새로고침 제거 및 관리자 자동 종료
+    // =========================================================================
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
-            lhy_saveUndoState(); lhy_syncInlineInputsToState();
+            lhy_saveUndoState(); 
+            lhy_syncInlineInputsToState();
             document.getElementById('lhy-pop-master').style.display = 'none'; 
             lhy_dominoShiftSystem();
-        } else { location.reload(); }
+        } else { 
+            // 취소 시에도 새로고침(location.reload) 하지 않고 부드럽게 닫기
+            document.getElementById('lhy-pop-master').style.display = 'none'; 
+        }
+
+        // 저장/취소 여부와 상관없이 팝업이 닫히면 관리자 모드를 함께 바로 종료시킴
+        if (isAdminMode) {
+            lhy_fnToggleAdminMode(); 
+        }
     }
 
     function lhy_syncInlineInputsToState() {
@@ -985,6 +992,7 @@
         list.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; list.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
         const playing = Object.values(boardState).filter(id => id !== null);
         list.innerHTML = '';
+        
         [...DB.members].sort((a,b) => {
             if (a.isAtt && !b.isAtt) return -1;
             if (!a.isAtt && b.isAtt) return 1;
@@ -999,8 +1007,15 @@
             const d = document.createElement('div'); 
             d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${isP ? 'is-playing' : ''} ${sexClass}`;
             d.dataset.id = m.id;
-            const responsiveFontSize = isLandscapeMode ? "clamp(1.15rem, 2.6vw + 0.6vh, 1.7rem)" : "clamp(0.95rem, 2.5vw + 0.5vh, 1.65rem)";
-            d.innerHTML = `<div class="p-name" style="font-size:${responsiveFontSize};">${pureName}${m.isAtt ? `<span class="p-cnt">(${m.cnt})</span>` : ''}</div>`;
+            
+            const activeAtt = DB.members.filter(x => x.isAtt).length;
+            let responsiveFontSize = "1.6rem";
+            if (activeAtt > 4) {
+                responsiveFontSize = isLandscapeMode ? "clamp(1.15rem, 2.6vw + 0.6vh, 1.7rem)" : "clamp(0.95rem, 2.5vw + 0.5vh, 1.65rem)";
+            }
+
+            d.innerHTML = `<div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950;">${pureName}${m.isAtt ? `<span class="p-cnt">(${m.cnt})</span>` : ''}</div>`;
+            
             d.onclick = () => {
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
                 lhy_saveUndoState(); m.isAtt = !m.isAtt;
@@ -1024,7 +1039,7 @@
         localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     }
 
-function lhy_fnExit(event) {
+    function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까?")) {
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
@@ -1038,7 +1053,6 @@ function lhy_fnExit(event) {
             lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
             if (document.fullscreenElement) { document.exitFullscreen(); }
             
-            // [수정 핵심] 창 닫기를 시도하고, 브라우저가 차단하면 화면을 마감 완료 상태로 전환합니다.
             window.close();
             setTimeout(() => {
                 document.body.innerHTML = `
