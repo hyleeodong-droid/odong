@@ -160,6 +160,22 @@
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
 
+<div id="auth-gate" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1a237e; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+    <div style="font-size:1.5rem; font-weight:950; margin-bottom:20px;">화목모임 접속 비밀번호</div>
+    <input type="password" id="pw-input" placeholder="비밀번호 입력" style="padding:15px; width:200px; font-size:1.1rem; border-radius:5px; border:none; text-align:center; margin-bottom:10px;">
+    <button onclick="checkPassword()" style="padding:10px 30px; font-size:1rem; font-weight:bold; background:#FFD700; border:none; border-radius:5px; cursor:pointer; color:#000;">접속하기</button>
+</div>
+<script>
+    function checkPassword() {
+        const input = document.getElementById('pw-input').value;
+        if (input === "12") { 
+            document.getElementById('auth-gate').style.display = 'none';
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+        }
+    }
+</script>
+
     <header class="lhy-header">
         <div class="lhy-box-date" id="ui-date"></div>
         <button class="lhy-hd-btn" onclick="lhy_openHelpPop()">도움말</button>
