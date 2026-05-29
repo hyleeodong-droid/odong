@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260529-3</title>
+    <title>화목모임_20260529-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -162,7 +162,9 @@
 
 <div id="auth-gate" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1a237e; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
     <div style="font-size:1.5rem; font-weight:950; margin-bottom:20px;">화목모임 접속 비밀번호</div>
-    <input type="password" id="pw-input" placeholder="비밀번호 입력" style="padding:15px; width:200px; font-size:1.1rem; border-radius:5px; border:none; text-align:center; margin-bottom:10px;">
+    <input type="password" id="pw-input" placeholder="비밀번호 입력" 
+           onkeydown="if(event.keyCode===13) checkPassword()" 
+           style="padding:15px; width:200px; font-size:1.1rem; border-radius:5px; border:none; text-align:center; margin-bottom:10px;">
     <button onclick="checkPassword()" style="padding:10px 30px; font-size:1rem; font-weight:bold; background:#FFD700; border:none; border-radius:5px; cursor:pointer; color:#000;">접속하기</button>
 </div>
 <script>
@@ -202,7 +204,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260529-3.html</div>
+    <div class="lhy-footer-filename">화목모임_20260529-4.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -391,7 +393,6 @@
             document.getElementById('btn-admin-toggle').classList.remove('admin-mode');
             document.getElementById('btn-admin-toggle').innerText = "관리자";
             statEl.classList.remove('admin-active');
-            // 닫을 때 현재 인원수로 다시 표기 복구
             statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`;
             lhy_applyOrientationLogic();
         }
@@ -496,18 +497,64 @@
         return true;
     }
 
+    // ==========================================
+    // [핵심] 리매치 엔진 및 보조 함수들
+    // ==========================================
+    function lhy_getSortedPool() {
+        let playingIds = Object.values(boardState).filter(id => id !== null);
+        let pool = DB.members.filter(m => m.isAtt && !playingIds.includes(m.id));
+        pool.sort((a, b) => {
+            if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); 
+            if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0); 
+            return a.name.localeCompare(b.name, 'ko');
+        });
+        return pool;
+    }
+
+    function lhy_extractFirstFromWaitlist() {
+        const posOrder = ['L1', 'L2', 'R1', 'R2'];
+        for (let w = 1; w <= 6; w++) {
+            if (DB.config.w[w-1]) {
+                for (let p of posOrder) {
+                    let id = boardState[`w${w}-${p}`];
+                    if (id) {
+                        boardState[`w${w}-${p}`] = null; 
+                        return id;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    function lhy_rebuildTeam(idsArr, boardPrefix) {
+        const posOrder = ['L1', 'L2', 'R1', 'R2'];
+        posOrder.forEach(p => boardState[`${boardPrefix}-${p}`] = null);
+        
+        if(idsArr.length < 4) {
+            idsArr.forEach((id, idx) => { boardState[`${boardPrefix}-${posOrder[idx]}`] = id; });
+            return;
+        }
+
+        let poolObjects = idsArr.map(id => DB.members.find(m => m.id === id)).filter(m => m !== undefined);
+        if(poolObjects.length === 4) {
+            lhy_pickAndPlace4(poolObjects, boardPrefix);
+        }
+    }
+
     function lhy_rotationalMatchEngine() {
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let shiftedAny = false;
         
+        // 1. 코트가 완전히 비었을 때 대기조 통째로 올리기 (종료버튼 클릭 시)
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
                 if (isCourtEmpty) {
                     for (let w = 1; w <= 6; w++) {
                         if (DB.config.w[w-1]) {
-                            let hasWaitTeam = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
-                            if (hasWaitTeam) {
+                            let waitCount = posOrder.filter(p => boardState[`w${w}-${p}`] !== null).length;
+                            if (waitCount === 4) { 
                                 posOrder.forEach(p => {
                                     boardState[`c${i}-${p}`] = boardState[`w${w}-${p}`];
                                     boardState[`w${w}-${p}`] = null;
@@ -523,15 +570,45 @@
         
         if (shiftedAny) { lhy_compactWaitSlots(); }
 
-        let playingIds = Object.values(boardState).filter(id => id !== null);
-        let pool = DB.members.filter(m => m.isAtt && !playingIds.includes(m.id));
-            
-        pool.sort((a, b) => {
-            if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); 
-            if ((a.cnt || 0) !== (b.cnt || 0)) return (a.cnt || 0) - (b.cnt || 0); 
-            return a.name.localeCompare(b.name, 'ko');
-        });
+        // 2. 부분적으로 빈 코트(1~3명) 채우기 및 조편성 (상황 1 해결)
+        for (let i = 1; i <= 6; i++) {
+            if (DB.config.c[i-1]) {
+                let cIds = posOrder.map(p => boardState[`c${i}-${p}`]).filter(id => id !== null);
+                if (cIds.length > 0 && cIds.length < 4) {
+                    let needed = 4 - cIds.length;
+                    for(let k=0; k<needed; k++) {
+                        let waitId = lhy_extractFirstFromWaitlist();
+                        if(waitId) {
+                            cIds.push(waitId);
+                        } else {
+                            let pool = lhy_getSortedPool();
+                            if(pool.length > 0) cIds.push(pool.shift().id);
+                        }
+                    }
+                    lhy_rebuildTeam(cIds, `c${i}`);
+                }
+            }
+        }
 
+        lhy_compactWaitSlots();
+
+        // 3. 부분적으로 빈 대기조(1~3명) 채우기 및 조편성 (상황 2 해결)
+        for (let w = 1; w <= 6; w++) {
+            if (DB.config.w[w-1]) {
+                let wIds = posOrder.map(p => boardState[`w${w}-${p}`]).filter(id => id !== null);
+                if (wIds.length > 0 && wIds.length < 4) {
+                    let needed = 4 - wIds.length;
+                    for(let k=0; k<needed; k++) {
+                        let pool = lhy_getSortedPool();
+                        if(pool.length > 0) wIds.push(pool.shift().id);
+                    }
+                    lhy_rebuildTeam(wIds, `w${w}`);
+                }
+            }
+        }
+
+        // 4. 아예 텅 빈 공간(0명)에 새로운 4명 배치
+        let pool = lhy_getSortedPool(); 
         const allAreas = [
             ...[1,2,3,4,5,6].map(i => ({ id: `c${i}`, active: DB.config.c[i-1] })),
             ...[1,2,3,4,5,6].map(i => ({ id: `w${i}`, active: DB.config.w[i-1] }))
@@ -550,6 +627,7 @@
         lhy_updateResetButtonUI();
         lhy_applyOrientationLogic();
     }
+    // ==========================================
 
     function lhy_fnGameEnd(type, idx) {
         if (type !== 'c') return;
@@ -844,9 +922,6 @@
         document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
-    // =========================================================================
-    // [요구사항 반영] 회원관리 팝업에서 "닫기" 클릭 시 새로고침 제거 및 관리자 자동 종료
-    // =========================================================================
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
             lhy_saveUndoState(); 
@@ -854,11 +929,9 @@
             document.getElementById('lhy-pop-master').style.display = 'none'; 
             lhy_dominoShiftSystem();
         } else { 
-            // 취소 시에도 새로고침(location.reload) 하지 않고 부드럽게 닫기
             document.getElementById('lhy-pop-master').style.display = 'none'; 
         }
 
-        // 저장/취소 여부와 상관없이 팝업이 닫히면 관리자 모드를 함께 바로 종료시킴
         if (isAdminMode) {
             lhy_fnToggleAdminMode(); 
         }
@@ -957,22 +1030,26 @@
     }
 
     function lhy_popCancelGame() {
-        if(!selectedPopId) return; lhy_saveUndoState();
+        if(!selectedPopId) return; 
+        lhy_saveUndoState();
         const m = DB.members.find(x => x.id === selectedPopId);
-        if(m) { m.isAtt = true; }
+        if(m) { m.isAtt = true; } 
         Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
-        lhy_closeCourtPopMenu(); lhy_dominoShiftSystem();
+        lhy_closeCourtPopMenu(); 
+        lhy_dominoShiftSystem(); 
     }
 
     function lhy_popCourtSetExit() {
-        if(!selectedPopId) return; lhy_saveUndoState();
+        if(!selectedPopId) return; 
+        lhy_saveUndoState();
         const m = DB.members.find(x => x.id === selectedPopId);
         Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
         if(m) { 
             m.isAtt = false; m.cnt = 0; 
             if (m.isG) { DB.members = DB.members.filter(x => x.id !== selectedPopId); } 
         }
-        lhy_closeCourtPopMenu(); lhy_dominoShiftSystem();
+        lhy_closeCourtPopMenu(); 
+        lhy_dominoShiftSystem(); 
         lhy_renderListOnly(document.body.classList.contains('real-landscape'));
     }
 
