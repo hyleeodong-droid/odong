@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260529-4</title>
+    <title>화목모임_20260529-6</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260529-4.html</div>
+    <div class="lhy-footer-filename">화목모임_20260601.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -284,6 +284,7 @@
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; let selectedPopId = null;
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
+    let isListDragging = false; // 리스트 드래그 중복 클릭 방지용 변수
 
     let boardState = {};
     
@@ -379,14 +380,13 @@
     };
 
     const HELP_DATA = {
-        1: { title: "1. 일반 회원 자율 출석 및 가변형 제어 단추 시스템", steps: [ "<b>자율 출석 기능:</b> 미출석 상태인 회원은 명부에서 이름을 가볍게 탭하면 즉시 출석 불빛이 들어옵니다.", "<b>가변형 [입장] / [초기화] 단추:</b> 보드판에 선수가 한 명도 없을 때는 버튼이 녹색 [입장]으로 변합니다.", "<b>초기화 기능:</b> 보드판에 선수가 한 명이라도 있을 때 버튼을 누르면 코트/대기판 내부의 모든 인원이 즉시 우측 출석 대기열로 빠져나갑니다." ] },
-        2: { title: "2. 회원관리 마스터 제어 규칙", steps: [ "<b>회원관리 진입:</b> [관리자] 모드 전환 상태에서 상단 우측의 <b>[회원관리]</b> 버튼을 클릭하면 편집 창이 호출됩니다." ] },
-        3: { title: "3. 실행취소 및 시스템 안전 마감", steps: [ "<b>실행취소 (Undo):</b> 드래그 실수나 입력 오류 발생 시 하단의 [실행취소] 버튼을 누르면 최대 20단계 전으로 복구합니다." ] },
-        4: { title: "4. [상황] 빈 코트/대기팀 자동 배치 시스템", steps: [ "우측 명부에서 회원을 터치하여 출석(불빛 들어옴)을 활성화시킵니다." ] },
-        5: { title: "5. [상황] 코트 선수간 자리 교체 (드래그 조율)", steps: [ "코트나 대기판에 배치 완료된 특정 선수 아이콘을 코트 내에서 드래그하여 조율합니다." ] },
-        6: { title: "6. [상황] 경기 중 무르기 및 조기 귀가 처리", steps: [ "코트 보드판에서 조율하거나 제외해야 하는 선수의 이름을 <b>0.6초간 움직임 없이 꾹 누릅니다(롱클릭).</b>" ] }
+        1: { title: "1. 일반 출석 및 가변형 버튼", steps: [ "<b>자율 출석 기능:</b> 미출석 상태인 회원은 명단에서 터치 시 즉시 출석됩니다.", "<b>가변형 버튼:</b> 보드판이 비어있으면 [입장], 인원이 있으면 [초기화]로 변경됩니다." ] },
+        2: { title: "2. 회원관리 인라인 제어 규칙", steps: [ "<b>회원관리 진입:</b> [관리자] 모드 전환 후 [회원관리] 버튼을 클릭해 명단을 직접 수정/삭제합니다." ] },
+        3: { title: "3. 실행취소 및 시스템 마감", steps: [ "<b>실행취소:</b> 실수 발생 시 20단계 전까지 이전 상태로 되돌릴 수 있습니다." ] },
+        4: { title: "4. [상황] 빈 코트 팀 순차배치", steps: [ "대기조가 비었거나 코트가 비면 자동으로 우선순위에 따라 4명씩 묶여 배치됩니다." ] },
+        5: { title: "5. [상황] 코트 선수간 자리 드래그", steps: [ "<b>명단 ↔ 보드판 양방향:</b> 명단에서 코트로 직접 끌어다 놓거나, 코트 인원을 명단으로 버려 뺄 수 있습니다." ] },
+        6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: [ "보드판의 선수 이름을 0.6초간 길게 누르면 게임 취소/귀가 팝업이 표시됩니다." ] }
     };
-
 
     function lhy_fnToggleAdminMode() {
         const statEl = document.getElementById('ui-stat');
@@ -507,9 +507,6 @@
         return true;
     }
 
-    // ==========================================
-    // [핵심] 리매치 엔진 및 보조 함수들
-    // ==========================================
     function lhy_getSortedPool() {
         let playingIds = Object.values(boardState).filter(id => id !== null);
         let pool = DB.members.filter(m => m.isAtt && !playingIds.includes(m.id));
@@ -556,7 +553,6 @@
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let shiftedAny = false;
         
-        // 1. 코트가 완전히 비었을 때 대기조 통째로 올리기 (종료버튼 클릭 시)
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -580,7 +576,6 @@
         
         if (shiftedAny) { lhy_compactWaitSlots(); }
 
-        // 2. 부분적으로 빈 코트(1~3명) 채우기 및 조편성 (상황 1 해결)
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let cIds = posOrder.map(p => boardState[`c${i}-${p}`]).filter(id => id !== null);
@@ -602,7 +597,6 @@
 
         lhy_compactWaitSlots();
 
-        // 3. 부분적으로 빈 대기조(1~3명) 채우기 및 조편성 (상황 2 해결)
         for (let w = 1; w <= 6; w++) {
             if (DB.config.w[w-1]) {
                 let wIds = posOrder.map(p => boardState[`w${w}-${p}`]).filter(id => id !== null);
@@ -617,7 +611,6 @@
             }
         }
 
-        // 4. 아예 텅 빈 공간(0명)에 새로운 4명 배치
         let pool = lhy_getSortedPool(); 
         const allAreas = [
             ...[1,2,3,4,5,6].map(i => ({ id: `c${i}`, active: DB.config.c[i-1] })),
@@ -637,7 +630,6 @@
         lhy_updateResetButtonUI();
         lhy_applyOrientationLogic();
     }
-    // ==========================================
 
     function lhy_fnGameEnd(type, idx) {
         if (type !== 'c') return;
@@ -783,8 +775,36 @@
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
-        new Sortable(document.getElementById('ui-list'), { ...dragOpt, sort: false, filter: ".player", preventOnFilter: false, onAdd: (evt) => { if(evt.item) evt.item.remove(); lhy_syncBoardDOMToState(); } });
-        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_renderHelpViewer(1);
+        // [수정] 출석 명단 드래그 기능 (명단에서 빼거나 넣기 모두 가능)
+        new Sortable(document.getElementById('ui-list'), { 
+            ...dragOpt, 
+            group: { name: 'sh', pull: 'clone', put: true }, // 'clone' 방식으로 원본은 두고 복사본만 이동
+            sort: false, 
+            delay: 150, // 길게 눌러야 드래그 시작 (클릭과 충돌 방지)
+            delayOnTouchOnly: true,
+            filter: ".is-not, .is-playing", // 미출석자나 게임중인 사람은 드래그 금지
+            onStart: function(evt) {
+                isListDragging = true;
+                if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
+                lhy_saveUndoState();
+            },
+            onEnd: function(evt) {
+                setTimeout(() => { isListDragging = false; }, 50); // 드래그 끝난 직후 클릭 방지 연장
+                document.querySelectorAll('.player').forEach(p => p.classList.remove('is-selected-target'));
+                lhy_syncBoardDOMToState();
+            },
+            onAdd: (evt) => { 
+                // 보드판 인원을 명단으로 버렸을 때 (게임 제외)
+                if(evt.item) evt.item.remove(); 
+                lhy_syncBoardDOMToState();
+                lhy_dominoShiftSystem(); // 빠져나간 빈자리 자동 채우기
+            } 
+        });
+        
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); 
+        
+        // 도움말 초기화 (이전 버그 수정: 숨겨두고 처음엔 실행 안 함)
+        // lhy_renderHelpViewer(1);
     }
 
     function lhy_loadDefaultDB() {
@@ -922,7 +942,14 @@
     }
 
     function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
-    function lhy_openHelpPop() { document.getElementById('lhy-pop-help').style.display = 'flex'; }
+    
+    // [수정] 도움말 창 오픈 시 1번 탭 무조건 활성화
+    function lhy_openHelpPop() { 
+        document.getElementById('lhy-pop-help').style.display = 'flex'; 
+        const firstBtn = document.querySelector('.help-menu-btn');
+        if (firstBtn) lhy_switchHelpTab(1, firstBtn);
+    }
+    
     function lhy_closeHelpPop() { document.getElementById('lhy-pop-help').style.display = 'none'; }
     
     function lhy_openMasterPop() { 
@@ -1039,28 +1066,35 @@
         html += `</div>`; viewer.innerHTML = html;
     }
 
+    // [수정] 5번 버전에서 완벽 분리한 취소 및 귀가 로직 포함
     function lhy_popCancelGame() {
-        if(!selectedPopId) return; 
+        if(!selectedPopId) return;
         lhy_saveUndoState();
-        const m = DB.members.find(x => x.id === selectedPopId);
-        if(m) { m.isAtt = true; } 
         Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
-        lhy_closeCourtPopMenu(); 
-        lhy_dominoShiftSystem(); 
+        const m = DB.members.find(x => x.id === selectedPopId);
+        if(m) { m.isAtt = true; }
+        lhy_syncBoardDOMToState();
+        lhy_dominoShiftSystem();
+        lhy_closeCourtPopMenu();
     }
 
     function lhy_popCourtSetExit() {
-        if(!selectedPopId) return; 
+        if(!selectedPopId) return;
         lhy_saveUndoState();
         const m = DB.members.find(x => x.id === selectedPopId);
         Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
-        if(m) { 
-            m.isAtt = false; m.cnt = 0; 
-            if (m.isG) { DB.members = DB.members.filter(x => x.id !== selectedPopId); } 
+        if(m) {
+            if (m.isG) {
+                DB.members = DB.members.filter(x => x.id !== selectedPopId);
+            } else {
+                m.isAtt = false;
+                m.cnt = 0;
+            }
         }
-        lhy_closeCourtPopMenu(); 
-        lhy_dominoShiftSystem(); 
+        lhy_syncBoardDOMToState();
+        lhy_dominoShiftSystem();
         lhy_renderListOnly(document.body.classList.contains('real-landscape'));
+        lhy_closeCourtPopMenu();
     }
 
     function lhy_fnToggleOrientationButton() {
@@ -1119,7 +1153,9 @@
 
             d.innerHTML = `<div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950;">${pureName}${m.isAtt ? `<span class="p-cnt">(${m.cnt})</span>` : ''}</div>`;
             
-            d.onclick = () => {
+            // [수정] 드래그 중에는 클릭(출석토글)이 작동하지 않도록 방어 로직 추가
+            d.onclick = (e) => {
+                if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
                 lhy_saveUndoState(); m.isAtt = !m.isAtt;
                 
