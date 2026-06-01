@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_260601-4.html</title>
+    <title>화목모임_260601-7.html</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -16,8 +16,47 @@
         
         html, body { height: 100%; width: 100%; overflow: hidden; background: #000; position: fixed; left: 0; top: 0; }
         
-        body { display: flex; flex-direction: column; transform-origin: top left; transition: transform 0.15s ease-out; background: #111; }
+       body {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100dvh; /* dvh는 모바일 주소창을 제외한 실제 화면 높이를 의미합니다 */
+    background: #111;
+    overflow: hidden; /* 스크롤 방지 */
+}
 
+/* 1. 헤더 (고정 높이) */
+#header { 
+    flex: 0 0 auto; /* 헤더는 내용물 크기만큼만 가짐 */
+    height: 60px; /* 원하는 높이로 지정 */
+}
+
+/* 2. 메인 컨텐츠 (유동적 - 이게 핵심) */
+#main-content { 
+    flex: 1; /* 남은 공간을 전부 다 가져감 */
+    display: flex; 
+    flex-direction: row; /* 코트와 대기실을 가로로 배치 */
+    overflow: hidden;
+}
+
+/* 3. 하단 메뉴 버튼 (고정 높이) */
+#lhy-action-panel {
+    flex: 0 0 auto;
+    height: 80px; /* 메뉴 버튼 높이만큼 확보 */
+    background: #222;
+}
+
+/* 코트 영역 */
+#court-area { 
+    flex: 6; /* 전체 공간의 60% 차지 */
+    min-width: 0; /* 내부 요소가 넘치지 않게 방지 */
+}
+
+/* 대기실 영역 */
+#wait-area { 
+    flex: 4; /* 전체 공간의 40% 차지 */
+    min-width: 0;
+}
         /* 헤더 고급화 (그라데이션 및 그림자) */
         .lhy-header { height: 35px; background: linear-gradient(180deg, #283593 0%, #1a237e 100%); box-shadow: 0 3px 6px rgba(0,0,0,0.5); border-bottom: 1px solid #4a54a4; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; gap: 5px; z-index: 100; }
         .lhy-box-date { background: #fff; color: #000; font-weight: 950; padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3); }
@@ -225,7 +264,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260601-4</div>
+    <div class="lhy-footer-filename">화목모임_260601-7</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
