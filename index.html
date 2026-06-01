@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260601-2.html</title>
+    <title>화목모임_260601-4.html</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -16,156 +16,177 @@
         
         html, body { height: 100%; width: 100%; overflow: hidden; background: #000; position: fixed; left: 0; top: 0; }
         
-        body { display: flex; flex-direction: column; transform-origin: top left; transition: transform 0.15s ease-out; }
+        body { display: flex; flex-direction: column; transform-origin: top left; transition: transform 0.15s ease-out; background: #111; }
 
-        .lhy-header { height: 35px; background: #1a237e; border-bottom: 1px solid #fff; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; gap: 5px; }
-        .lhy-box-date { background: #fff; color: #000; font-weight: 950; padding: 2px 5px; border-radius: 2px; font-size: 0.7rem; }
-        .lhy-box-title { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 950; color: #fff; }
-        .lhy-box-stat { color: #FF0; font-size: 1rem; font-weight: 950; min-width: 45px; text-align: right; cursor: pointer; padding: 2px 5px; border-radius: 3px; background: rgba(255,255,255,0.1); }
+        /* 헤더 고급화 (그라데이션 및 그림자) */
+        .lhy-header { height: 35px; background: linear-gradient(180deg, #283593 0%, #1a237e 100%); box-shadow: 0 3px 6px rgba(0,0,0,0.5); border-bottom: 1px solid #4a54a4; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; gap: 5px; z-index: 100; }
+        .lhy-box-date { background: #fff; color: #000; font-weight: 950; padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3); }
+        .lhy-box-title { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 950; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .lhy-box-stat { color: #FF0; font-size: 1rem; font-weight: 950; min-width: 45px; text-align: right; cursor: pointer; padding: 3px 6px; border-radius: 4px; background: rgba(0,0,0,0.3); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5), 0 1px 1px rgba(255,255,255,0.2); }
         .lhy-box-stat.admin-active { color: #0FF; font-size: 0.85rem; }
         
-        .lhy-hd-btn { background: #eff2f7; color: #000; border: 1px solid #fff; font-weight: 950; font-size: 0.72rem; padding: 2px 8px; border-radius: 3px; cursor: pointer; }
-        .lhy-hd-btn.admin-mode { background: #cc0000; color: #fff; animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0.6; } }
+        /* 공통 헤더 버튼 양각 효과 */
+        .lhy-hd-btn { background: linear-gradient(180deg, #ffffff, #eff2f7); color: #000; border: 1px solid #aaa; font-weight: 950; font-size: 0.72rem; padding: 3px 10px; border-radius: 4px; cursor: pointer; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.3); transition: all 0.1s; }
+        .lhy-hd-btn:active { transform: translateY(2px); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.2); }
+        .lhy-hd-btn.admin-mode { background: linear-gradient(180deg, #ff4d4d, #cc0000); color: #fff; border: 1px solid #990000; animation: blinker 1.5s linear infinite; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
+        @keyframes blinker { 50% { opacity: 0.7; } }
 
-        .lhy-main { display: flex; flex: 1; overflow: hidden; background: #fff; min-height: 0; position: relative; flex-direction: column; }
+        .lhy-main { display: flex; flex: 1; overflow: hidden; background: #e2e8f0; min-height: 0; position: relative; flex-direction: column; }
         
-        .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #000; overflow: hidden; }
-        .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #fff; overflow: hidden; }
+        .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
+        .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); background: #222; gap: 1px; flex-shrink: 0; }
-        .lhy-menu-grid button { height: 32px; border: none; color: #fff; font-weight: 950; font-size: 0.72rem; cursor: pointer; letter-spacing: -0.5px; }
+        /* 메뉴 그리드 3D 버튼화 */
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        .lhy-menu-grid button { height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: transform 0.1s, box-shadow 0.1s; }
+        .lhy-menu-grid button:active { transform: translateY(2px); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
 
-        .lhy-player-list { flex: 1; display: grid; background: #ccc; gap: 1px; padding: 1px; overflow-y: auto; overflow-x: hidden; min-height: 0; touch-action: pan-y; }
+        /* 명단 배경 및 간격 고급화 */
+        .lhy-player-list { flex: 1; display: grid; background: #cbd5e1; gap: 6px; padding: 6px; overflow-y: auto; overflow-x: hidden; min-height: 0; touch-action: pan-y; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         
-        .section-container { height: 50%; display: flex; min-height: 0; border-bottom: 1px solid #777; position: relative; }
-        .lhy-control-col { width: 16px; display: flex; flex-direction: column; background: #222; border-right: 1px solid #fff; flex-shrink: 0; gap: 1px; padding: 1px 0; height: 100%; }
+        /* 컨트롤 버튼(체크박스) 3D 처리 */
+        .section-container { height: 50%; display: flex; min-height: 0; border-bottom: 2px solid #000; position: relative; }
+        .lhy-control-col { width: 22px; display: flex; flex-direction: column; background: #111; border-right: 1px solid #444; flex-shrink: 0; gap: 2px; padding: 2px 0; height: 100%; box-shadow: inset -2px 0 5px rgba(0,0,0,0.5); }
+        .btn-ctrl { flex: 1; border: 1px solid #000; background: linear-gradient(135deg, #444, #222); cursor: pointer; position: relative; width: calc(100% - 4px); margin: 1px 2px; border-radius: 3px; box-shadow: inset 1px 1px 1px rgba(255,255,255,0.2), 0 1px 3px rgba(0,0,0,0.5); }
+        .btn-ctrl.active { background: linear-gradient(135deg, #ffe24d, #FFD700); border: 1px solid #b8860b; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); }
+        .btn-ctrl.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #000; font-size: 0.75rem; font-weight: 950; text-shadow: 1px 1px 0 rgba(255,255,255,0.5); }
         
-        .btn-ctrl { flex: 1; border: 1px solid #555; background: #333; cursor: pointer; position: relative; width: 100%; margin: 1px 0; }
-        .btn-ctrl.active { background: #FFD700; border: 1px solid #fff; }
-        .btn-ctrl.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #000; font-size: 0.65rem; font-weight: 950; }
-        
-        .grid-wrapper { flex: 1; display: grid; gap: 1px; background: #444; padding: 1px; height: 100%; width: 100%; overflow: hidden; }
+        /* 코트 래퍼 배경 깊이감 부여 */
+        .grid-wrapper { flex: 1; display: grid; gap: 6px; background: #1e293b; padding: 6px; height: 100%; width: 100%; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
 
-        .lhy-unit { display: flex; position: relative; overflow: hidden; height: 100%; width: 100%; }
-        .u-c { background: var(--bg-court); } .u-w { background: var(--bg-wait); }
-        .lhy-label { position: absolute; top: 1px; left: 1px; font-size: 0.5rem; font-weight: 900; color: #fff; z-index: 10; opacity: 0.7; }
+        /* 개별 코트 단상(Platform) 느낌 */
+        .lhy-unit { display: flex; position: relative; overflow: hidden; height: 100%; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 1px 1px 1px rgba(255,255,255,0.2); border: 1px solid rgba(0,0,0,0.6); }
+        .u-c { background: linear-gradient(135deg, #4d8c42 0%, #355e2d 100%); } 
+        .u-w { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
         
-        .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; }
-        .lhy-slot { border: 0.1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; min-height: 0; background: rgba(255,255,255,0.05); width: 100%; height: 100%; overflow: hidden; position: relative; }
+        .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; border: 1px solid #aaa; }
         
-        .lhy-mid-btn-space { width: 28px; display: flex; border-left: 1px solid #000; border-right: 1px solid #000; background: #fff; flex-shrink: 0; height: 100%; }
-        .lhy-mid-line-space { width: 2px; background: #fff; flex-shrink: 0; height: 100%; }
-        .lhy-btn-act-end { flex: 1; border: none; background: #cc0000; color: #fff; font-weight: 950; writing-mode: vertical-rl; font-size: 0.75rem; width: 100%; height: 100%; cursor: pointer; text-shadow: 1px 1px 1px #000; }
+        /* A팀 B팀 영역 양각 패딩 효과 */
+        .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.5), inset -2px -2px 8px rgba(0,0,0,0.15); }
+        .A-team, .A-team .lhy-slot { background: linear-gradient(135deg, #ffeba6 0%, #FFD700 100%) !important; } 
+        .B-team, .B-team .lhy-slot { background: linear-gradient(135deg, #c9ebff 0%, #87CEEB 100%) !important; } 
 
-        .player { display: flex; align-items: center; justify-content: center; cursor: move; background: #fff; width: 100%; height: 100%; overflow: hidden; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px; }
+        .lhy-slot { border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; }
         
-        .p-name { 
-            line-height: 1.1; 
-            text-align: center; 
-            pointer-events: none; 
-            word-break: keep-all; 
-            width: 100%; 
-            display: inline-block; 
-            letter-spacing: -1.2px; 
-            white-space: nowrap; 
-            font-weight: 999 !important;
-            transform: scaleX(0.97);
+        /* 가운데 버튼 공간 메탈릭 효과 및 버튼 입체화 */
+        .lhy-mid-btn-space { width: 75px; display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; }
+        .lhy-mid-line-space { width: 3px; background: linear-gradient(90deg, #aaa, #fff, #aaa); flex-shrink: 0; height: 100%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        
+        .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: 1.8rem; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.1s; }
+        
+        .A-btn { background: linear-gradient(180deg, #ffe55c 0%, #FFD700 100%); box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); border: 1px solid #d4af37; }
+        .A-btn:active { transform: translateY(3px); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .B-btn { background: linear-gradient(180deg, #a4d9f9 0%, #87CEEB 100%); box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); border: 1px solid #5ca0d3; }
+        .B-btn:active { transform: translateY(3px); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* 선수 카드(명단) 완벽한 버튼화 */
+        .player { 
+            display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px;
+            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,1);
+            border: 1px solid #94a3b8;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
+        .player:active { transform: scale(0.96); box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 1px 1px 3px rgba(0,0,0,0.1); }
+        
+        /* 미출석 선수 음각(움푹 파인) 느낌 */
+        .is-not { background: #e2e8f0; opacity: 0.6; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.5); border: 1px dashed #94a3b8; }
+        .is-not .p-name { font-weight: 600 !important; font-style: italic !important; white-space: nowrap; color: #555; }
+        
+        /* 출석/경기중 상태 */
+        .is-att { opacity: 1.0 !important; }
+        .is-att .p-name { font-style: normal; white-space: nowrap; text-shadow: 1px 1px 0 #fff; } 
+        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 1px solid #b8860b; }
+        .is-playing { opacity: 0.4 !important; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2) !important; transform: scale(0.98); border: 1px solid #64748b; }
 
-        .lhy-slot .player.in-game { background: transparent !important; border: none !important; box-shadow: none !important; }
-        .lhy-slot .player.is-selected-target { background: #FF0 !important; border: 2px dashed #000 !important; }
+        .p-name { line-height: 1.1; text-align: center; pointer-events: none; word-break: keep-all; width: 100%; display: inline-block; letter-spacing: -1.2px; white-space: nowrap; font-weight: 999 !important; transform: scaleX(0.97); }
 
-        /* 자동 레이아웃 글자크기 CSS */
-        .layout-c1-r1 .in-game .p-name { font-size: 3.4rem !important; font-weight: 950 !important; }
-        .layout-c1-r2 .in-game .p-name { font-size: 2.6rem !important; font-weight: 950 !important; }
-        .layout-c2-r2 .in-game .p-name { font-size: 1.6rem !important; font-weight: 950 !important; }
-        .layout-c2-r3 .in-game .p-name { font-size: 1.2rem !important; font-weight: 950 !important; }
-
-        .real-landscape .layout-c1-r1 .in-game .p-name { font-size: 2.8rem !important; }
-        .real-landscape .layout-c1-r2 .in-game .p-name { font-size: 2.0rem !important; }
-        .real-landscape .layout-c2-r2 .in-game .p-name { font-size: 1.4rem !important; }
-        .real-landscape .layout-c2-r3 .in-game .p-name { font-size: 1.1rem !important; }
-
+        /* 코트 내 텍스트에 그림자 추가로 공중에 뜬 느낌(입체감) 부여 */
         .in-game .p-name { 
             letter-spacing: -1.8px;
             text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0px 0 #fff, 2.5px 0px 0 #fff, 0px -2.5px 0 #fff, 0px 2.5px 0 #fff; 
+            filter: drop-shadow(3px 4px 3px rgba(0,0,0,0.4));
         }
 
-        .lhy-slot .player.is-selected-target .p-name { text-shadow: none !important; color: #000 !important; }
+        .lhy-slot .player.in-game { background: transparent !important; border: none !important; box-shadow: none !important; margin: 0; width: 100%; height: 100%; }
+        .lhy-slot .player.is-selected-target { background: rgba(255, 255, 0, 0.4) !important; border: 3px dashed #000 !important; border-radius: 8px; }
+        .lhy-slot .player.is-selected-target .p-name { text-shadow: none !important; color: #000 !important; filter: none; }
 
-        .m-sex .p-name { color: var(--p-black); }
-        .m-sex .p-cnt { color: var(--p-black) !important; }
+        /* 코트 내 회원 이름 크기 대폭 확대 (유지) */
+        .layout-c1-r1 .in-game .p-name { font-size: 4.2rem !important; font-weight: 950 !important; }
+        .layout-c1-r2 .in-game .p-name { font-size: 3.4rem !important; font-weight: 950 !important; }
+        .layout-c2-r2 .in-game .p-name { font-size: 2.2rem !important; font-weight: 950 !important; }
+        .layout-c2-r3 .in-game .p-name { font-size: 1.6rem !important; font-weight: 950 !important; }
 
-        .f-sex .p-name { color: var(--p-pink) !important; }
-        .f-sex .p-cnt { color: var(--p-pink) !important; }
+        .real-landscape .layout-c1-r1 .in-game .p-name { font-size: 3.6rem !important; }
+        .real-landscape .layout-c1-r2 .in-game .p-name { font-size: 2.6rem !important; }
+        .real-landscape .layout-c2-r2 .in-game .p-name { font-size: 1.8rem !important; }
+        .real-landscape .layout-c2-r3 .in-game .p-name { font-size: 1.4rem !important; }
 
-        .g-sex .p-name { color: var(--p-guest) !important; }
-        .g-sex .p-cnt { color: var(--p-guest) !important; }
-
-        .is-not { opacity: 0.35; }
-        .is-not .p-name { font-weight: 600 !important; font-style: italic !important; white-space: nowrap; }
-        
-        .is-att { opacity: 1.0 !important; background: #fff !important; }
-        .is-att .p-name { font-style: normal; white-space: nowrap; text-shadow: none !important; } 
-        .is-sel { background: #FF0 !important; border: 1px solid #000; }
-        .is-playing { opacity: 0.35 !important; }
+        .m-sex .p-name { color: var(--p-black); } .m-sex .p-cnt { color: var(--p-black) !important; }
+        .f-sex .p-name { color: var(--p-pink) !important; } .f-sex .p-cnt { color: var(--p-pink) !important; }
+        .g-sex .p-name { color: var(--p-guest) !important; } .g-sex .p-cnt { color: var(--p-guest) !important; }
         
         .p-cnt { font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
 
-        .lhy-footer-filename { height: 16px; background: #111; color: #aaa; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; border-top: 1px solid #333; flex-shrink: 0; width: 100%; }
+        .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
 
-        .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 5000; }
-        .lhy-modal-content { background: #fff; width: 85%; max-width: 320px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .lhy-modal-header { background: #1a237e; color: #fff; padding: 12px; font-weight: 950; text-align: center; font-size: 1rem; position: relative; display: flex; align-items: center; justify-content: space-between; }
-        .lhy-modal-body { display: flex; flex-direction: column; background: #f5f5f5; padding: 5px; gap: 5px; }
-        .lhy-modal-btn { padding: 14px 0; border: none; font-size: 0.95rem; font-weight: 900; background: #fff; cursor: pointer; border-radius: 4px; }
-        .lhy-btn-danger { color: #d32f2f; }
-        .lhy-btn-cancel { background: #666; color: #fff; margin-top: 5px; }
+        /* 모달 팝업 고급화 */
+        .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(2px); }
+        .lhy-modal-content { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); }
+        .lhy-modal-header { background: linear-gradient(90deg, #1a237e, #283593); color: #fff; padding: 14px; font-weight: 950; text-align: center; font-size: 1.05rem; position: relative; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .lhy-modal-body { display: flex; flex-direction: column; background: #f8fafc; padding: 8px; gap: 8px; }
+        .lhy-modal-btn { padding: 14px 0; border: 1px solid #ccc; font-size: 0.95rem; font-weight: 900; background: linear-gradient(180deg, #fff, #f1f5f9); cursor: pointer; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.1s; }
+        .lhy-modal-btn:active { transform: translateY(2px); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1); }
+        .lhy-btn-cancel { background: linear-gradient(180deg, #64748b, #475569); color: #fff; border: 1px solid #334155; margin-top: 5px; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
 
-        .lhy-modal-content.large-size { max-width: 640px; width: 92%; height: 85vh; display: flex; flex-direction: column; border-radius: 6px; }
+        .lhy-modal-content.large-size { max-width: 640px; width: 92%; height: 85vh; display: flex; flex-direction: column; border-radius: 10px; }
         
-        .master-title-text { font-size: 1rem; font-weight: 950; }
+        .master-title-text { font-size: 1rem; font-weight: 950; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
         .master-top-actions { display: flex; gap: 5px; }
-        .master-top-actions button { padding: 4px 10px; border: 1px solid #fff; border-radius: 3px; font-weight: 950; font-size: 0.72rem; cursor: pointer; color: #fff; }
+        .master-top-actions button { padding: 5px 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; font-weight: 950; font-size: 0.72rem; cursor: pointer; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .master-top-actions button:active { transform: translateY(1px); }
 
-        .master-table-wrapper { flex: 1; overflow: auto; background: #fff; padding: 5px; -webkit-overflow-scrolling: touch; }
+        .master-table-wrapper { flex: 1; overflow: auto; background: #fff; padding: 5px; -webkit-overflow-scrolling: touch; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         .master-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 500px; }
-        .master-table th, .master-table td { border: 1px solid #ccc; padding: 5px 4px; text-align: center; vertical-align: middle; }
-        .master-table th { background: #e8eaf6; font-weight: 950; position: sticky; top: 0; z-index: 10; }
-        .master-table input[type="text"], .master-table select { width: 100%; height: 26px; border: 1px solid #aaa; border-radius: 3px; font-size: 0.8rem; font-weight: bold; text-align: center; }
+        .master-table th, .master-table td { border: 1px solid #ccc; padding: 6px 4px; text-align: center; vertical-align: middle; }
+        .master-table th { background: linear-gradient(180deg, #e8eaf6, #d7d9eb); font-weight: 950; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        .master-table input[type="text"], .master-table select { width: 100%; height: 28px; border: 1px solid #aaa; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.05); }
         
-        .btn-table-kick { background: #d32f2f; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; font-weight: 950; cursor: pointer; font-size: 0.75rem; }
+        .btn-table-kick { background: linear-gradient(180deg, #ef4444, #dc2626); color: #fff; border: 1px solid #b91c1c; padding: 5px 10px; border-radius: 4px; font-weight: 950; cursor: pointer; font-size: 0.75rem; box-shadow: 0 2px 3px rgba(0,0,0,0.2); }
+        .btn-table-kick:active { transform: translateY(1px); box-shadow: none; }
 
         .help-large { max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column; }
         .help-split-container { display: flex; flex: 1; overflow: hidden; background: #eee; }
-        .help-left-menu { width: 38%; background: #222; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; padding: 1px; }
-        .help-menu-btn { padding: 12px 6px; text-align: left; background: #333; color: #fff; font-size: 0.75rem; font-weight: 900; border: none; cursor: pointer; line-height: 1.3; }
-        .help-menu-btn.active { background: #FFD700; color: #000; }
-        .help-right-viewer { width: 62%; background: #fff; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; }
-        .viewer-title { font-size: 0.9rem; font-weight: 950; color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 6px; margin-bottom: 10px; }
-        .viewer-step-list { display: flex; flex-direction: column; gap: 10px; }
-        .viewer-step-item { background: #f9f9f9; border-left: 4px solid #1a237e; padding: 8px; border-radius: 0 4px 4px 0; }
-        .viewer-step-num { font-size: 0.75rem; font-weight: 950; color: #cc0000; margin-bottom: 2px; }
-        .viewer-step-text { font-size: 0.8rem; font-weight: bold; color: #222; line-height: 1.4; }
+        .help-left-menu { width: 38%; background: #1e293b; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; padding: 2px; box-shadow: inset -2px 0 5px rgba(0,0,0,0.3); }
+        .help-menu-btn { padding: 14px 8px; text-align: left; background: linear-gradient(135deg, #334155, #1e293b); color: #e2e8f0; font-size: 0.75rem; font-weight: 900; border: none; cursor: pointer; line-height: 1.3; border-bottom: 1px solid #0f172a; transition: background 0.1s; }
+        .help-menu-btn.active { background: linear-gradient(135deg, #FFD700, #f59e0b); color: #000; box-shadow: inset 2px 0 0 #fff; text-shadow: 1px 1px 0 rgba(255,255,255,0.4); border-left: 4px solid #fff; }
+        .help-right-viewer { width: 62%; background: #fff; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; box-shadow: inset 2px 0 5px rgba(0,0,0,0.05); }
+        .viewer-title { font-size: 0.95rem; font-weight: 950; color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 6px; margin-bottom: 12px; }
+        .viewer-step-list { display: flex; flex-direction: column; gap: 12px; }
+        .viewer-step-item { background: linear-gradient(90deg, #f8fafc, #f1f5f9); border-left: 4px solid #1a237e; padding: 10px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; border-left: none; }
+        .viewer-step-num { font-size: 0.75rem; font-weight: 950; color: #cc0000; margin-bottom: 4px; }
+        .viewer-step-text { font-size: 0.8rem; font-weight: bold; color: #334155; line-height: 1.5; }
 
         .real-landscape .lhy-main { flex-direction: row; }
-        .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #fff; }
-        .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; }
+        .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #333; box-shadow: 4px 0 10px rgba(0,0,0,0.3) inset; }
+        .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; box-shadow: none; }
         
-        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); width: 100%; height: 32px; flex-shrink: 0; border-bottom: 1px solid #fff; }
+        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
     </style>
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
 
-<div id="auth-gate" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1a237e; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
-    <div style="font-size:1.5rem; font-weight:950; margin-bottom:20px;">화목모임 접속 비밀번호</div>
+<div id="auth-gate" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #1a237e, #0d1240); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">화목모임 접속 비밀번호</div>
     <input type="password" id="pw-input" placeholder="비밀번호 입력" 
            onkeydown="if(event.keyCode===13) checkPassword()" 
-           style="padding:15px; width:200px; font-size:1.1rem; border-radius:5px; border:none; text-align:center; margin-bottom:10px;">
-    <button onclick="checkPassword()" style="padding:10px 30px; font-size:1rem; font-weight:bold; background:#FFD700; border:none; border-radius:5px; cursor:pointer; color:#000;">접속하기</button>
+           style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:15px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3);">
+    <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">접속하기</button>
 </div>
 <script>
     function checkPassword() {
@@ -193,39 +214,39 @@
         </div>
         <div class="lhy-side-area">
             <div class="lhy-menu-grid" id="ui-menu-grid">
-                <button style="background:#4b0082; color:#fff;" onclick="lhy_fnToggleOrientationButton()">화면전환</button>
-                <button id="btn-reset-enter" style="background:#27ae60; color:#fff;" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
-                <button id="btn-undo" style="background:#FFD700; color:#000;" onclick="lhy_fnUndoAction()">실행취소</button>
-                <button style="background:#ef6c00; color:#fff;" onclick="lhy_addMasterDirect('신입')">신입</button>
-                <button style="background:#00838f; color:#fff;" onclick="lhy_addMasterDirect('손님')">손님</button>
-                <button style="background:#d32f2f" onclick="lhy_fnExit(event)">나가기</button>
+                <button style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">화면전환</button>
+                <button id="btn-reset-enter" style="background:linear-gradient(180deg, #2ecc71, #27ae60);" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
+                <button id="btn-undo" style="background:linear-gradient(180deg, #ffe033, #FFD700); color:#000;" onclick="lhy_fnUndoAction()">실행취소</button>
+                <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
+                <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
+                <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
             </div>
             <div class="lhy-player-list" id="ui-list"></div>
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260601-2</div>
+    <div class="lhy-footer-filename">화목모임_260601-4</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
             <div class="lhy-modal-header">
                 <div class="master-title-text">회원관리 (비번: 12)</div>
                 <div class="master-top-actions">
-                    <button style="background:#222222;" onclick="lhy_exportMembers()">내보내기</button>
-                    <button style="background:#0000ff;" onclick="document.getElementById('import-file').click()">불러오기</button>
+                    <button style="background:linear-gradient(180deg, #444, #222);" onclick="lhy_exportMembers()">내보내기</button>
+                    <button style="background:linear-gradient(180deg, #2563eb, #1d4ed8);" onclick="document.getElementById('import-file').click()">불러오기</button>
                     <input type="file" id="import-file" style="display:none;" onchange="lhy_importMembers(event)" accept=".csv">
                 </div>
             </div>
             
-            <div style="padding: 10px; background: #e8eaf6; display: flex; flex-direction: column; gap: 8px; border-bottom: 2px solid #ccc;">
+            <div style="padding: 12px; background: linear-gradient(180deg, #f1f5f9, #e2e8f0); display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #cbd5e1; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: 950; font-size: 0.85rem;">조 편성 모드:</span>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="rule-btn" data-rule="balance" onclick="lhy_setMatchRule('balance')" style="padding: 6px 12px; border: 1px solid #000; font-weight: bold; border-radius: 4px; cursor: pointer;">점수균형</button>
-                        <button class="rule-btn" data-rule="grade" onclick="lhy_setMatchRule('grade')" style="padding: 6px 12px; border: 1px solid #000; font-weight: bold; border-radius: 4px; cursor: pointer;">등급별 우선</button>
+                    <span style="font-weight: 950; font-size: 0.9rem; color: #334155;">조 편성 모드:</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="rule-btn" data-rule="balance" onclick="lhy_setMatchRule('balance')" style="padding: 6px 14px; border: 1px solid #000; font-weight: 900; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.1s;">점수균형</button>
+                        <button class="rule-btn" data-rule="grade" onclick="lhy_setMatchRule('grade')" style="padding: 6px 14px; border: 1px solid #000; font-weight: 900; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.1s;">등급별 우선</button>
                     </div>
                 </div>
-                <div style="font-size: 0.75rem; color: #555; font-weight: bold;">
+                <div style="font-size: 0.75rem; color: #475569; font-weight: bold; background: #fff; padding: 8px; border-radius: 6px; border: 1px dashed #94a3b8;">
                     ※ 기본 우선순위: 1. 빨리 출석한 순 ➔ 2. 게임누적횟수 적은 순<br>
                     ※ 절대 중복 방지: 파트너를 찾을 때 매칭 이력이 0번인 회원을 모든 등급에서 최우선 탐색합니다.
                 </div>
@@ -246,7 +267,7 @@
                     <tbody id="ui-master-tbody"></tbody>
                 </table>
             </div>
-            <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeMasterPop()" style="border-radius:0; margin:0; padding:12px 0; font-size:1rem;">닫기</button>
+            <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeMasterPop()" style="border-radius:0; margin:0; padding:15px 0; font-size:1.05rem; border-top: 1px solid #000;">저장 및 닫기</button>
         </div>
     </div>
 
@@ -265,7 +286,7 @@
                 </div>
                 <div class="help-right-viewer" id="help-viewer-content"></div>
             </div>
-            <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeHelpPop()" style="border-radius:0; margin:0;">닫기</button>
+            <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeHelpPop()" style="border-radius:0; margin:0; padding:15px 0;">닫기</button>
         </div>
     </div>
 
@@ -273,8 +294,8 @@
         <div class="lhy-modal-content" onclick="event.stopPropagation()">
             <div class="lhy-modal-header" id="court-pop-title">경기 선수 관리</div>
             <div class="lhy-modal-body">
-                <button class="lhy-modal-btn" onclick="lhy_popCancelGame()" style="color: #1a237e;">① 게임 취소 (회원명단으로 복귀)</button>
-                <button class="lhy-modal-btn" onclick="lhy_popCourtSetExit()" style="color: #cc0000;">② 귀가 처리 (로그아웃)</button>
+                <button class="lhy-modal-btn" onclick="lhy_popCancelGame()" style="color: #1a237e; border: 2px solid #1a237e;">① 게임 취소 (회원명단으로 복귀)</button>
+                <button class="lhy-modal-btn" onclick="lhy_popCourtSetExit()" style="color: #cc0000; border: 2px solid #cc0000;">② 귀가 처리 (로그아웃)</button>
                 <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeCourtPopMenu()">취소</button>
             </div>
         </div>
@@ -318,9 +339,11 @@
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         document.querySelectorAll('.rule-btn').forEach(btn => {
             if (btn.dataset.rule === rule) {
-                btn.style.background = '#FFD700'; btn.style.color = '#000'; btn.style.border = '2px solid #000';
+                btn.style.background = 'linear-gradient(180deg, #ffe24d, #FFD700)'; btn.style.color = '#000'; btn.style.border = '1px solid #b8860b';
+                btn.style.boxShadow = 'inset 1px 1px 2px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.2)';
             } else {
-                btn.style.background = '#ccc'; btn.style.color = '#777'; btn.style.border = '1px solid #aaa';
+                btn.style.background = 'linear-gradient(180deg, #f1f5f9, #e2e8f0)'; btn.style.color = '#475569'; btn.style.border = '1px solid #94a3b8';
+                btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
             }
         });
     }
@@ -360,7 +383,7 @@
                 newMembers.push({
                     id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5),
                     name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
-                    sex: sex, age: age, grade: grade, joinDate: joinDate, isAtt: false, cnt: 0, isG: false
+                    sex: sex, age: age, grade: grade, joinDate: joinDate, isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
                 });
             }
             DB.members = newMembers;
@@ -390,7 +413,6 @@
         7: { title: "7. 조편성 기준 및 알고리즘", steps: [ "<b>1단계 (순서 보장):</b> 가장 먼저 출석하고 대기한 최상위 4명을 우선 선발합니다. (새치기 절대 불가)", "<b>2단계 (경우의 수 탐색):</b> 선발된 4명으로 만들 수 있는 3가지 2:2 팀 조합을 모두 시뮬레이션합니다.", "<b>3단계 (최적 밸런스 배치):</b> 과거 같은 편 횟수가 가장 적고, 양 팀 간의 합산 실력(등급) 차이가 가장 0에 가까운 조합을 시스템이 자동으로 계산하여 최종 배정합니다." ] }
     };
 
-    // [수정] 관리자 모드 진입 시 바로 리스트 창 오픈되도록 수정
     function lhy_fnToggleAdminMode() {
         const statEl = document.getElementById('ui-stat');
         if (!isAdminMode) {
@@ -402,10 +424,8 @@
                 statEl.innerText = "회원관리"; 
                 statEl.classList.add('admin-active');
                 
-                // 관리자 모드 진입 직후 회원관리 리스트 자동 오픈
                 lhy_openMasterPop(); 
             } else { 
-                // 취소 버튼 눌렀을 때는 경고창 안뜨게 예외처리
                 if (pw !== null) alert("비밀번호가 일치하지 않습니다."); 
             }
         } else {
@@ -636,21 +656,29 @@
         lhy_applyOrientationLogic();
     }
 
-    function lhy_fnGameEnd(type, idx) {
+    function lhy_fnGameEnd(type, idx, winner) {
         if (type !== 'c') return;
         lhy_saveUndoState();
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         
+        let pL1 = boardState[`c${idx}-L1`];
+        let pL2 = boardState[`c${idx}-L2`];
+        let pR1 = boardState[`c${idx}-R1`];
+        let pR2 = boardState[`c${idx}-R2`];
+
+        let aTeam = [pL1, pL2].filter(id => id);
+        let bTeam = [pR1, pR2].filter(id => id);
+
+        if (winner === 'A') {
+            aTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.win = (m.win||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
+            bTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.lose = (m.lose||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
+        } else if (winner === 'B') {
+            aTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.lose = (m.lose||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
+            bTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.win = (m.win||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
+        }
+
         posOrder.forEach(p => {
-            const pid = boardState[`c${idx}-${p}`];
-            if (pid) {
-                const m = DB.members.find(x => x.id === pid);
-                if (m) { 
-                    m.cnt = (m.cnt || 0) + 1;
-                    m.attTime = Date.now();
-                }
-                boardState[`c${idx}-${p}`] = null;
-            }
+            boardState[`c${idx}-${p}`] = null;
         });
 
         lhy_rotationalMatchEngine();
@@ -730,7 +758,11 @@
                 if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
                     DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
                 }
-                DB.members.filter(m => !m.isG).forEach(m => { if(!m.joinDate) m.joinDate = "260101"; });
+                DB.members.filter(m => !m.isG).forEach(m => { 
+                    if(!m.joinDate) m.joinDate = "260101"; 
+                    if(m.win === undefined) m.win = 0;
+                    if(m.lose === undefined) m.lose = 0;
+                });
                 if(!DB.matchHistory) DB.matchHistory = {};
                 if(!DB.config.matchRule) DB.config.matchRule = 'grade';
                 
@@ -752,6 +784,8 @@
             DB.members.forEach(m => {
                 m.isAtt = false;
                 m.cnt = 0;
+                m.win = 0;
+                m.lose = 0;
                 delete m.attTime;
             });
             DB.members = DB.members.filter(m => !m.isG);
@@ -810,7 +844,7 @@
     function lhy_loadDefaultDB() {
         DB.members = NAMES.map(n => {
             const isFemale = n.includes('여');
-            return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, isG: false };
+            return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false };
         });
         DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {};
     }
@@ -853,13 +887,18 @@
                     const d = document.createElement('div');
                     d.className = `lhy-unit ${t==='c'?'u-c':'u-w'}`; d.id = `unit-${t}${i}`;
                     if(t === 'c') {
-                        d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div><div class="lhy-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
-                                        <div class="lhy-mid-btn-space"><button class="lhy-btn-act-end" onclick="lhy_fnGameEnd('${t}',${i})">종료</button></div>
-                                        <div class="lhy-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
+                        d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
+                                        <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
+                                        <div class="lhy-mid-btn-space">
+                                            <button class="lhy-btn-act-end A-btn" onclick="lhy_fnGameEnd('${t}',${i},'A')">승</button>
+                                            <button class="lhy-btn-act-end B-btn" onclick="lhy_fnGameEnd('${t}',${i},'B')">승</button>
+                                        </div>
+                                        <div class="lhy-team B-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     } else {
-                        d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div><div class="lhy-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
+                        d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
+                                        <div class="lhy-team" style="background:transparent;"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
                                         <div class="lhy-mid-line-space"></div>
-                                        <div class="lhy-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
+                                        <div class="lhy-team" style="background:transparent;"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     }
                     (t === 'c' ? cG : wG).appendChild(d);
                 }
@@ -937,8 +976,8 @@
     function lhy_updateResetButtonUI() {
         const btn = document.getElementById('btn-reset-enter'); if (!btn) return;
         let hasPlayers = Object.values(boardState).some(id => id !== null);
-        if (!hasPlayers) { btn.innerText = "입장"; btn.style.background = "#27ae60"; } 
-        else { btn.innerText = "초기화"; btn.style.background = "#e67e22"; }
+        if (!hasPlayers) { btn.innerText = "입장"; btn.style.background = "linear-gradient(180deg, #2ecc71, #27ae60)"; } 
+        else { btn.innerText = "초기화"; btn.style.background = "linear-gradient(180deg, #f39c12, #e67e22)"; }
     }
 
     function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
@@ -958,7 +997,6 @@
         document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
-    // [수정] 회원관리 팝업 닫기 시, 관리자 모드 즉시 해제 연동
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
             lhy_saveUndoState(); 
@@ -969,7 +1007,6 @@
             document.getElementById('lhy-pop-master').style.display = 'none'; 
         }
 
-        // 창이 닫히면 조건 없이 무조건 관리자 모드에서 빠져나오기
         if (isAdminMode) {
             lhy_fnToggleAdminMode(); 
         }
@@ -1037,7 +1074,7 @@
         DB.members.push({ 
             id: 'p' + Date.now() + Math.random().toString(36).substr(2, 3), 
             name: nameVal, sex: sexVal, age: ageVal, grade: gradeVal, joinDate: `${yy}${mm}${dd}`, 
-            isAtt: true, cnt: 0, isG: isG, attTime: Date.now() 
+            isAtt: true, cnt: 0, win: 0, lose: 0, isG: isG, attTime: Date.now() 
         });
         
         document.getElementById('lhy-pop-add-member').style.display = 'none';
@@ -1089,6 +1126,8 @@
             } else {
                 m.isAtt = false;
                 m.cnt = 0;
+                m.win = 0;
+                m.lose = 0;
             }
         }
         lhy_syncBoardDOMToState();
@@ -1151,7 +1190,12 @@
                 responsiveFontSize = isLandscapeMode ? "clamp(1.15rem, 2.6vw + 0.6vh, 1.7rem)" : "clamp(0.95rem, 2.5vw + 0.5vh, 1.65rem)";
             }
 
-            d.innerHTML = `<div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950;">${pureName}${m.isAtt ? `<span class="p-cnt">(${m.cnt})</span>` : ''}</div>`;
+            d.innerHTML = `
+                <div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; white-space: normal; width:100%;">
+                    <span style="white-space: nowrap;">${pureName}</span>
+                    ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; white-space: nowrap; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
+                </div>
+            `;
             
             d.onclick = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
@@ -1181,7 +1225,7 @@
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까?")) {
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
-            DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; });
+            DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; });
             DB.members = DB.members.filter(m => !m.isG);
             DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
             DB.matchHistory = {};
@@ -1194,9 +1238,9 @@
             window.close();
             setTimeout(() => {
                 document.body.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#111; color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
-                        <div style="font-size:1.6rem; font-weight:950; color:#27ae60; margin-bottom:12px;">✓ 오늘 모임 마감 완료</div>
-                        <div style="font-size:1rem; color:#bbb; line-height:1.4;">현재 상태가 안전하게 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
+                        <div style="font-size:1.6rem; font-weight:950; color:#2ecc71; margin-bottom:12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓ 오늘 모임 마감 완료</div>
+                        <div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
                     </div>
                 `;
             }, 100);
@@ -1205,28 +1249,28 @@
 </script>
 
     <div class="lhy-modal-overlay" id="lhy-pop-add-member" onclick="document.getElementById('lhy-pop-add-member').style.display='none'">
-        <div class="lhy-modal-content" style="height:auto; max-width:320px; padding:20px; display:flex; flex-direction:column; gap:10px; background:#fff; border-radius:8px;" onclick="event.stopPropagation()">
-            <div class="lhy-modal-header" id="add-member-title" style="margin-bottom:10px; border-radius:4px; font-weight:bold; background:#1a237e; color:#fff; padding:10px; text-align:center;">신입/손님 추가</div>
-            <input type="text" id="add-m-name" placeholder="이름 (예: 홍길동)" style="padding:10px; font-size:1rem; border:1px solid #ccc; border-radius:4px; width:100%; box-sizing:border-box;">
-            <select id="add-m-sex" style="padding:10px; font-size:1rem; border:1px solid #ccc; border-radius:4px; width:100%; box-sizing:border-box;">
+        <div class="lhy-modal-content" style="height:auto; max-width:320px; padding:20px; display:flex; flex-direction:column; gap:12px; background:linear-gradient(180deg, #fff, #f8fafc); border-radius:12px;" onclick="event.stopPropagation()">
+            <div class="lhy-modal-header" id="add-member-title" style="margin-bottom:5px; border-radius:6px; font-weight:bold; background:linear-gradient(90deg, #1a237e, #283593); color:#fff; padding:12px; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">신입/손님 추가</div>
+            <input type="text" id="add-m-name" placeholder="이름 (예: 홍길동)" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
+            <select id="add-m-sex" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
                 <option value="남">남</option><option value="여">여</option>
             </select>
-            <select id="add-m-age" style="padding:10px; font-size:1rem; border:1px solid #ccc; border-radius:4px; width:100%; box-sizing:border-box;">
+            <select id="add-m-age" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
                 <option value="">나이 선택</option>
                 <option value="20">20세</option><option value="25">25세</option><option value="30">30세</option><option value="35">35세</option>
                 <option value="40">40세</option><option value="45">45세</option><option value="50">50세</option><option value="55">55세</option>
                 <option value="60">60세</option><option value="65">65세</option><option value="70">70세</option><option value="75">75세</option>
             </select>
-            <select id="add-m-grade" style="padding:10px; font-size:1rem; border:1px solid #ccc; border-radius:4px; width:100%; box-sizing:border-box;">
+            <select id="add-m-grade" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
                 <option value="">등급 선택 (선택 안함)</option>
                 <option value="A1">A1</option><option value="A2">A2</option>
                 <option value="B1">B1</option><option value="B2">B2</option>
                 <option value="C1">C1</option><option value="C2">C2</option>
                 <option value="D1">D1</option><option value="D2">D2</option>
             </select>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="lhy-modal-btn" onclick="lhy_confirmAddMember()" style="flex:1; background:#1a237e; color:#fff; padding:10px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">추가하기</button>
-                <button class="lhy-modal-btn lhy-btn-cancel" onclick="document.getElementById('lhy-pop-add-member').style.display='none'" style="flex:1; background:#666; color:#fff; padding:10px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">취소</button>
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <button class="lhy-modal-btn" onclick="lhy_confirmAddMember()" style="flex:1; background:linear-gradient(180deg, #1a237e, #0d1240); color:#fff; padding:12px; border:1px solid #000; border-radius:6px; font-weight:bold; cursor:pointer;">추가하기</button>
+                <button class="lhy-modal-btn lhy-btn-cancel" onclick="document.getElementById('lhy-pop-add-member').style.display='none'" style="flex:1; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;">취소</button>
             </div>
         </div>
     </div>
