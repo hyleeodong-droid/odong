@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260529-6</title>
+    <title>화목모임_20260601-1.html</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260601.html</div>
+    <div class="lhy-footer-filename">화목모임_20260601-1.html.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -261,6 +261,7 @@
                     <button class="help-menu-btn" onclick="lhy_switchHelpTab(4, this)">4. [상황] 빈 코트 팀 순차배치</button>
                     <button class="help-menu-btn" onclick="lhy_switchHelpTab(5, this)">5. [상황] 코트 선수간 자리 드래그</button>
                     <button class="help-menu-btn" onclick="lhy_switchHelpTab(6, this)">6. [상황] 경기중 무르기 및 조기귀가</button>
+                    <button class="help-menu-btn" onclick="lhy_switchHelpTab(7, this)">7. 조편성 기준 및 알고리즘</button>
                 </div>
                 <div class="help-right-viewer" id="help-viewer-content"></div>
             </div>
@@ -284,7 +285,7 @@
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; let selectedPopId = null;
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
-    let isListDragging = false; // 리스트 드래그 중복 클릭 방지용 변수
+    let isListDragging = false; 
 
     let boardState = {};
     
@@ -379,13 +380,15 @@
         } 
     };
 
+    // [수정] 도움말 데이터 7번 탭 추가
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: [ "<b>자율 출석 기능:</b> 미출석 상태인 회원은 명단에서 터치 시 즉시 출석됩니다.", "<b>가변형 버튼:</b> 보드판이 비어있으면 [입장], 인원이 있으면 [초기화]로 변경됩니다." ] },
         2: { title: "2. 회원관리 인라인 제어 규칙", steps: [ "<b>회원관리 진입:</b> [관리자] 모드 전환 후 [회원관리] 버튼을 클릭해 명단을 직접 수정/삭제합니다." ] },
         3: { title: "3. 실행취소 및 시스템 마감", steps: [ "<b>실행취소:</b> 실수 발생 시 20단계 전까지 이전 상태로 되돌릴 수 있습니다." ] },
         4: { title: "4. [상황] 빈 코트 팀 순차배치", steps: [ "대기조가 비었거나 코트가 비면 자동으로 우선순위에 따라 4명씩 묶여 배치됩니다." ] },
         5: { title: "5. [상황] 코트 선수간 자리 드래그", steps: [ "<b>명단 ↔ 보드판 양방향:</b> 명단에서 코트로 직접 끌어다 놓거나, 코트 인원을 명단으로 버려 뺄 수 있습니다." ] },
-        6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: [ "보드판의 선수 이름을 0.6초간 길게 누르면 게임 취소/귀가 팝업이 표시됩니다." ] }
+        6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: [ "보드판의 선수 이름을 0.6초간 길게 누르면 게임 취소/귀가 팝업이 표시됩니다." ] },
+        7: { title: "7. 조편성 기준 및 알고리즘", steps: [ "<b>1단계 (순서 보장):</b> 가장 먼저 출석하고 대기한 최상위 4명을 우선 선발합니다. (새치기 절대 불가)", "<b>2단계 (경우의 수 탐색):</b> 선발된 4명으로 만들 수 있는 3가지 2:2 팀 조합을 모두 시뮬레이션합니다.", "<b>3단계 (최적 밸런스 배치):</b> 과거 같은 편 횟수가 가장 적고, 양 팀 간의 합산 실력(등급) 차이가 가장 0에 가까운 조합을 시스템이 자동으로 계산하여 최종 배정합니다." ] }
     };
 
     function lhy_fnToggleAdminMode() {
@@ -442,6 +445,7 @@
         }
     }
 
+    // [완전 교체] 최적의 밸런스 조합을 찾아내는 lhy_pickAndPlace4 함수
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
@@ -452,58 +456,58 @@
             return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
         }
 
-        function findPartner(pA, searchPool) {
-            let bestIdx = -1;
-            let minScore = Infinity;
-            let minGradeDiff = Infinity;
-            let targetG = getGVal(pA.grade);
+        // 1. 대기열 최상위 4명 무조건 추출 (대기 순서 보장)
+        let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3];
+        let selected = [p1, p2, p3, p4];
 
-            for (let i = 0; i < searchPool.length; i++) {
-                let pB = searchPool[i];
-                let score = lhy_getMatchScore(pA.id, pB.id);
-                let gradeDiff = Math.abs(getGVal(pB.grade) - targetG);
+        // 2. 4명으로 만들 수 있는 모든 2:2 경우의 수
+        let cases = [
+            { t1: [p1, p2], t2: [p3, p4] },
+            { t1: [p1, p3], t2: [p2, p4] },
+            { t1: [p1, p4], t2: [p2, p3] }
+        ];
 
-                if (score < minScore) {
-                    minScore = score;
-                    minGradeDiff = gradeDiff;
-                    bestIdx = i;
-                } 
-                else if (score === minScore) {
-                    if (rule === 'grade') {
-                        if (gradeDiff < minGradeDiff) {
-                            minGradeDiff = gradeDiff;
-                            bestIdx = i;
-                        }
-                    }
-                }
+        let bestCase = null;
+        let minPenalty = Infinity;
+
+        // 3. 밸런스 시뮬레이션
+        cases.forEach(c => {
+            let historyPenalty = lhy_getMatchScore(c.t1[0].id, c.t1[1].id) + lhy_getMatchScore(c.t2[0].id, c.t2[1].id);
+
+            let t1Score = getGVal(c.t1[0].grade) + getGVal(c.t1[1].grade);
+            let t2Score = getGVal(c.t2[0].grade) + getGVal(c.t2[1].grade);
+            let balancePenalty = Math.abs(t1Score - t2Score);
+
+            let totalPenalty = 0;
+            if (rule === 'grade') {
+                totalPenalty = (balancePenalty * 100) + historyPenalty;
+            } else {
+                totalPenalty = (historyPenalty * 100) + balancePenalty;
             }
-            return bestIdx;
-        }
 
-        let p1 = pool[0];
-        let p2Idx = findPartner(p1, pool.slice(1));
-        let p2 = pool[1 + p2Idx];
+            if (totalPenalty < minPenalty) {
+                minPenalty = totalPenalty;
+                bestCase = c;
+            }
+        });
 
-        let remaining = pool.filter(p => p.id !== p1.id && p.id !== p2.id);
-        let p3 = remaining[0];
-        let p4Idx = findPartner(p3, remaining.slice(1));
-        let p4 = remaining[1 + p4Idx];
-
-        let selectedIds = [p1.id, p2.id, p3.id, p4.id];
+        // 4. 최적 조합 보드 배치
+        boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id;
+        boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
+        boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id;
+        boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
+        
+        lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id);
+        lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
+        
+        // 5. 배정된 인원 삭제
+        let selectedIds = selected.map(p => p.id);
         for (let i = pool.length - 1; i >= 0; i--) {
             if (selectedIds.includes(pool[i].id)) {
                 pool.splice(i, 1);
             }
         }
 
-        boardState[`${boardPrefix}-L1`] = p1.id;
-        boardState[`${boardPrefix}-L2`] = p2.id;
-        boardState[`${boardPrefix}-R1`] = p3.id;
-        boardState[`${boardPrefix}-R2`] = p4.id;
-        
-        lhy_addMatchHistory(p1.id, p2.id);
-        lhy_addMatchHistory(p3.id, p4.id);
-        
         return true;
     }
 
@@ -775,36 +779,31 @@
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
-        // [수정] 출석 명단 드래그 기능 (명단에서 빼거나 넣기 모두 가능)
         new Sortable(document.getElementById('ui-list'), { 
             ...dragOpt, 
-            group: { name: 'sh', pull: 'clone', put: true }, // 'clone' 방식으로 원본은 두고 복사본만 이동
+            group: { name: 'sh', pull: 'clone', put: true },
             sort: false, 
-            delay: 150, // 길게 눌러야 드래그 시작 (클릭과 충돌 방지)
+            delay: 150, 
             delayOnTouchOnly: true,
-            filter: ".is-not, .is-playing", // 미출석자나 게임중인 사람은 드래그 금지
+            filter: ".is-not, .is-playing", 
             onStart: function(evt) {
                 isListDragging = true;
                 if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
                 lhy_saveUndoState();
             },
             onEnd: function(evt) {
-                setTimeout(() => { isListDragging = false; }, 50); // 드래그 끝난 직후 클릭 방지 연장
+                setTimeout(() => { isListDragging = false; }, 50); 
                 document.querySelectorAll('.player').forEach(p => p.classList.remove('is-selected-target'));
                 lhy_syncBoardDOMToState();
             },
             onAdd: (evt) => { 
-                // 보드판 인원을 명단으로 버렸을 때 (게임 제외)
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState();
-                lhy_dominoShiftSystem(); // 빠져나간 빈자리 자동 채우기
+                lhy_dominoShiftSystem(); 
             } 
         });
         
         lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); 
-        
-        // 도움말 초기화 (이전 버그 수정: 숨겨두고 처음엔 실행 안 함)
-        // lhy_renderHelpViewer(1);
     }
 
     function lhy_loadDefaultDB() {
@@ -943,7 +942,6 @@
 
     function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
     
-    // [수정] 도움말 창 오픈 시 1번 탭 무조건 활성화
     function lhy_openHelpPop() { 
         document.getElementById('lhy-pop-help').style.display = 'flex'; 
         const firstBtn = document.querySelector('.help-menu-btn');
@@ -1066,7 +1064,6 @@
         html += `</div>`; viewer.innerHTML = html;
     }
 
-    // [수정] 5번 버전에서 완벽 분리한 취소 및 귀가 로직 포함
     function lhy_popCancelGame() {
         if(!selectedPopId) return;
         lhy_saveUndoState();
@@ -1153,7 +1150,6 @@
 
             d.innerHTML = `<div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950;">${pureName}${m.isAtt ? `<span class="p-cnt">(${m.cnt})</span>` : ''}</div>`;
             
-            // [수정] 드래그 중에는 클릭(출석토글)이 작동하지 않도록 방어 로직 추가
             d.onclick = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
