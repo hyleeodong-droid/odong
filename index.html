@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260601-1.html</title>
+    <title>화목모임_20260529-8_260305-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260601-1.html.html</div>
+    <div class="lhy-footer-filename">화목모임_20260529-8_260305-1.html</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -380,7 +380,6 @@
         } 
     };
 
-    // [수정] 도움말 데이터 7번 탭 추가
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: [ "<b>자율 출석 기능:</b> 미출석 상태인 회원은 명단에서 터치 시 즉시 출석됩니다.", "<b>가변형 버튼:</b> 보드판이 비어있으면 [입장], 인원이 있으면 [초기화]로 변경됩니다." ] },
         2: { title: "2. 회원관리 인라인 제어 규칙", steps: [ "<b>회원관리 진입:</b> [관리자] 모드 전환 후 [회원관리] 버튼을 클릭해 명단을 직접 수정/삭제합니다." ] },
@@ -391,6 +390,7 @@
         7: { title: "7. 조편성 기준 및 알고리즘", steps: [ "<b>1단계 (순서 보장):</b> 가장 먼저 출석하고 대기한 최상위 4명을 우선 선발합니다. (새치기 절대 불가)", "<b>2단계 (경우의 수 탐색):</b> 선발된 4명으로 만들 수 있는 3가지 2:2 팀 조합을 모두 시뮬레이션합니다.", "<b>3단계 (최적 밸런스 배치):</b> 과거 같은 편 횟수가 가장 적고, 양 팀 간의 합산 실력(등급) 차이가 가장 0에 가까운 조합을 시스템이 자동으로 계산하여 최종 배정합니다." ] }
     };
 
+    // [수정] 관리자 모드 진입 시 바로 리스트 창 오픈되도록 수정
     function lhy_fnToggleAdminMode() {
         const statEl = document.getElementById('ui-stat');
         if (!isAdminMode) {
@@ -399,8 +399,15 @@
                 isAdminMode = true;
                 document.getElementById('btn-admin-toggle').classList.add('admin-mode');
                 document.getElementById('btn-admin-toggle').innerText = "닫기";
-                statEl.innerText = "회원관리"; statEl.classList.add('admin-active');
-            } else { alert("비밀번호가 일치하지 않습니다."); }
+                statEl.innerText = "회원관리"; 
+                statEl.classList.add('admin-active');
+                
+                // 관리자 모드 진입 직후 회원관리 리스트 자동 오픈
+                lhy_openMasterPop(); 
+            } else { 
+                // 취소 버튼 눌렀을 때는 경고창 안뜨게 예외처리
+                if (pw !== null) alert("비밀번호가 일치하지 않습니다."); 
+            }
         } else {
             isAdminMode = false;
             document.getElementById('btn-admin-toggle').classList.remove('admin-mode');
@@ -445,7 +452,6 @@
         }
     }
 
-    // [완전 교체] 최적의 밸런스 조합을 찾아내는 lhy_pickAndPlace4 함수
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
@@ -456,11 +462,9 @@
             return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
         }
 
-        // 1. 대기열 최상위 4명 무조건 추출 (대기 순서 보장)
         let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3];
         let selected = [p1, p2, p3, p4];
 
-        // 2. 4명으로 만들 수 있는 모든 2:2 경우의 수
         let cases = [
             { t1: [p1, p2], t2: [p3, p4] },
             { t1: [p1, p3], t2: [p2, p4] },
@@ -470,7 +474,6 @@
         let bestCase = null;
         let minPenalty = Infinity;
 
-        // 3. 밸런스 시뮬레이션
         cases.forEach(c => {
             let historyPenalty = lhy_getMatchScore(c.t1[0].id, c.t1[1].id) + lhy_getMatchScore(c.t2[0].id, c.t2[1].id);
 
@@ -491,7 +494,6 @@
             }
         });
 
-        // 4. 최적 조합 보드 배치
         boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id;
         boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
         boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id;
@@ -500,7 +502,6 @@
         lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id);
         lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
         
-        // 5. 배정된 인원 삭제
         let selectedIds = selected.map(p => p.id);
         for (let i = pool.length - 1; i >= 0; i--) {
             if (selectedIds.includes(pool[i].id)) {
@@ -957,6 +958,7 @@
         document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
+    // [수정] 회원관리 팝업 닫기 시, 관리자 모드 즉시 해제 연동
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
             lhy_saveUndoState(); 
@@ -967,6 +969,7 @@
             document.getElementById('lhy-pop-master').style.display = 'none'; 
         }
 
+        // 창이 닫히면 조건 없이 무조건 관리자 모드에서 빠져나오기
         if (isAdminMode) {
             lhy_fnToggleAdminMode(); 
         }
