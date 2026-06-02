@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_260601-7.html</title>
+    <title>화목모임_20260602-3.html</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        :root {
+:root {
             --bg-court: #457b3b; --bg-wait: #d9ead3;
             --p-black: #000; --p-pink: #FF007F;
             --p-guest: #00f;
@@ -14,186 +14,129 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
         
-        html, body { height: 100%; width: 100%; overflow: hidden; background: #000; position: fixed; left: 0; top: 0; }
-        
-       body {
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    height: 100dvh; /* dvh는 모바일 주소창을 제외한 실제 화면 높이를 의미합니다 */
-    background: #111;
-    overflow: hidden; /* 스크롤 방지 */
-}
+        html, body { 
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            overflow: hidden; background: #000; overscroll-behavior: none; 
+        }
 
-/* 1. 헤더 (고정 높이) */
-#header { 
-    flex: 0 0 auto; /* 헤더는 내용물 크기만큼만 가짐 */
-    height: 60px; /* 원하는 높이로 지정 */
-}
+        body {
+            display: flex; flex-direction: column; 
+            width: 100vw; height: 100dvh; 
+            background: #111; overflow: hidden;
+        }
 
-/* 2. 메인 컨텐츠 (유동적 - 이게 핵심) */
-#main-content { 
-    flex: 1; /* 남은 공간을 전부 다 가져감 */
-    display: flex; 
-    flex-direction: row; /* 코트와 대기실을 가로로 배치 */
-    overflow: hidden;
-}
+        /* 레이아웃 구조 */
+        #header { flex: 0 0 auto; height: 60px; }
+        #main-content { flex: 1; display: flex; flex-direction: row; overflow: hidden; }
+        #lhy-action-panel { flex: 0 0 auto; height: 80px; background: #222; }
+        #court-area { flex: 6; min-width: 0; }
+        #wait-area { flex: 4; min-width: 0; }
 
-/* 3. 하단 메뉴 버튼 (고정 높이) */
-#lhy-action-panel {
-    flex: 0 0 auto;
-    height: 80px; /* 메뉴 버튼 높이만큼 확보 */
-    background: #222;
-}
-
-/* 코트 영역 */
-#court-area { 
-    flex: 6; /* 전체 공간의 60% 차지 */
-    min-width: 0; /* 내부 요소가 넘치지 않게 방지 */
-}
-
-/* 대기실 영역 */
-#wait-area { 
-    flex: 4; /* 전체 공간의 40% 차지 */
-    min-width: 0;
-}
-        /* 헤더 고급화 (그라데이션 및 그림자) */
+        /* 헤더 고급화 */
         .lhy-header { height: 35px; background: linear-gradient(180deg, #283593 0%, #1a237e 100%); box-shadow: 0 3px 6px rgba(0,0,0,0.5); border-bottom: 1px solid #4a54a4; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; gap: 5px; z-index: 100; }
         .lhy-box-date { background: #fff; color: #000; font-weight: 950; padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3); }
         .lhy-box-title { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 950; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
         .lhy-box-stat { color: #FF0; font-size: 1rem; font-weight: 950; min-width: 45px; text-align: right; cursor: pointer; padding: 3px 6px; border-radius: 4px; background: rgba(0,0,0,0.3); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5), 0 1px 1px rgba(255,255,255,0.2); }
         .lhy-box-stat.admin-active { color: #0FF; font-size: 0.85rem; }
         
-        /* 공통 헤더 버튼 양각 효과 */
         .lhy-hd-btn { background: linear-gradient(180deg, #ffffff, #eff2f7); color: #000; border: 1px solid #aaa; font-weight: 950; font-size: 0.72rem; padding: 3px 10px; border-radius: 4px; cursor: pointer; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.3); transition: all 0.1s; }
         .lhy-hd-btn:active { transform: translateY(2px); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.2); }
         .lhy-hd-btn.admin-mode { background: linear-gradient(180deg, #ff4d4d, #cc0000); color: #fff; border: 1px solid #990000; animation: blinker 1.5s linear infinite; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
         @keyframes blinker { 50% { opacity: 0.7; } }
 
         .lhy-main { display: flex; flex: 1; overflow: hidden; background: #e2e8f0; min-height: 0; position: relative; flex-direction: column; }
-        
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        /* 메뉴 그리드 3D 버튼화 */
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(8, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         .lhy-menu-grid button { height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: transform 0.1s, box-shadow 0.1s; }
         .lhy-menu-grid button:active { transform: translateY(2px); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
 
-        /* 명단 배경 및 간격 고급화 */
         .lhy-player-list { flex: 1; display: grid; background: #cbd5e1; gap: 6px; padding: 6px; overflow-y: auto; overflow-x: hidden; min-height: 0; touch-action: pan-y; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         
-        /* 컨트롤 버튼(체크박스) 3D 처리 */
         .section-container { height: 50%; display: flex; min-height: 0; border-bottom: 2px solid #000; position: relative; }
         .lhy-control-col { width: 22px; display: flex; flex-direction: column; background: #111; border-right: 1px solid #444; flex-shrink: 0; gap: 2px; padding: 2px 0; height: 100%; box-shadow: inset -2px 0 5px rgba(0,0,0,0.5); }
         .btn-ctrl { flex: 1; border: 1px solid #000; background: linear-gradient(135deg, #444, #222); cursor: pointer; position: relative; width: calc(100% - 4px); margin: 1px 2px; border-radius: 3px; box-shadow: inset 1px 1px 1px rgba(255,255,255,0.2), 0 1px 3px rgba(0,0,0,0.5); }
         .btn-ctrl.active { background: linear-gradient(135deg, #ffe24d, #FFD700); border: 1px solid #b8860b; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); }
         .btn-ctrl.active::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #000; font-size: 0.75rem; font-weight: 950; text-shadow: 1px 1px 0 rgba(255,255,255,0.5); }
         
-        /* 코트 래퍼 배경 깊이감 부여 */
         .grid-wrapper { flex: 1; display: grid; gap: 6px; background: #1e293b; padding: 6px; height: 100%; width: 100%; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
 
-        /* 개별 코트 단상(Platform) 느낌 */
         .lhy-unit { display: flex; position: relative; overflow: hidden; height: 100%; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 1px 1px 1px rgba(255,255,255,0.2); border: 1px solid rgba(0,0,0,0.6); }
         .u-c { background: linear-gradient(135deg, #4d8c42 0%, #355e2d 100%); } 
         .u-w { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; border: 1px solid #aaa; }
         
-        /* A팀 B팀 영역 양각 패딩 효과 */
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.5), inset -2px -2px 8px rgba(0,0,0,0.15); }
         .A-team, .A-team .lhy-slot { background: linear-gradient(135deg, #ffeba6 0%, #FFD700 100%) !important; } 
         .B-team, .B-team .lhy-slot { background: linear-gradient(135deg, #c9ebff 0%, #87CEEB 100%) !important; } 
 
-        .lhy-slot { border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; }
-        
-        /* 가운데 버튼 공간 메탈릭 효과 및 버튼 입체화 */
-        .lhy-mid-btn-space { width: 75px; display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; }
-        .lhy-mid-line-space { width: 3px; background: linear-gradient(90deg, #aaa, #fff, #aaa); flex-shrink: 0; height: 100%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        
-        .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: 1.8rem; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.1s; }
-        
-        .A-btn { background: linear-gradient(180deg, #ffe55c 0%, #FFD700 100%); box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); border: 1px solid #d4af37; }
-        .A-btn:active { transform: translateY(3px); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(0,0,0,0.3); }
-        
-        .B-btn { background: linear-gradient(180deg, #a4d9f9 0%, #87CEEB 100%); box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 1px 1px 2px rgba(255,255,255,0.8), inset -1px -1px 3px rgba(0,0,0,0.2); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); border: 1px solid #5ca0d3; }
-        .B-btn:active { transform: translateY(3px); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(0,0,0,0.3); }
+        .lhy-slot { border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; container-type: size; }
 
-        /* 선수 카드(명단) 완벽한 버튼화 */
+        /* 선수 카드 디자인 */
         .player { 
             display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px;
-            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,1);
-            border: 1px solid #94a3b8;
-            transition: transform 0.1s, box-shadow 0.1s;
+            border-radius: 8px; width: 100%; height: 100%;
+            transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+            container-type: size;
         }
         .player:active { transform: scale(0.96); box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 1px 1px 3px rgba(0,0,0,0.1); }
-        
-        /* 미출석 선수 음각(움푹 파인) 느낌 */
-        .is-not { background: #e2e8f0; opacity: 0.6; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1), inset -1px -1px 2px rgba(255,255,255,0.5); border: 1px dashed #94a3b8; }
-        .is-not .p-name { font-weight: 600 !important; font-style: italic !important; white-space: nowrap; color: #555; }
-        
-        /* 출석/경기중 상태 */
-        .is-att { opacity: 1.0 !important; }
-        .is-att .p-name { font-style: normal; white-space: nowrap; text-shadow: 1px 1px 0 #fff; } 
-        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 1px solid #b8860b; }
-        .is-playing { opacity: 0.4 !important; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2) !important; transform: scale(0.98); border: 1px solid #64748b; }
 
-        .p-name { line-height: 1.1; text-align: center; pointer-events: none; word-break: keep-all; width: 100%; display: inline-block; letter-spacing: -1.2px; white-space: nowrap; font-weight: 999 !important; transform: scaleX(0.97); }
+        /* 미출석 선수 -> 깊은 음각 */
+        .is-not { 
+            background: #cbd5e1 !important; opacity: 0.35 !important; 
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -3px -3px 6px rgba(255,255,255,0.7) !important; 
+            border: 1px solid #94a3b8 !important; 
+        }
+        .is-not .p-name { font-weight: 900 !important; font-style: italic !important; color: #64748b !important; text-shadow: none !important; }
 
-/* 선수 이름: 사각 바탕 제거 및 그림자 효과 최적화 */
-        .player .p-name {
-            background: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            
-            font-size: clamp(1.0rem, 3.5vw, 3.0rem) !important; 
+        /* 출석/게임중 선수 -> 양각(Raised) 효과 */
+        .is-att, .is-playing, .in-game { 
+            opacity: 1.0 !important; 
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,1), 3px 3px 6px rgba(0,0,0,0.25) !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        /* 게임중일때는 투명도만 조정 */
+        .is-playing, .in-game { opacity: 0.5 !important; }
+
+        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239,68,68,0.8) !important; opacity: 1.0 !important; z-index: 10; }
+
+        /* 이름 폰트 스타일 (흰색 테두리 + 검정/핑크색) */
+        .p-name {
+            background: transparent !important; border: none !important; box-shadow: none !important;
+            padding: 0 2px !important; margin: 0 !important;
+            font-size: clamp(14px, 60cqh, 55px) !important; 
             font-weight: 950 !important;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.15;
-            letter-spacing: -1.8px;
-
-            /* [중요] drop-shadow 제거하고 text-shadow를 더 강력하게 사용하여 입체감 유지 */
-            /* 1. 흰색 테두리 효과 + 2. 부드러운 검은색 그림자를 텍스트에만 적용 */
-            text-shadow: 
-                -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, 
-                -2.5px 0px 0 #fff, 2.5px 0px 0 #fff, 0px -2.5px 0 #fff, 0px 2.5px 0 #fff,
-                3px 4px 5px rgba(0,0,0,0.6); /* 이 부분이 그림자 역할 */
-            
-            /* [삭제됨] filter: drop-shadow는 사각형을 만드므로 삭제 */
-            filter: none !important; 
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.0; letter-spacing: -1.5px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%; pointer-events: none;
+            /* 공통 흰색 테두리 */
+            text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;
         }
+        .name-black { color: #000 !important; }
+        .name-pink { color: #d63384 !important; }
 
-        /* 부모 요소(player)도 배경을 강제로 투명하게 설정 */
-        .lhy-slot .player {
-            background: transparent !important;
-        }
-        .real-landscape .player .p-name {
-            font-size: clamp(0.9rem, 3.0vw, 2.5rem) !important;
-        }
-
-        .real-landscape .in-game .p-name {
-            font-size: clamp(1.0rem, 3.5vw, 3.0rem) !important;
-        }
-
-        .m-sex .p-name { color: var(--p-black); } .m-sex .p-cnt { color: var(--p-black) !important; }
-        .f-sex .p-name { color: var(--p-pink) !important; } .f-sex .p-cnt { color: var(--p-pink) !important; }
-        .g-sex .p-name { color: var(--p-guest) !important; } .g-sex .p-cnt { color: var(--p-guest) !important; }
-        
+        .m-sex .p-name { color: var(--p-black); } 
+        .m-sex .p-cnt { color: var(--p-black) !important; }
+        .f-sex .p-name { color: var(--p-pink) !important; } 
+        .f-sex .p-cnt { color: var(--p-pink) !important; }
+        .g-sex .p-name { color: var(--p-guest) !important; } 
+        .g-sex .p-cnt { color: var(--p-guest) !important; }
         .p-cnt { font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
 
         .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
 
-        /* 모달 팝업 고급화 */
+        /* 기타 모달 및 버튼 */
+        .lhy-mid-btn-space { width: 75px; display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; overflow: visible; position: relative; z-index: 10; }
+        .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0; transition: all 0.1s; z-index: 5; }
+        .A-btn { background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%); box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%); width: calc(100% + 60px); margin-left: -60px; padding-left: 30px; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.7)); }
+        .A-btn:active { transform: translateY(3px); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4); filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.7)); }
+        .B-btn { background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%); box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); width: calc(100% + 60px); margin-left: auto; margin-right: -60px; padding-right: 30px; filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7)); }
+        .B-btn:active { transform: translateY(3px); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4); filter: drop-shadow(-1px 1px 2px rgba(0,0,0,0.7)); }
+
         .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(2px); }
         .lhy-modal-content { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); }
         .lhy-modal-header { background: linear-gradient(90deg, #1a237e, #283593); color: #fff; padding: 14px; font-weight: 950; text-align: center; font-size: 1.05rem; position: relative; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
@@ -203,18 +146,15 @@
         .lhy-btn-cancel { background: linear-gradient(180deg, #64748b, #475569); color: #fff; border: 1px solid #334155; margin-top: 5px; text-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
 
         .lhy-modal-content.large-size { max-width: 640px; width: 92%; height: 85vh; display: flex; flex-direction: column; border-radius: 10px; }
-        
         .master-title-text { font-size: 1rem; font-weight: 950; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
         .master-top-actions { display: flex; gap: 5px; }
         .master-top-actions button { padding: 5px 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; font-weight: 950; font-size: 0.72rem; cursor: pointer; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; }
         .master-top-actions button:active { transform: translateY(1px); }
-
         .master-table-wrapper { flex: 1; overflow: auto; background: #fff; padding: 5px; -webkit-overflow-scrolling: touch; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         .master-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 500px; }
         .master-table th, .master-table td { border: 1px solid #ccc; padding: 6px 4px; text-align: center; vertical-align: middle; }
         .master-table th { background: linear-gradient(180deg, #e8eaf6, #d7d9eb); font-weight: 950; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
         .master-table input[type="text"], .master-table select { width: 100%; height: 28px; border: 1px solid #aaa; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.05); }
-        
         .btn-table-kick { background: linear-gradient(180deg, #ef4444, #dc2626); color: #fff; border: 1px solid #b91c1c; padding: 5px 10px; border-radius: 4px; font-weight: 950; cursor: pointer; font-size: 0.75rem; box-shadow: 0 2px 3px rgba(0,0,0,0.2); }
         .btn-table-kick:active { transform: translateY(1px); box-shadow: none; }
 
@@ -233,8 +173,7 @@
         .real-landscape .lhy-main { flex-direction: row; }
         .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #333; box-shadow: 4px 0 10px rgba(0,0,0,0.3) inset; }
         .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; box-shadow: none; }
-        
-        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(6, 16.66%); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
+        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
     </style>
@@ -277,6 +216,10 @@
                 <button style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">화면전환</button>
                 <button id="btn-reset-enter" style="background:linear-gradient(180deg, #2ecc71, #27ae60);" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
                 <button id="btn-undo" style="background:linear-gradient(180deg, #ffe033, #FFD700); color:#000;" onclick="lhy_fnUndoAction()">실행취소</button>
+                
+                <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#000;" onclick="lhy_topBtnCancelGame()">게임취소</button>
+                <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
+                
                 <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
                 <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
                 <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
@@ -285,7 +228,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260601-7</div>
+    <div class="lhy-footer-filename">화목모임_20260602-3</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -347,17 +290,6 @@
                 <div class="help-right-viewer" id="help-viewer-content"></div>
             </div>
             <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeHelpPop()" style="border-radius:0; margin:0; padding:15px 0;">닫기</button>
-        </div>
-    </div>
-
-    <div class="lhy-modal-overlay" id="lhy-court-pop-menu" onclick="lhy_closeCourtPopMenu()">
-        <div class="lhy-modal-content" onclick="event.stopPropagation()">
-            <div class="lhy-modal-header" id="court-pop-title">경기 선수 관리</div>
-            <div class="lhy-modal-body">
-                <button class="lhy-modal-btn" onclick="lhy_popCancelGame()" style="color: #1a237e; border: 2px solid #1a237e;">① 게임 취소 (회원명단으로 복귀)</button>
-                <button class="lhy-modal-btn" onclick="lhy_popCourtSetExit()" style="color: #cc0000; border: 2px solid #cc0000;">② 귀가 처리 (로그아웃)</button>
-                <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeCourtPopMenu()">취소</button>
-            </div>
         </div>
     </div>
 
@@ -470,7 +402,7 @@
         4: { title: "4. [상황] 빈 코트 팀 순차배치", steps: [ "대기조가 비었거나 코트가 비면 자동으로 우선순위에 따라 4명씩 묶여 배치됩니다." ] },
         5: { title: "5. [상황] 코트 선수간 자리 드래그", steps: [ "<b>명단 ↔ 보드판 양방향:</b> 명단에서 코트로 직접 끌어다 놓거나, 코트 인원을 명단으로 버려 뺄 수 있습니다." ] },
         6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: [ "보드판의 선수 이름을 0.6초간 길게 누르면 게임 취소/귀가 팝업이 표시됩니다." ] },
-        7: { title: "7. 조편성 기준 및 알고리즘", steps: [ "<b>1단계 (순서 보장):</b> 가장 먼저 출석하고 대기한 최상위 4명을 우선 선발합니다. (새치기 절대 불가)", "<b>2단계 (경우의 수 탐색):</b> 선발된 4명으로 만들 수 있는 3가지 2:2 팀 조합을 모두 시뮬레이션합니다.", "<b>3단계 (최적 밸런스 배치):</b> 과거 같은 편 횟수가 가장 적고, 양 팀 간의 합산 실력(등급) 차이가 가장 0에 가까운 조합을 시스템이 자동으로 계산하여 최종 배정합니다." ] }
+        7: { title: "7. 조편성 기준 및 알고리즘", steps: [ "<b>1단계 (순서 보장):</b> 가장 먼저 출석하고 대기한 최상위 4명을 우선 선발합니다. (새치기 절대 불가)", "<b>2단계 (경우의 수 탐색):</b> 선발된 4명으로 만들 수 있는 3가지 2:2 팀 조합을 모두 시뮬레이션합니다.", "<b>3단계 (최적 밸런스 배치):</b> 과거 같은 편 횟 가장 적고, 양 팀 간의 합산 실력(등급) 차이가 가장 0에 가까운 조합을 시스템이 자동으로 계산하여 최종 배정합니다." ] }
     };
 
     function lhy_fnToggleAdminMode() {
@@ -986,21 +918,24 @@
         p.className = `player in-game ${sexClass}`; 
         p.dataset.id = memberObj.id;
         
-        p.innerHTML = `<div class="p-name">${pureName}</div>`; 
+        /* 요구사항 2: 코트/대기조에서 승패 숨기고 이름만 출력 (기존 인라인 코드 삭제) */
+        p.innerHTML = `
+            <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
+                <span style="white-space: nowrap;">${pureName}</span>
+            </div>
+        `;
         
         let touchStartX = 0; let touchStartY = 0;
+        
+        /* 요구사항 5, 6 연동: 롱클릭 시 선택(.is-sel) 부여 */
         const startHandler = (e) => {
             isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
             touchStartX = touch.clientX; touchStartY = touch.clientY;
-            if (!p.classList.contains('is-selected-target')) {
-                document.querySelectorAll('.player').forEach(el => el.classList.remove('is-selected-target'));
-                p.classList.add('is-selected-target');
-            }
             if (longClickTimer) clearTimeout(longClickTimer);
             longClickTimer = setTimeout(() => {
                 isLongClicked = true; selectedPopId = memberObj.id;
-                document.getElementById('court-pop-title').innerText = `[${pureName}] 경기 관리`;
-                document.getElementById('lhy-court-pop-menu').style.display = 'flex';
+                document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+                p.classList.add('is-sel');
             }, 600);
         };
         const moveHandler = (e) => {
@@ -1039,8 +974,6 @@
         if (!hasPlayers) { btn.innerText = "입장"; btn.style.background = "linear-gradient(180deg, #2ecc71, #27ae60)"; } 
         else { btn.innerText = "초기화"; btn.style.background = "linear-gradient(180deg, #f39c12, #e67e22)"; }
     }
-
-    function lhy_closeCourtPopMenu() { document.getElementById('lhy-court-pop-menu').style.display = 'none'; selectedPopId = null; }
     
     function lhy_openHelpPop() { 
         document.getElementById('lhy-pop-help').style.display = 'flex'; 
@@ -1164,44 +1097,76 @@
         html += `</div>`; viewer.innerHTML = html;
     }
 
-    function lhy_popCancelGame() {
-        if(!selectedPopId) return;
-        lhy_saveUndoState();
-        Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
-        const m = DB.members.find(x => x.id === selectedPopId);
-        if(m) { m.isAtt = true; }
-        lhy_syncBoardDOMToState();
-        lhy_dominoShiftSystem();
-        lhy_closeCourtPopMenu();
-    }
-
-    function lhy_popCourtSetExit() {
-        if(!selectedPopId) return;
-        lhy_saveUndoState();
-        const m = DB.members.find(x => x.id === selectedPopId);
-        Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
-        if(m) {
-            if (m.isG) {
-                DB.members = DB.members.filter(x => x.id !== selectedPopId);
-            } else {
-                m.isAtt = false;
-                m.cnt = 0;
-                m.win = 0;
-                m.lose = 0;
-            }
-        }
-        lhy_syncBoardDOMToState();
-        lhy_dominoShiftSystem();
+function lhy_topBtnCancelGame() {
+    if (!selectedPopId) { alert("선수를 먼저 선택해주세요."); return; }
+    
+    lhy_saveUndoState();
+    
+    // 1. 데이터 처리
+    Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
+    const m = DB.members.find(x => x.id === selectedPopId);
+    if (m) { m.isAtt = true; } // 대기실 복귀
+    
+    // 2. 상태 저장
+    localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
+    localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+    
+    // 3. UI 정리
+    selectedPopId = null;
+    isLongClicked = false; // ★ 롱클릭(출석먹통) 해결
+document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+    
+    // 4. 화면 갱신 (sync가 아닌 render를 사용하여 코트에서 지운 상태를 확실히 화면에 반영)
+    lhy_renderBoardFromState();
+    lhy_dominoShiftSystem();
+    
+    // 화면 다시 그리기
+    try {
         lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-        lhy_closeCourtPopMenu();
+    } catch (e) {
+        console.error("렌더링 오류 발생:", e);
     }
+}
 
-    function lhy_fnToggleOrientationButton() {
-        if (rotationState === 'auto') { rotationState = 'force-landscape'; } 
-        else if (rotationState === 'force-landscape') { rotationState = 'force-portrait'; } 
-        else { rotationState = 'auto'; }
-        lhy_applyOrientationLogic();
+
+ function lhy_topBtnGoHome() {
+    if (!selectedPopId) { alert("선수를 먼저 선택해주세요."); return; }
+    
+    lhy_saveUndoState();
+    
+    // 1. 데이터 처리
+    const m = DB.members.find(x => x.id === selectedPopId);
+    Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
+    
+    if (m) {
+        if (m.isG) {
+            DB.members = DB.members.filter(x => x.id !== selectedPopId);
+        } else {
+            m.isAtt = false;
+            m.cnt = 0; m.win = 0; m.lose = 0;
+            delete m.attTime;
+        }
     }
+    
+    // 2. 상태 저장
+    localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
+    localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+    
+    // 3. UI 정리
+    selectedPopId = null;
+    document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+    
+    // 4. 화면 갱신
+    lhy_syncBoardDOMToState();
+    lhy_dominoShiftSystem();
+    
+    // 화면 다시 그리기
+    try {
+        lhy_renderListOnly(document.body.classList.contains('real-landscape'));
+    } catch (e) {
+        console.error("렌더링 오류 발생:", e);
+    }
+}
 
     function lhy_applyOrientationLogic() {
         const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
@@ -1244,21 +1209,41 @@
             d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${isP ? 'is-playing' : ''} ${sexClass}`;
             d.dataset.id = m.id;
             
-            const activeAtt = DB.members.filter(x => x.isAtt).length;
-            let responsiveFontSize = "1.6rem";
-            if (activeAtt > 4) {
-                responsiveFontSize = isLandscapeMode ? "clamp(1.15rem, 2.6vw + 0.6vh, 1.7rem)" : "clamp(0.95rem, 2.5vw + 0.5vh, 1.65rem)";
-            }
-
             d.innerHTML = `
-                <div class="p-name" style="font-size:${responsiveFontSize}; font-weight:950; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; white-space: normal; width:100%;">
+                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
                     <span style="white-space: nowrap;">${pureName}</span>
                     ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; white-space: nowrap; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
                 </div>
             `;
             
+            /* 요구사항 5, 6 연동: 롱클릭 시 선택(.is-sel) 상태 부여 */
+            let touchStartX = 0; let touchStartY = 0;
+            const startHandler = (e) => {
+                isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
+                touchStartX = touch.clientX; touchStartY = touch.clientY;
+                if (longClickTimer) clearTimeout(longClickTimer);
+                longClickTimer = setTimeout(() => {
+                    isLongClicked = true; selectedPopId = m.id;
+                    document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+                    d.classList.add('is-sel');
+                }, 600);
+            };
+            const moveHandler = (e) => {
+                const touch = e.touches ? e.touches[0] : null;
+                if (touch) {
+                    if (Math.abs(touch.clientX - touchStartX) > 6 || Math.abs(touch.clientY - touchStartY) > 6) {
+                        if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
+                    }
+                }
+            };
+            const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
+
+            d.addEventListener('mousedown', startHandler); d.addEventListener('touchstart', startHandler, { passive: true });
+            d.addEventListener('touchmove', moveHandler, { passive: false }); d.addEventListener('mouseup', endHandler); d.addEventListener('touchend', endHandler);
+
             d.onclick = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
+                if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } // 롱클릭 후 토글 작동 방지
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
                 lhy_saveUndoState(); m.isAtt = !m.isAtt;
                 
