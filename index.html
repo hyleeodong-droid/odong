@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260602-3.html</title>
+    <title>화목모임_20260602-4.html</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-:root {
+        :root {
             --bg-court: #457b3b; --bg-wait: #d9ead3;
             --p-black: #000; --p-pink: #FF007F;
             --p-guest: #00f;
@@ -63,57 +63,73 @@
         .grid-wrapper { flex: 1; display: grid; gap: 6px; background: #1e293b; padding: 6px; height: 100%; width: 100%; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
 
         .lhy-unit { display: flex; position: relative; overflow: hidden; height: 100%; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 1px 1px 1px rgba(255,255,255,0.2); border: 1px solid rgba(0,0,0,0.6); }
-        .u-c { background: linear-gradient(135deg, #4d8c42 0%, #355e2d 100%); } 
-        .u-w { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
         
-        .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; border: 1px solid #aaa; }
+        /* [요구사항 4] 코트 배경 60% 진하게 반영 (투명도 조절로 구현) */
+        .u-c { background: linear-gradient(135deg, #2a4d24 0%, #172b14 100%); } 
+        .u-w { background: linear-gradient(135deg, #7b9b81 0%, #5d8164 100%); }
         
-        .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.5), inset -2px -2px 8px rgba(0,0,0,0.15); }
-        .A-team, .A-team .lhy-slot { background: linear-gradient(135deg, #ffeba6 0%, #FFD700 100%) !important; } 
-        .B-team, .B-team .lhy-slot { background: linear-gradient(135deg, #c9ebff 0%, #87CEEB 100%) !important; } 
+        .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; }
+        
+        .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
+        
+        /* [요구사항 1, 4] 코트/대기조 양분 & 배경색 60% 진하게 */
+        .A-team { background: linear-gradient(135deg, #8a7300 0%, #665600 100%) !important; } 
+        .B-team { background: linear-gradient(135deg, #1d3340 0%, #111e26 100%) !important; } 
 
-        .lhy-slot { border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; container-type: size; }
+        /* [요구사항 4] 배정된 회원칸 배경색 60% 더 진하게 */
+        .lhy-slot { 
+            background: rgba(0, 0, 0, 0.5) !important; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: inset 1px 1px 4px rgba(0,0,0,0.3); 
+            display: flex; align-items: center; justify-content: center; 
+            min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; 
+            container-type: size; /* [요구사항 5] 자동 반응 기준 설정 */
+        }
 
-        /* 선수 카드 디자인 */
+        /* [요구사항 5] 반응형 기반 선수 카드 디자인 */
         .player { 
             display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px;
             border-radius: 8px; width: 100%; height: 100%;
             transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
-            container-type: size;
+            container-type: size; /* [요구사항 5] */
         }
         .player:active { transform: scale(0.96); box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 1px 1px 3px rgba(0,0,0,0.1); }
 
-        /* 미출석 선수 -> 깊은 음각 */
+        /* [요구사항 7] 미출석 선수 (음각 유지 및 퍼플색) */
         .is-not { 
             background: #cbd5e1 !important; opacity: 0.35 !important; 
             box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -3px -3px 6px rgba(255,255,255,0.7) !important; 
             border: 1px solid #94a3b8 !important; 
         }
-        .is-not .p-name { font-weight: 900 !important; font-style: italic !important; color: #64748b !important; text-shadow: none !important; }
+        .is-not .p-name { color: #800080 !important; font-weight: 900 !important; font-style: italic !important; text-shadow: none !important; }
+        .is-not.m-sex .p-name, .is-not.f-sex .p-name, .is-not.g-sex .p-name { color: #800080 !important; }
 
-        /* 출석/게임중 선수 -> 양각(Raised) 효과 */
+        /* [요구사항 2] 출석/게임중 선수 -> 뚜렷한 3D 양각(Raised) 효과 */
         .is-att, .is-playing, .in-game { 
             opacity: 1.0 !important; 
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
-            box-shadow: inset 1px 1px 2px rgba(255,255,255,1), 3px 3px 6px rgba(0,0,0,0.25) !important;
-            border: 1px solid #cbd5e1 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #d1d5db 100%) !important;
+            /* 돌출되어 보이도록 강력한 외부 그림자와 미세한 내부 하이라이트 추가 */
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.6), inset 1px 1px 3px rgba(255,255,255,0.9) !important;
+            border: 1px solid #9ca3af !important;
         }
-        /* 게임중일때는 투명도만 조정 */
+        /* [요구사항 2] 투명도는 원본(0.5) 그대로 유지 */
         .is-playing, .in-game { opacity: 0.5 !important; }
 
-        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239,68,68,0.8) !important; opacity: 1.0 !important; z-index: 10; }
+        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239,68,68,0.8) !important; opacity: 1.0 !important; z-index: 30; }
 
-        /* 이름 폰트 스타일 (흰색 테두리 + 검정/핑크색) */
+        /* [요구사항 4, 5] 이름 폰트 최상단 배치 및 유동적 폰트 사이즈 */
         .p-name {
             background: transparent !important; border: none !important; box-shadow: none !important;
             padding: 0 2px !important; margin: 0 !important;
-            font-size: clamp(14px, 60cqh, 55px) !important; 
+            /* 컨테이너 높이에 맞춰 유동적 조절 */
+            font-size: clamp(12px, 50cqh, 45px) !important; 
             font-weight: 950 !important;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             line-height: 1.0; letter-spacing: -1.5px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             width: 100%; height: 100%; pointer-events: none;
-            /* 공통 흰색 테두리 */
+            /* 이름이 배경에 묻히지 않도록 맨 위로 설정 */
+            position: relative; z-index: 10 !important; 
             text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;
         }
         .name-black { color: #000 !important; }
@@ -125,13 +141,13 @@
         .f-sex .p-cnt { color: var(--p-pink) !important; }
         .g-sex .p-name { color: var(--p-guest) !important; } 
         .g-sex .p-cnt { color: var(--p-guest) !important; }
-        .p-cnt { font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
+        .p-cnt { font-size: clamp(10px, 20cqh, 20px) !important; font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
 
         .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
 
-        /* 기타 모달 및 버튼 */
-        .lhy-mid-btn-space { width: 75px; display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; overflow: visible; position: relative; z-index: 10; }
-        .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0; transition: all 0.1s; z-index: 5; }
+        /* [요구사항 5] 기타 모달 및 화살표 버튼 유동적 반응형 처리 */
+        .lhy-mid-btn-space { width: clamp(50px, 15vw, 85px); display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; overflow: visible; position: relative; z-index: 10; container-type: size; }
+        .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: clamp(1rem, 25cqh, 2rem); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0; transition: all 0.1s; z-index: 5; }
         .A-btn { background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%); box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%); width: calc(100% + 60px); margin-left: -60px; padding-left: 30px; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.7)); }
         .A-btn:active { transform: translateY(3px); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4); filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.7)); }
         .B-btn { background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%); box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); width: calc(100% + 60px); margin-left: auto; margin-right: -60px; padding-right: 30px; filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7)); }
@@ -228,7 +244,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260602-3</div>
+    <div class="lhy-footer-filename">화목모임_20260602-4</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -741,12 +757,26 @@
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
         
         const saved = localStorage.getItem('lhy_v260520_storage');
+        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
+        let savedExit = localStorage.getItem('lhy_exited_members');
 
-        if(saved) {
+        // [요구사항 6] 새로운 세션일 때, 백업된 나가기 기록이 있다면 불러오기
+        if (isNewSession && savedExit) {
+            try {
+                DB.members = JSON.parse(savedExit);
+                if (saved) {
+                    let tmp = JSON.parse(saved);
+                    DB.config = tmp.config || { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
+                    DB.matchHistory = tmp.matchHistory || {};
+                } else {
+                    DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
+                    DB.matchHistory = {};
+                }
+            } catch(e) { lhy_loadDefaultDB(); }
+        } else if(saved) {
             try {
                 DB = JSON.parse(saved);
                 if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
-                
                 if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
                     DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
                 }
@@ -757,13 +787,12 @@
                 });
                 if(!DB.matchHistory) DB.matchHistory = {};
                 if(!DB.config.matchRule) DB.config.matchRule = 'grade';
-                
             } catch(e) { lhy_loadDefaultDB(); }
         } else { lhy_loadDefaultDB(); }
         
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         const savedBoard = localStorage.getItem('lhy_v260520_boardState');
-        if(savedBoard) {
+        if(savedBoard && !isNewSession) {
             try { boardState = JSON.parse(savedBoard); } catch(e) {
                 for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
             }
@@ -771,7 +800,6 @@
             for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
         }
 
-        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
         if (isNewSession) {
             DB.members.forEach(m => {
                 m.isAtt = false;
@@ -878,6 +906,7 @@
                 if (isAct) {
                     const d = document.createElement('div');
                     d.className = `lhy-unit ${t==='c'?'u-c':'u-w'}`; d.id = `unit-${t}${i}`;
+                    // [요구사항 1] 대기조(w) 바탕색도 코트(c)처럼 노랑/파랑으로 양분하도록 A-team, B-team 클래스 공통 부여
                     if(t === 'c') {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
                                         <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
@@ -888,9 +917,9 @@
                                         <div class="lhy-team B-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     } else {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
-                                        <div class="lhy-team" style="background:transparent;"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
-                                        <div class="lhy-mid-line-space"></div>
-                                        <div class="lhy-team" style="background:transparent;"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
+                                        <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
+                                        <div class="lhy-mid-btn-space" style="width:10px; background:#111; border:none; box-shadow:none;"></div>
+                                        <div class="lhy-team B-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     }
                     (t === 'c' ? cG : wG).appendChild(d);
                 }
@@ -918,7 +947,6 @@
         p.className = `player in-game ${sexClass}`; 
         p.dataset.id = memberObj.id;
         
-        /* 요구사항 2: 코트/대기조에서 승패 숨기고 이름만 출력 (기존 인라인 코드 삭제) */
         p.innerHTML = `
             <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
                 <span style="white-space: nowrap;">${pureName}</span>
@@ -927,7 +955,6 @@
         
         let touchStartX = 0; let touchStartY = 0;
         
-        /* 요구사항 5, 6 연동: 롱클릭 시 선택(.is-sel) 부여 */
         const startHandler = (e) => {
             isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
             touchStartX = touch.clientX; touchStartY = touch.clientY;
@@ -1102,39 +1129,28 @@ function lhy_topBtnCancelGame() {
     
     lhy_saveUndoState();
     
-    // 1. 데이터 처리
     Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
     const m = DB.members.find(x => x.id === selectedPopId);
-    if (m) { m.isAtt = true; } // 대기실 복귀
+    if (m) { m.isAtt = true; }
     
-    // 2. 상태 저장
     localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
     
-    // 3. UI 정리
     selectedPopId = null;
-    isLongClicked = false; // ★ 롱클릭(출석먹통) 해결
-document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+    isLongClicked = false; // [요구사항 3] 취소 후 다른 회원 클릭 안되는 오류 수정
+    document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
     
-    // 4. 화면 갱신 (sync가 아닌 render를 사용하여 코트에서 지운 상태를 확실히 화면에 반영)
     lhy_renderBoardFromState();
     lhy_dominoShiftSystem();
     
-    // 화면 다시 그리기
-    try {
-        lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-    } catch (e) {
-        console.error("렌더링 오류 발생:", e);
-    }
+    try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
 }
-
 
  function lhy_topBtnGoHome() {
     if (!selectedPopId) { alert("선수를 먼저 선택해주세요."); return; }
     
     lhy_saveUndoState();
     
-    // 1. 데이터 처리
     const m = DB.members.find(x => x.id === selectedPopId);
     Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
     
@@ -1148,24 +1164,17 @@ document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel')
         }
     }
     
-    // 2. 상태 저장
     localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
     
-    // 3. UI 정리
     selectedPopId = null;
+    isLongClicked = false; // [요구사항 3] 귀가 처리 후 다른 회원 클릭 먹통 오류 완전 해결
     document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
     
-    // 4. 화면 갱신
     lhy_syncBoardDOMToState();
     lhy_dominoShiftSystem();
     
-    // 화면 다시 그리기
-    try {
-        lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-    } catch (e) {
-        console.error("렌더링 오류 발생:", e);
-    }
+    try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
 }
 
     function lhy_applyOrientationLogic() {
@@ -1210,13 +1219,12 @@ document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel')
             d.dataset.id = m.id;
             
             d.innerHTML = `
-                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
-                    <span style="white-space: nowrap;">${pureName}</span>
+                <div class="p-name">
+                    <span>${pureName}</span>
                     ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; white-space: nowrap; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
                 </div>
             `;
             
-            /* 요구사항 5, 6 연동: 롱클릭 시 선택(.is-sel) 상태 부여 */
             let touchStartX = 0; let touchStartY = 0;
             const startHandler = (e) => {
                 isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
@@ -1243,7 +1251,7 @@ document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel')
 
             d.onclick = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
-                if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } // 롱클릭 후 토글 작동 방지
+                if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
                 lhy_saveUndoState(); m.isAtt = !m.isAtt;
                 
@@ -1269,6 +1277,9 @@ document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel')
     function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까?")) {
+            // [요구사항 6] 화면을 끝낼 때 회원 리스트를 브라우저에 저장
+            localStorage.setItem('lhy_exited_members', JSON.stringify(DB.members));
+
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; });
             DB.members = DB.members.filter(m => !m.isG);
