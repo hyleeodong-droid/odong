@@ -1068,7 +1068,7 @@ function lhy_insertPlayerToSlot(slot, memberObj) {
 
 // [수정] clamp를 사용하여 화면/칸 높이에 따라 8px ~ 12px 사이에서 자동 조절
         const statsHtml = `
-            <div class="p-stats" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(20px, 1.5vh, 12px); line-height: 1.1; margin: 0 2px;">
+            <div class="p-stats" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(20px, 1.5vh, 30px); line-height: 1.1; margin: 0 2px;">
                 <span style="color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.win}승</span>
                 <span style="color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.lose}패</span>
             </div>
