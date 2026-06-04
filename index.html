@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260604-8</title>
+    <title>화목모임_20260604-9</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -14,15 +14,18 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
         
-        html, body { 
+html, body { 
             height: 100%; width: 100%; margin: 0; padding: 0;
             overflow: hidden; background: #000; overscroll-behavior: none; 
+            position: fixed; left: 0; top: 0; /* [중요 복구] 화면 튕김 방지 및 회전 기준 */
         }
 
         body {
             display: flex; flex-direction: column; 
-            width: 100vw; height: 100dvh; 
+            width: 100%; height: 100%; /* [복구] vh, dvh 대신 100% 사용 */
             background: #111; overflow: hidden;
+            transform-origin: top left; /* [중요 복구] 화면 회전 축 */
+            transition: transform 0.15s ease-out; /* [복구] 부드러운 회전 애니메이션 */
         }
 
         /* 레이아웃 구조 */
@@ -258,7 +261,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260604-8</div>
+    <div class="lhy-footer-filename">화목모임_20260604-9</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -374,17 +377,21 @@ function lhy_toggleManualMode() {
         }
     }
 
-    function lhy_fnToggleOrientationButton() {
-        if (rotationState === 'auto') {
-            rotationState = 'force-landscape';
-        } else if (rotationState === 'force-landscape') {
-            rotationState = 'force-portrait';
-        } else {
-            rotationState = 'auto';
-        }
-        lhy_applyOrientationLogic();
-    }
+function lhy_fnToggleOrientationButton() {
+        // 1. 현재 기기가 실제로 가로로 누워있는지 확인
+        const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
 
+        if (rotationState === 'auto') {
+            // [핵심] 현재 가로면 -> 바로 '강제 세로'로 / 세로면 -> 바로 '강제 가로'로 전환!
+            rotationState = isPhysicallyLandscape ? 'force-portrait' : 'force-landscape';
+        } 
+        else {
+            // 강제 상태(가로든 세로든)에서 한 번 더 누르면 원래 기기 방향(자동)으로 복귀
+            rotationState = 'auto'; 
+        }
+        
+        lhy_applyOrientationLogic(); // 즉시 화면 회전 실행
+    }
     function lhy_getMatchScore(id1, id2) {
         if (!id1 || !id2) return 0;
         let key = [id1, id2].sort().join('_');
@@ -1307,21 +1314,41 @@ function lhy_topBtnCancelGame() {
     }
 }
 
-    function lhy_applyOrientationLogic() {
+function lhy_applyOrientationLogic() {
         const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
+        
         b.style.width = "100%"; b.style.height = "100%"; b.style.transform = "none"; b.classList.remove('real-landscape');
+        
         let targetLandscape = false;
-        if (rotationState === 'auto') { if (w > h) targetLandscape = true; } 
+        
+        if (rotationState === 'auto') { 
+            if (w > h) targetLandscape = true; 
+        } 
         else if (rotationState === 'force-landscape') {
             targetLandscape = true;
-            if (w < h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; }
-        } else if (rotationState === 'force-portrait') {
+            if (w < h) { 
+                // [복구 완료] 물리적으로 세로일 때 강제로 90도 회전
+                b.style.width = h + "px"; b.style.height = w + "px"; 
+                b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; 
+            }
+        } 
+        else if (rotationState === 'force-portrait') {
             targetLandscape = false;
-            if (w > h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; }
+            if (w > h) { 
+                // [복구 완료] 물리적으로 가로일 때 강제로 -90도 회전
+                b.style.width = h + "px"; b.style.height = w + "px"; 
+                b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; 
+            }
         }
+        
         if (targetLandscape) b.classList.add('real-landscape');
-        lhy_renderListOnly(targetLandscape);
+        
+        // 까만 화면 깜빡임 방지용 강제 렌더링
+        requestAnimationFrame(() => {
+            lhy_renderListOnly(targetLandscape);
+        });
     }
+
 
 function lhy_renderListOnly(isLandscapeMode) {
         const list = document.getElementById('ui-list'); if (!list) return;
@@ -1353,13 +1380,17 @@ function lhy_renderListOnly(isLandscapeMode) {
             d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass}`;
             d.dataset.id = m.id;
             
-            d.innerHTML = `
-                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
-                    <span>${pureName}</span>
-                    ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
-                </div>
-            `;
-            
+d.innerHTML = `
+    <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
+        <span style="font-weight: bold; font-size: 1.1em;">${pureName}</span>
+        ${m.isAtt ? `
+            <span class="p-cnt" style="font-size: clamp(8px, 1.2vh, 12px); margin-top:2px; font-weight:900; display:flex; gap:8px;">
+                <span style="color: #2563eb; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.win || 0}승</span>
+                <span style="color: #e11d48; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.lose || 0}패</span>
+            </span>
+        ` : ''}
+    </div>
+`;
             let touchStartX = 0; let touchStartY = 0;
             const startHandler = (e) => {
                 isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
