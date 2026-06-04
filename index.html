@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>화목모임_20260602-4.html</title>
+    <title>화목모임_20260604-8</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -48,7 +48,8 @@
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(8, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        /* [수정] 수동배정 버튼 추가를 위해 9열로 변경 */
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         .lhy-menu-grid button { height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: transform 0.1s, box-shadow 0.1s; }
         .lhy-menu-grid button:active { transform: translateY(2px); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
 
@@ -85,52 +86,63 @@
             min-height: 0; width: 100%; height: 100%; overflow: hidden; position: relative; 
             container-type: size; /* [요구사항 5] 자동 반응 기준 설정 */
         }
-
-        /* [요구사항 5] 반응형 기반 선수 카드 디자인 */
+        
+        /* [공통] 모든 선수 카드: 투명 배경 + 테두리 + 그림자 스타일 */
         .player { 
             display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px;
             border-radius: 8px; width: 100%; height: 100%;
             transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
-            container-type: size; /* [요구사항 5] */
+            container-type: size;
+            
+            /* 모든 카드는 투명 배경에 테두리와 은은한 그림자를 가짐 */
+            background: transparent !important;
+            border: 1px solid rgba(156, 163, 175, 0.6) !important; 
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
         }
-        .player:active { transform: scale(0.96); box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 1px 1px 3px rgba(0,0,0,0.1); }
+        .player:active { transform: scale(0.96); box-shadow: 1px 1px 2px rgba(0,0,0,0.4) !important; }
 
-        /* [요구사항 7] 미출석 선수 (음각 유지 및 퍼플색) */
-        .is-not { 
-            background: #cbd5e1 !important; opacity: 0.35 !important; 
-            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -3px -3px 6px rgba(255,255,255,0.7) !important; 
-            border: 1px solid #94a3b8 !important; 
-        }
-        .is-not .p-name { color: #800080 !important; font-weight: 900 !important; font-style: italic !important; text-shadow: none !important; }
-        .is-not.m-sex .p-name, .is-not.f-sex .p-name, .is-not.g-sex .p-name { color: #800080 !important; }
-
-        /* [요구사항 2] 출석/게임중 선수 -> 뚜렷한 3D 양각(Raised) 효과 */
-        .is-att, .is-playing, .in-game { 
+        /* [수정4] 선택 시에만 테두리 없이 노란색 바탕으로 표시되게 변경 */
+        .is-sel { 
+            background: #ffe033 !important; /* 노란색 꽉 찬 배경 */
+            border: none !important; /* 테두리 제거 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4) !important; /* 가벼운 기본 그림자만 유지 */
             opacity: 1.0 !important; 
-            background: linear-gradient(135deg, #ffffff 0%, #d1d5db 100%) !important;
-            /* 돌출되어 보이도록 강력한 외부 그림자와 미세한 내부 하이라이트 추가 */
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.6), inset 1px 1px 3px rgba(255,255,255,0.9) !important;
-            border: 1px solid #9ca3af !important;
+            z-index: 30; 
         }
-        /* [요구사항 2] 투명도는 원본(0.5) 그대로 유지 */
-        .is-playing, .in-game { opacity: 0.5 !important; }
 
-        .is-sel { background: linear-gradient(180deg, #ffff99, #FFD700) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239,68,68,0.8) !important; opacity: 1.0 !important; z-index: 30; }
-
-        /* [요구사항 4, 5] 이름 폰트 최상단 배치 및 유동적 폰트 사이즈 */
+        /* 미출석 회원: 투명 배경 + 음각 효과 + 보라색 이탤릭 글씨 */
+        .is-not { 
+            background: transparent !important; 
+            opacity: 0.6 !important; 
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.3), inset -2px -2px 4px rgba(255,255,255,0.3) !important; 
+            border: 1px dashed #94a3b8 !important; 
+        }
+        
+        /* 미출석 회원 글씨 스타일 (보라색 + 이탤릭 + 외곽선 제거) */
+        .is-not .p-name { 
+            color: #800080 !important; 
+            font-weight: 900 !important; 
+            font-style: italic !important; 
+            text-shadow: none !important; /* 음각 효과를 위해 외곽선은 제거 */
+        }
+        
+        /* [이름 폰트] (배경 투명화에 맞춰 선명도 최적화) */
         .p-name {
             background: transparent !important; border: none !important; box-shadow: none !important;
             padding: 0 2px !important; margin: 0 !important;
-            /* 컨테이너 높이에 맞춰 유동적 조절 */
             font-size: clamp(12px, 50cqh, 45px) !important; 
-            font-weight: 950 !important;
+            font-weight: 999 !important;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            line-height: 1.0; letter-spacing: -1.5px;
+            line-height: 1.0; letter-spacing: -0.5px !important;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             width: 100%; height: 100%; pointer-events: none;
-            /* 이름이 배경에 묻히지 않도록 맨 위로 설정 */
             position: relative; z-index: 10 !important; 
-            text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;
+            
+            /* 2.5px 두께로 8방향 흰색 외곽선 적용 */
+            text-shadow: 
+                -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff,
+                -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff,
+                0px 3px 5px rgba(0,0,0,0.9);
         }
         .name-black { color: #000 !important; }
         .name-pink { color: #d63384 !important; }
@@ -186,10 +198,11 @@
         .viewer-step-num { font-size: 0.75rem; font-weight: 950; color: #cc0000; margin-bottom: 4px; }
         .viewer-step-text { font-size: 0.8rem; font-weight: bold; color: #334155; line-height: 1.5; }
 
+        /* [수정] 수동배정 버튼 추가를 위해 9열로 변경 */
         .real-landscape .lhy-main { flex-direction: row; }
         .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #333; box-shadow: 4px 0 10px rgba(0,0,0,0.3) inset; }
         .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; box-shadow: none; }
-        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
+        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
     </style>
@@ -229,7 +242,8 @@
         </div>
         <div class="lhy-side-area">
             <div class="lhy-menu-grid" id="ui-menu-grid">
-                <button style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">화면전환</button>
+                <button id="btn-manual-toggle" style="background:linear-gradient(180deg, #3b82f6, #1d4ed8); color:#fff;" onclick="lhy_toggleManualMode()">자동배정</button>
+                <button style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">가로/ 세로</button>
                 <button id="btn-reset-enter" style="background:linear-gradient(180deg, #2ecc71, #27ae60);" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
                 <button id="btn-undo" style="background:linear-gradient(180deg, #ffe033, #FFD700); color:#000;" onclick="lhy_fnUndoAction()">실행취소</button>
                 
@@ -244,7 +258,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260602-4</div>
+    <div class="lhy-footer-filename">화목모임_20260604-8</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -316,10 +330,59 @@
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
     let isListDragging = false; 
 
+    // [수정1] 수동/자동 상태 변수
+    let isManualMode = false;
     let boardState = {};
     
     function safeExecute(fn) {
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
+    }
+
+function lhy_toggleManualMode() {
+        isManualMode = !isManualMode;
+        const btn = document.getElementById('btn-manual-toggle');
+        
+        if (isManualMode) {
+            btn.innerText = "수동배정";
+            btn.style.background = "linear-gradient(180deg, #d946ef, #a21caf)";
+            btn.style.color = "#fff";
+            
+            // 1. 대기조 설정만 4개로 변경
+            DB.config.w = [true, true, true, true, false, false];
+            
+            // 2. 화면 틀(DOM) 새로 그리기
+            lhy_drawBoard(); 
+            
+            // 3. [중요] 새로 그려진 틀에 기존 boardState 데이터 다시 입히기
+            if (typeof lhy_renderBoardFromState === 'function') {
+                lhy_renderBoardFromState();
+            }
+            
+            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+            alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
+        } else {
+            btn.innerText = "자동배정 ON";
+            btn.style.background = "linear-gradient(180deg, #3b82f6, #1d4ed8)";
+            btn.style.color = "#fff";
+            
+            // 자동 모드일 때는 원래 설정대로 복원해야 할 수도 있습니다 (필요 시 수정)
+            // DB.config.w = [기존 설정...]; 
+            // lhy_drawBoard();
+            
+            alert("자동 배정 모드가 켜졌습니다.");
+            lhy_dominoShiftSystem();
+        }
+    }
+
+    function lhy_fnToggleOrientationButton() {
+        if (rotationState === 'auto') {
+            rotationState = 'force-landscape';
+        } else if (rotationState === 'force-landscape') {
+            rotationState = 'force-portrait';
+        } else {
+            rotationState = 'auto';
+        }
+        lhy_applyOrientationLogic();
     }
 
     function lhy_getMatchScore(id1, id2) {
@@ -468,7 +531,13 @@
     function lhy_fnHandleResetOrEnterClick() {
         if(isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
         let hasPlayers = Object.values(boardState).some(id => id !== null);
+        
+        // [수정1] 입장 시 수동/자동 분기 처리
         if (!hasPlayers) {
+            if(isManualMode) { 
+                alert("수동 배정 모드 상태입니다. 회원을 명단에서 보드판 대기조로 직접 드래그해서 배치해주세요."); 
+                return; 
+            }
             lhy_saveUndoState();
             lhy_rotationalMatchEngine();
         } else {
@@ -689,7 +758,7 @@
             boardState[`c${idx}-${p}`] = null;
         });
 
-        lhy_rotationalMatchEngine();
+        lhy_dominoShiftSystem();
     }
 
     function lhy_compactWaitSlots() {
@@ -728,7 +797,50 @@
         lhy_applyOrientationLogic();
     }
 
+    // [수정2] 수동 모드 대기조 자동 진입 연동 로직
     function lhy_dominoShiftSystem() {
+        if (isManualMode) {
+            const posOrder = ['L1', 'L2', 'R1', 'R2'];
+            let emptyCourtSlots = [];
+            
+            // 1. 코트의 빈자리 통째로 수집 (4칸 단위)
+            for (let i = 1; i <= 6; i++) {
+                if (DB.config.c[i-1]) {
+                    let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
+                    if (isCourtEmpty) emptyCourtSlots.push(`c${i}`);
+                }
+            }
+            
+            // 2. 꽉 찬 대기조(4명) 수집
+            let fullWaitTeams = [];
+            for (let w = 1; w <= 6; w++) {
+                if (DB.config.w[w-1]) {
+                    let isWaitFull = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
+                    if (isWaitFull) fullWaitTeams.push(`w${w}`);
+                }
+            }
+            
+            // 3. 빈 코트와 꽉 찬 대기조가 둘 다 있으면 1대1 매칭 이동
+            let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
+            for(let i=0; i<moves; i++) {
+                let tCourt = emptyCourtSlots[i];
+                let sWait = fullWaitTeams[i];
+                
+                posOrder.forEach(p => {
+                    boardState[`${tCourt}-${p}`] = boardState[`${sWait}-${p}`];
+                    boardState[`${sWait}-${p}`] = null;
+                });
+            }
+            
+            // 이동 후 남은 대기조 자리 정렬만 수행
+            lhy_compactWaitSlots();
+            lhy_renderBoardFromState();
+            lhy_updateResetButtonUI();
+            lhy_applyOrientationLogic();
+            return;
+        }
+
+        // 수동 모드가 아니면 원래 방식
         lhy_compactWaitSlots();
         lhy_rotationalMatchEngine();
     }
@@ -757,26 +869,12 @@
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
         
         const saved = localStorage.getItem('lhy_v260520_storage');
-        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
-        let savedExit = localStorage.getItem('lhy_exited_members');
 
-        // [요구사항 6] 새로운 세션일 때, 백업된 나가기 기록이 있다면 불러오기
-        if (isNewSession && savedExit) {
-            try {
-                DB.members = JSON.parse(savedExit);
-                if (saved) {
-                    let tmp = JSON.parse(saved);
-                    DB.config = tmp.config || { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
-                    DB.matchHistory = tmp.matchHistory || {};
-                } else {
-                    DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
-                    DB.matchHistory = {};
-                }
-            } catch(e) { lhy_loadDefaultDB(); }
-        } else if(saved) {
+        if(saved) {
             try {
                 DB = JSON.parse(saved);
                 if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
+                
                 if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
                     DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
                 }
@@ -787,12 +885,13 @@
                 });
                 if(!DB.matchHistory) DB.matchHistory = {};
                 if(!DB.config.matchRule) DB.config.matchRule = 'grade';
+                
             } catch(e) { lhy_loadDefaultDB(); }
         } else { lhy_loadDefaultDB(); }
         
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         const savedBoard = localStorage.getItem('lhy_v260520_boardState');
-        if(savedBoard && !isNewSession) {
+        if(savedBoard) {
             try { boardState = JSON.parse(savedBoard); } catch(e) {
                 for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
             }
@@ -800,6 +899,7 @@
             for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
         }
 
+        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
         if (isNewSession) {
             DB.members.forEach(m => {
                 m.isAtt = false;
@@ -834,10 +934,10 @@
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
-        new Sortable(document.getElementById('ui-list'), { 
+new Sortable(document.getElementById('ui-list'), { 
             ...dragOpt, 
-            group: { name: 'sh', pull: 'clone', put: true },
-            sort: false, 
+            group: { name: 'sh', pull: true, put: true }, // 'clone'을 제거하여 이동(Move) 활성화
+            sort: true, 
             delay: 150, 
             delayOnTouchOnly: true,
             filter: ".is-not, .is-playing", 
@@ -852,6 +952,7 @@
                 lhy_syncBoardDOMToState();
             },
             onAdd: (evt) => { 
+                // 리스트로 다시 돌아오면 DOM 정리
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState();
                 lhy_dominoShiftSystem(); 
@@ -875,7 +976,7 @@
         lhy_drawBoard(); lhy_dominoShiftSystem(); 
     }
 
-    function lhy_drawBoard() {
+function lhy_drawBoard() {
         const cG = document.getElementById('ui-court-grid'), wG = document.getElementById('ui-wait-grid');
         const cC = document.getElementById('ctrl-c'), wW = document.getElementById('ctrl-w');
         cG.innerHTML = ''; wG.innerHTML = ''; cC.innerHTML = ''; wW.innerHTML = '';
@@ -906,7 +1007,6 @@
                 if (isAct) {
                     const d = document.createElement('div');
                     d.className = `lhy-unit ${t==='c'?'u-c':'u-w'}`; d.id = `unit-${t}${i}`;
-                    // [요구사항 1] 대기조(w) 바탕색도 코트(c)처럼 노랑/파랑으로 양분하도록 A-team, B-team 클래스 공통 부여
                     if(t === 'c') {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
                                         <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
@@ -934,27 +1034,51 @@
                         evt.from.appendChild(target); 
                     } 
                     lhy_syncBoardDOMToState();
+                    // [자동 진입 시스템 호출]
+                    lhy_autoEntrySystem();
                 } 
             });
         });
     }
 
-    function lhy_insertPlayerToSlot(slot, memberObj) {
+function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return; 
         const sexClass = lhy_getSexClass(memberObj); 
         const pureName = lhy_getPureName(memberObj.name);
+        
+        // [수정] 슬롯 ID를 분석하여 왼쪽(-L)인지 오른쪽(-R)인지 판별
+        const isLeft = slot.id.includes('-L');
+        
         const p = document.createElement('div'); 
         p.className = `player in-game ${sexClass}`; 
         p.dataset.id = memberObj.id;
         
-        p.innerHTML = `
-            <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
-                <span style="white-space: nowrap;">${pureName}</span>
+        // Flexbox 레이아웃 설정
+        p.style.display = "flex";
+        p.style.alignItems = "center";
+        p.style.justifyContent = "space-between";
+        p.style.padding = "0 2px";
+
+// [수정] clamp를 사용하여 화면/칸 높이에 따라 8px ~ 12px 사이에서 자동 조절
+        const statsHtml = `
+            <div class="p-stats" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(20px, 1.5vh, 12px); line-height: 1.1; margin: 0 2px;">
+                <span style="color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.win}승</span>
+                <span style="color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.lose}패</span>
             </div>
         `;
+
+        // 이름 HTML
+        const nameHtml = `
+            <div class="p-name" style="flex: 1; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px;">
+                ${pureName}
+            </div>
+        `;
+
+        // [수정] 왼쪽이면 [승패][이름], 오른쪽이면 [이름][승패] 순서로 배치
+        p.innerHTML = isLeft ? (statsHtml + nameHtml) : (nameHtml + statsHtml);
         
+        // 기존 터치 이벤트 처리 (수정 없음)
         let touchStartX = 0; let touchStartY = 0;
-        
         const startHandler = (e) => {
             isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
             touchStartX = touch.clientX; touchStartY = touch.clientY;
@@ -980,7 +1104,6 @@
         
         slot.appendChild(p);
     }
-
     function lhy_renderBoardFromState() {
         Object.keys(boardState).forEach(key => {
             const slot = document.getElementById(key);
@@ -1131,19 +1254,23 @@ function lhy_topBtnCancelGame() {
     
     Object.keys(boardState).forEach(key => { if (boardState[key] === selectedPopId) boardState[key] = null; });
     const m = DB.members.find(x => x.id === selectedPopId);
-    if (m) { m.isAtt = true; }
+    if (m) { m.isAtt = true; } 
     
     localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
     
     selectedPopId = null;
-    isLongClicked = false; // [요구사항 3] 취소 후 다른 회원 클릭 안되는 오류 수정
+    isLongClicked = false; 
     document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
     
     lhy_renderBoardFromState();
     lhy_dominoShiftSystem();
     
-    try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
+    try {
+        lhy_renderListOnly(document.body.classList.contains('real-landscape'));
+    } catch (e) {
+        console.error("렌더링 오류 발생:", e);
+    }
 }
 
  function lhy_topBtnGoHome() {
@@ -1168,13 +1295,16 @@ function lhy_topBtnCancelGame() {
     localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
     
     selectedPopId = null;
-    isLongClicked = false; // [요구사항 3] 귀가 처리 후 다른 회원 클릭 먹통 오류 완전 해결
     document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
     
     lhy_syncBoardDOMToState();
     lhy_dominoShiftSystem();
     
-    try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
+    try {
+        lhy_renderListOnly(document.body.classList.contains('real-landscape'));
+    } catch (e) {
+        console.error("렌더링 오류 발생:", e);
+    }
 }
 
     function lhy_applyOrientationLogic() {
@@ -1193,13 +1323,14 @@ function lhy_topBtnCancelGame() {
         lhy_renderListOnly(targetLandscape);
     }
 
-    function lhy_renderListOnly(isLandscapeMode) {
+function lhy_renderListOnly(isLandscapeMode) {
         const list = document.getElementById('ui-list'); if (!list) return;
         const count = DB.members.length; let cols = 5;
         if (!isLandscapeMode) { if(count <= 12) cols = 3; else if(count <= 24) cols = 4; else if(count <= 45) cols = 5; else if(count <= 60) cols = 6; else cols = 8; } 
         else { cols = (count <= 24) ? 4 : 5; }
         const rows = Math.ceil(count / cols);
         list.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; list.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        
         const playing = Object.values(boardState).filter(id => id !== null);
         list.innerHTML = '';
         
@@ -1213,15 +1344,19 @@ function lhy_topBtnCancelGame() {
             return a.name.localeCompare(b.name, 'ko');
         }).forEach(m => {
             const isP = playing.includes(m.id);
+            
+            // [핵심] 게임 중(isP)이면 명단에서 보여주지 않음 (사라짐)
+            if (isP) return; 
+
             const sexClass = lhy_getSexClass(m); const pureName = lhy_getPureName(m.name);
             const d = document.createElement('div'); 
-            d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${isP ? 'is-playing' : ''} ${sexClass}`;
+            d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass}`;
             d.dataset.id = m.id;
             
             d.innerHTML = `
-                <div class="p-name">
+                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
                     <span>${pureName}</span>
-                    ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; white-space: nowrap; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
+                    ${m.isAtt ? `<span class="p-cnt" style="font-size:0.55em; margin-top:2px; font-weight:900; color:inherit;">${m.win || 0}승 ${m.lose || 0}패</span>` : ''}
                 </div>
             `;
             
@@ -1277,9 +1412,6 @@ function lhy_topBtnCancelGame() {
     function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까?")) {
-            // [요구사항 6] 화면을 끝낼 때 회원 리스트를 브라우저에 저장
-            localStorage.setItem('lhy_exited_members', JSON.stringify(DB.members));
-
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; });
             DB.members = DB.members.filter(m => !m.isG);
@@ -1302,6 +1434,49 @@ function lhy_topBtnCancelGame() {
             }, 100);
         }
     }
+
+// 대기조 4명 충족 시 코트 자동 진입 함수
+    function lhy_autoEntrySystem() {
+        let moved = false;
+        // 1. 모든 대기조(w1~w6)를 검사
+        for(let i=1; i<=6; i++) {
+            if(!DB.config.w[i-1]) continue; 
+            
+            const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
+            // 대기조의 4개 슬롯에 선수가 모두 있는지 확인
+            const isFull = waitSlots.every(s => boardState[s] !== null);
+            
+            if(isFull) {
+                // 2. 빈 코트 찾기
+                let targetCourt = null;
+                for(let j=1; j<=6; j++) {
+                    if(!DB.config.c[j-1]) continue;
+                    const courtSlots = [`c${j}-L1`, `c${j}-L2`, `c${j}-R1`, `c${j}-R2`];
+                    const isCourtEmpty = courtSlots.every(s => boardState[s] === null);
+                    if(isCourtEmpty) { targetCourt = j; break; }
+                }
+
+                // 3. 이동 실행
+                if(targetCourt !== null) {
+                    const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`];
+                    waitSlots.forEach((ws, idx) => {
+                        boardState[courtSlots[idx]] = boardState[ws];
+                        boardState[ws] = null;
+                    });
+                    moved = true;
+                }
+            }
+        }
+        
+        // 4. 이동이 발생했으면 화면 갱신
+        if(moved) {
+            lhy_renderBoardFromState();
+            lhy_dominoShiftSystem();
+            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
+        }
+    }
+
+
 </script>
 
     <div class="lhy-modal-overlay" id="lhy-pop-add-member" onclick="document.getElementById('lhy-pop-add-member').style.display='none'">
