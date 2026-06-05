@@ -1504,23 +1504,17 @@ stats.innerHTML = `
             d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass}`;
             d.dataset.id = m.id;
             
-d.innerHTML = `
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; box-sizing: border-box;">
-        
-        <div class="p-name" style="text-align: center; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            ${pureName}
-        </div>
-
-        ${m.isAtt ? `
-            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; margin-top: 2px;">
-                <div style="height: 50%; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;"> ${m.win || 0}승
+            d.innerHTML = `
+                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
+                    <span style="font-weight: bold; font-size: 1.1em;">${pureName}</span>
+                    ${m.isAtt ? `
+                        <span class="p-cnt" style="font-size: clamp(15px, 1.2vh, 20px); margin-top:2px; font-weight:900; display:flex; gap:8px;">
+                            <span style="color: #2563eb; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.win || 0}승</span>
+                            <span style="color: #e11d48; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.lose || 0}패</span>
+                        </span>
+                    ` : ''}
                 </div>
-                <div style="height: 50%; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;"> ${m.lose || 0}패
-                </div>
-            </div>
-        ` : ''}
-    </div>
-`;
+            `;
             
             let touchStartX = 0; let touchStartY = 0;
             const startHandler = (e) => {
