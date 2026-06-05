@@ -1513,13 +1513,9 @@ d.innerHTML = `
 
         ${m.isAtt ? `
             <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; margin-top: 2px;">
-                <div style="font-size: clamp(6px, 1.2vh, 16px); font-weight: 900; color: #2563eb; 
-                            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
-                    ${m.win || 0}승
+                <div style="height: 50%; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;"> ${m.win || 0}승
                 </div>
-                <div style="font-size: clamp(6px, 1.2vh, 16px); font-weight: 900; color: #e11d48; 
-                            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
-                    ${m.lose || 0}패
+                <div style="height: 50%; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;"> ${m.lose || 0}패
                 </div>
             </div>
         ` : ''}
