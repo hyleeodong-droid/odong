@@ -282,10 +282,15 @@
     .single-row .lhy-slot {
         font-size: clamp(20px, 60cqh, 50px) !important;
     }
-        /* 화면 가로폭이 450px 이하인 스마트폰일 경우 */
 @media (max-width: 450px) {
+    /* 1. 승패 영역만 11px로 작게 조절 */
     .p-cnt div, .stats div {
-        font-size: 11px !important; /* 스마트폰에서는 강제로 11px 고정 */
+        font-size: 11px !important;
+    }
+
+    /* 2. 이름은 그대로 두거나, 조금만 줄이고 싶을 때 */
+    .p-name {
+        font-size: 14px; /* 이름은 승패보다 크게 유지 */
     }
 }
     </style>
