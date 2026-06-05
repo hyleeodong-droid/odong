@@ -287,8 +287,9 @@
 @media (max-width: 450px) {
     /* 1. 로그인 배경 이미지 조정 */
     #login-modal {
-        background-size: cover !important; /* 이미지 왜곡 없이 화면을 꽉 채움 */
-        background-position: center !important; /* 이미지를 정중앙에 고정 */
+    background-size: cover;          /* 핵심: 이미지 비율을 유지하며 화면을 꽉 채움 */
+    background-position: center;     /* 핵심: 이미지가 항상 중앙에 위치 */
+    background-repeat: no-repeat;    /* 핵심: 이미지가 반복되지 않게 함 */
     }
 
     /* 2. 전반적인 글씨 크기 최적화 */
