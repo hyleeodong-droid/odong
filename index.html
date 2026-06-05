@@ -282,6 +282,12 @@
     .single-row .lhy-slot {
         font-size: clamp(20px, 60cqh, 50px) !important;
     }
+        /* 화면 가로폭이 450px 이하인 스마트폰일 경우 */
+@media (max-width: 450px) {
+    .p-cnt div, .stats div {
+        font-size: 11px !important; /* 스마트폰에서는 강제로 11px 고정 */
+    }
+}
     </style>
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
