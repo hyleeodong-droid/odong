@@ -2,15 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260605-2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>화목모임_20260605-5</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        :root {
-            --bg-court: #457b3b; --bg-wait: #d9ead3;
-            --p-black: #000; --p-pink: #FF007F;
-            --p-guest: #00f;
-        }
+/* 1. 공통 디자인 (모든 곳에 적용되는 기본 외형) */
+:root {
+    --bg-court: #457b3b; --bg-wait: #d9ead3;
+    --p-black: #000; --p-pink: #FF007F; --p-guest: #00f;
+}
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
         
@@ -68,63 +68,17 @@
         .u-c { background: linear-gradient(135deg, #2a4d24 0%, #172b14 100%); } 
         .u-w { background: linear-gradient(135deg, #7b9b81 0%, #5d8164 100%); }
         
-        .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; }
+        .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; display: none !important; }
 
-/* 부모 요소(stats)가 컨테이너 역할을 하도록 설정 */
-#stats {
-    container-type: size;
-    container-name: stats;
-    /* 만약 stats에 높이가 정해져 있지 않다면 height를 지정해야 작동합니다 */
-}
+        /* 터치 지연 방지. [중요] 여기에 있던 min-height:44px 삭제 (버그원인) */
+        .player, .A-btn, .B-btn {
+            touch-action: manipulation; 
+            user-select: none; 
+        }
 
-/* 글자 크기 조절을 위한 클래스 */
-.stat-item {
-    display: flex;
-    align-items: center;
-    /* 핵심: 35px(최소) ~ 0.4cqh(권장) ~ 45px(최대)로 자동 조절 */
-    font-size: clamp(35px, 0.4cqh, 45px); 
-}
-
-/* 회원이름 전용 반응형 클래스 */
-.responsive-name {
-    display: flex;
-    align-items: center; /* 수직 중앙 정렬 */
-    height: 100%;        /* 부모 높이에 맞춤 */
-    font-size: clamp(10px, 0.4cqh, 24px); /* 최소 10px, 최대 24px 사이에서 자동 조절 */
-    white-space: nowrap; /* 글자가 줄바꿈되지 않게 */
-    overflow: hidden;    /* 글자가 칸을 벗어나면 숨김 */
-    text-overflow: ellipsis; /* 너무 길면 ...으로 표시 */
-}
-
-.lhy-label {
-    display: none !important;
-}
-
-/* 터치 지연 방지 및 영역 확대 */
-.player, .A-btn, .B-btn {
-    touch-action: manipulation; /* 더블탭 줌 지연 제거 */
-    min-height: 44px; /* 권장 터치 타겟 최소 높이 */
-    user-select: none; /* 드래그 선택 방지 */
-}
-
-/* 태블릿 회전 대응 레이아웃 */
-.board-container {
-    container-type: size;
-    width: 100vw;
-    height: 90vh; /* 주소창 제외한 높이 */
-    display: flex;
-    flex-direction: column;
-}
-        
-@media (max-width: 1024px) {
-    .pc-only-info { display: none; } /* 설명 텍스트, 안내 문구 등 */
-    .lhy-label { display: none; }    /* 이미 제거하신 부분 */
-}
-
-/* 10인치 이하 태블릿 최적화 폰트 */
-.player-name {
-    font-size: clamp(12px, 2.5cqh, 18px); 
-}
+        @media (max-width: 1024px) {
+            .pc-only-info { display: none; } 
+        }
 
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
         
@@ -140,18 +94,65 @@
             container-type: size;
         }
         
-        .player { 
-            display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 1px;
-            border-radius: 8px; width: 100%; height: 100%;
-            transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
-            container-type: size;
-            
-            background: transparent !important;
-            border: 1px solid rgba(156, 163, 175, 0.6) !important; 
-            box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-        }
-        .player:active { transform: scale(0.96); box-shadow: 1px 1px 2px rgba(0,0,0,0.4) !important; }
+/* ======================================================== */
+/* 1. 공통 플레이어 카드 디자인 (모든 영역 적용) */
+/* ======================================================== */
+.player { 
+    display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 4px;
+    border-radius: 8px; width: 100%; height: 100%; min-height: 0;
+    transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+    container-type: size;
+    background: transparent !important;
+    border: 1px solid rgba(156, 163, 175, 0.6) !important; 
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+}
+.player:active { transform: scale(0.96); box-shadow: 1px 1px 2px rgba(0,0,0,0.4) !important; }
 
+/* ======================================================== */
+/* 2. 회원 명단 스타일 (v2 버전의 굵고 선명한 디자인) */
+/* ======================================================== */
+.p-name {
+    flex: 1; min-width: 0;
+    font-weight: 999 !important;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.0; display: flex; align-items: center; justify-content: center;
+    height: 100%; pointer-events: none;
+    /* v2 핵심: 흰색 테두리 효과 */
+    text-shadow: 
+        -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff,
+        -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff,
+        0px 3px 5px rgba(0,0,0,0.9);
+    font-size: 18px !important; /* 명단 글씨 크기 */
+}
+
+/* 승패/기록 (가로 배치) */
+.p-cnt { 
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 999; margin-left: 4px;
+    font-size: 14px !important;
+    white-space: nowrap;
+    text-shadow: 0px 1px 1px rgba(255,255,255,0.8);
+}
+
+/* ======================================================== */
+/* 3. 코트/대기 영역 오버라이드 (그리드 전용 자동 크기 조절) */
+/* ======================================================== */
+.grid-wrapper .p-name {
+    font-size: clamp(10px, 12cqi, 20px) !important;
+}
+.grid-wrapper.few-rows .p-name { 
+    font-size: clamp(14px, 40cqh, 30px) !important; 
+}
+.grid-wrapper.single-row .p-name { 
+    font-size: clamp(20px, 60cqh, 45px) !important; 
+}
+/* 그리드 내 승패 기록 */
+.grid-wrapper .p-cnt { font-size: clamp(8px, 15cqi, 14px) !important; }
+
+/* ======================================================== */
+/* 4. 상태 및 성별 색상 */
+/* ======================================================== */
+/* 미출석 (기울어지고 얇은 글씨) */
         .is-sel { 
             background: #ffe033 !important;
             border: none !important;
@@ -200,41 +201,39 @@
         .g-sex .p-cnt { color: var(--p-guest) !important; }
         .p-cnt { font-size: clamp(10px, 20cqh, 20px) !important; font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
 
+///////////////.m-sex .p-name { color: #000 !important; }
+//////////////.f-sex .p-name { color: #FF007F !important; }
+//////////////.g-sex .p-name { color: #00f !important; }
+
+
         .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
 
         .lhy-mid-btn-space { width: clamp(50px, 15vw, 85px); display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; overflow: visible; position: relative; z-index: 10; container-type: size; }
         .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: clamp(1rem, 25cqh, 2rem); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0; transition: all 0.1s; z-index: 5; }
-/* 수정된 A-btn 스타일 */
-.A-btn { 
-    background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%); 
-    box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); 
-    color: #000; 
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.6); 
-    clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%); 
-    
-    /* [수정] 고정값 60px 대신 clamp를 사용하여 화면 비율에 따라 20px~60px 사이로 유연하게 조절 */
-    width: calc(100% + clamp(20px, 8vw, 60px)); 
-    margin-left: calc(clamp(20px, 8vw, 60px) * -1); 
-    padding-left: clamp(10px, 4vw, 30px); 
-    
-    filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.7)); 
-}
+        
+        .A-btn { 
+            background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%); 
+            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); 
+            color: #000; 
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.6); 
+            clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%); 
+            width: calc(100% + clamp(20px, 8vw, 60px)); 
+            margin-left: calc(clamp(20px, 8vw, 60px) * -1); 
+            padding-left: clamp(10px, 4vw, 30px); 
+            filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.7)); 
+        }
 
-/* 수정된 B-btn 스타일 */
-.B-btn { 
-    background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%); 
-    box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); 
-    color: #000; 
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.6); 
-    clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); 
-    
-    /* [수정] A-btn과 동일하게 유연한 단위 적용 */
-    width: calc(100% + clamp(20px, 8vw, 60px)); 
-    margin-right: calc(clamp(20px, 8vw, 60px) * -1); 
-    padding-right: clamp(10px, 4vw, 30px); 
-    
-    filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7)); 
-}
+        .B-btn { 
+            background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%); 
+            box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3); 
+            color: #000; 
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.6); 
+            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); 
+            width: calc(100% + clamp(20px, 8vw, 60px)); 
+            margin-right: calc(clamp(20px, 8vw, 60px) * -1); 
+            padding-right: clamp(10px, 4vw, 30px); 
+            filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7)); 
+        }
 
         .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(2px); }
         .lhy-modal-content { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); }
@@ -275,6 +274,14 @@
         .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
+
+.few-rows .lhy-slot {
+        font-size: clamp(14px, 40cqh, 30px) !important;
+    }
+
+    .single-row .lhy-slot {
+        font-size: clamp(20px, 60cqh, 50px) !important;
+    }
     </style>
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
@@ -283,9 +290,7 @@
     position:fixed; top:0; left:0; width:100%; height:100%; 
     z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;">
+    background-size: cover; background-position: center; background-repeat: no-repeat;">
     
     <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">환영합니다</div>
     
@@ -296,10 +301,7 @@
     <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 </div>
 
-</div>
-</div>
 <script>
-    // 1. SortableJS MultiDrag 모듈을 강제로 마운트 (가장 중요)
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
     function checkPassword() {
@@ -343,7 +345,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260605-2</div>
+    <div class="lhy-footer-filename">화목모임_20260605-5</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -412,7 +414,7 @@
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; 
-    let selectedPopIds = []; // 2. 다중 선택 배열 추가
+    let selectedPopIds = []; 
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
     let isListDragging = false; 
 
@@ -540,15 +542,14 @@
         reader.readAsText(file, 'utf-8');
     }
 
-    // 3. 드래그 옵션 통합 및 MultiDrag 기능 활성화
     const dragOpt = { 
-        group: { name: 'sh', pull: true, put: true }, // 수동모드 드래그 허용을 위한 강력한 그룹 지정
+        group: { name: 'sh', pull: true, put: true }, 
         animation: 150, 
-        delay: 150, // 터치 스크롤 방해 금지 딜레이
-        delayOnTouchOnly: true, // 데스크탑 마우스는 즉시, 터치는 딜레이
+        delay: 150, 
+        delayOnTouchOnly: true, 
         fallbackTolerance: 5,
-        multiDrag: true, // 다중 드래그 기능 켜기
-        selectedClass: 'is-sel', // 선택된 항목의 클래스명
+        multiDrag: true, 
+        selectedClass: 'is-sel', 
         onStart: function() { 
             isListDragging = true; 
             if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
@@ -556,7 +557,6 @@
         },
         onEnd: function(evt) {
             setTimeout(() => { isListDragging = false; }, 50);
-            // 드래그 종료 시 선택 상태 모두 초기화
             document.querySelectorAll('.player').forEach(p => {
                 p.classList.remove('is-sel'); 
                 p.classList.remove('is-selected-target');
@@ -567,56 +567,13 @@
     };
 
     const HELP_DATA = {
-        1: {
-            title: "💡 일반 출석 및 가변형 버튼 사용법",
-            steps: [
-                "<strong>회원 이름 터치(출석 토글):</strong> 좌측 전체 명단에서 이름을 누르면 불이 켜지며 우측 대기 명단에 자동으로 즉시 들어갑니다. 다시 누르면 출석이 취소됩니다.",
-                "<strong>스마트 이름/승패 UI:</strong> 좁은 모바일 화면을 최적화하기 위해 이름표 내 좌측에는 이름, 우측 끝에는 누적된 현재 [X승 X패] 점수가 가로로 깔끔하게 정렬되어 표시됩니다.",
-                "<strong>🔄 스마트 화면 전환 버튼:</strong> 상단 [화면 전환] 버튼을 누르면 기기가 세로 상태인지 가로 상태인지 판별하여 <strong>단 1번의 클릭만으로</strong> 레이아웃을 물리적으로 90도 즉시 회전시켜 줍니다."
-            ]
-        },
-        2: {
-            title: "👥 회원관리 인라인 제어 규칙",
-            steps: [
-                "<strong>➕ 즉석 게스트 추가:</strong> 하단 입력란을 통해 정식 회원이 아닌 당일 방문 게스트의 이름, 연령대, 등급(A1~D2)을 지정하여 즉시 명단에 임시 투입할 수 있습니다.",
-                "<strong>인라인 정보 수정:</strong> 명단 우측의 설정 아이콘 등을 통해 실시간으로 회원의 세부 등급 조절이나 조편성 예외 규칙을 현장에서 바로 바꿀 수 있습니다."
-            ]
-        },
-        3: {
-            title: "↩️ 실행취소 및 시스템 마감 규칙",
-            steps: [
-                "<strong>↩️ 완벽한 되돌리기 (Undo):</strong> 승패 결과 버튼을 실수로 잘못 누르거나, 선수를 다른 자리에 잘못 매칭했을 때 상단의 [되돌리기] 버튼을 누르면 직전 상태의 데이터와 카운트로 감쪽같이 복구됩니다.",
-                "<strong>🏁 오늘 모임 마감:</strong> 모든 경기가 끝나고 [모임 마감]을 실행하면 당일 참석 기록과 대기 카운트가 안전하게 초기화되며, 임시로 생성되었던 게스트 명단은 깔끔하게 자동 삭제정리됩니다."
-            ]
-        },
-        4: {
-            title: "🎯 [상황] 자동 배정",
-            steps: [
-                "<strong>도미노 시프트 시스템:</strong> 경기가 끝난 코트의 [승/패]가 입력되어 코트가 비게 되면, 프로그램이 대기 명단의 우선순위를 즉시 계산합니다.",
-                "<strong>기회 균등 배정:</strong> 오랫동안 경기를 쉬어서 대기 카운트가 가장 적은 사람, 최근 연패자, 매칭 등급 밸런스를 종합 고려하여 빈 코트에 다음 대기조 4명을 순서대로 빈틈없이 자동 채워 넣습니다."
-            ]
-        },
-        5: {
-            title: "🖐 [상황] 수동 배정",
-            steps: [
-                "<strong>강제 드래그 앤 드롭 매칭:</strong> 자동 배정 순서와 상관없이 특정 매칭을 만들고 싶다면, 대기자 명단의 이름 카드를 손가락으로 꾹 눌러 원하는 코트의 빈 슬롯(선수 자리)으로 직접 끌어다 놓으면 즉시 수동 배정됩니다.",
-                "<strong>코트간 멤버 교체:</strong> 이미 코트에 배치된 선수라 하더라도 경기가 시작되기 전이라면 코트 간에 혹은 대기자와 자유롭게 자리를 맞바꿀 수 있어 유연한 대회 운영이 가능합니다."
-            ]
-        },
-        6: {
-            title: "🏃 [상황] 경기중 결과 무르기 및 조기귀가 처리",
-            steps: [
-                "<strong>결과 무르기:</strong> 이미 승패가 입력되어 대기석으로 빠진 팀도 점수 입력 오류가 확인되면 상단 [되돌리기]를 통해 코트 위 경기 중 상태로 되돌려 놓을 수 있습니다.",
-                "<strong>🚪 조기 귀가자 처리:</strong> 모임 중간에 먼저 집으로 가야 하는 회원은 좌측 전체 명단에서 해당 이름을 한 번 더 터치하여 출석을 꺼주면 됩니다. 대기 명단 및 배정 시스템에서 즉각 제외됩니다."
-            ]
-        },
-        7: {
-            title: "⚙️ 조편성 기준 및 알고리즘",
-            steps: [
-                "<strong>대기 횟수(+1) 최우선:</strong> 경기를 치르고 나온 선수는 대기 카운트가 올라가며 무조건 명단의 맨 뒤로 이동합니다. 오래 쉰 사람에게 무조건 우선권이 주어집니다.",
-                "<strong>⚙️ 톱니바퀴 환경 설정:</strong> 우측 상단의 환경설정 메뉴를 누르면 활성화할 코트 개수 조절(1~6코트)이 가능하며, 동등급 우선 매칭이나 초보자 배려 모드 등 자동 배정 알고리즘의 세부 무게중심을 실시간으로 온/오프 커스텀할 수 있습니다."
-            ]
-        }
+        1: { title: "💡 일반 출석 및 가변형 버튼 사용법", steps: ["<strong>회원 이름 터치(출석 토글):</strong> 좌측 전체 명단에서 이름을 누르면 불이 켜지며 우측 대기 명단에 자동으로 즉시 들어갑니다.", "<strong>스마트 이름/승패 UI:</strong> 좁은 모바일 화면을 최적화하기 위해 이름과 승패가 예쁘게 정렬됩니다.", "<strong>🔄 스마트 화면 전환 버튼:</strong> 기기가 세로 상태인지 가로 상태인지 판별하여 즉시 회전시켜 줍니다."] },
+        2: { title: "👥 회원관리 인라인 제어 규칙", steps: ["<strong>➕ 즉석 게스트 추가:</strong> 방문 게스트를 즉시 임시 투입할 수 있습니다.", "<strong>인라인 정보 수정:</strong> 실시간으로 회원의 세부 등급 조절이 가능합니다."] },
+        3: { title: "↩️ 실행취소 및 시스템 마감 규칙", steps: ["<strong>↩️ 완벽한 되돌리기 (Undo):</strong> 직전 상태로 완벽 복구됩니다.", "<strong>🏁 오늘 모임 마감:</strong> 모든 경기가 끝나고 마감하면 안전하게 초기화됩니다."] },
+        4: { title: "🎯 [상황] 자동 배정", steps: ["<strong>도미노 시프트 시스템:</strong> 빈 코트에 다음 대기조 4명을 자동으로 빈틈없이 채워 넣습니다."] },
+        5: { title: "🖐 [상황] 수동 배정", steps: ["<strong>강제 드래그 앤 드롭:</strong> 손가락으로 끌어다 놓으면 즉시 수동 배정됩니다.", "<strong>코트간 멤버 교체:</strong> 코트 간에 혹은 대기자와 자유롭게 자리를 맞바꿀 수 있습니다."] },
+        6: { title: "🏃 [상황] 경기중 결과 무르기 및 조기귀가", steps: ["<strong>결과 무르기:</strong> 되돌리기를 통해 점수 입력 오류를 복구합니다.", "<strong>🚪 조기 귀가자 처리:</strong> 명단에서 이름을 터치해 출석을 꺼주면 됩니다."] },
+        7: { title: "⚙️ 조편성 기준 및 알고리즘", steps: ["<strong>대기 횟수 최우선:</strong> 오래 쉰 사람에게 무조건 우선권이 주어집니다.", "<strong>⚙️ 톱니바퀴 환경 설정:</strong> 코트 개수 조절 및 매칭 무게중심을 커스텀할 수 있습니다."] }
     };
 
     function lhy_fnToggleAdminMode() {
@@ -629,7 +586,6 @@
                 document.getElementById('btn-admin-toggle').innerText = "닫기";
                 statEl.innerText = "회원관리"; 
                 statEl.classList.add('admin-active');
-                
                 lhy_openMasterPop(); 
             } else { 
                 if (pw !== null) alert("비밀번호가 일치하지 않습니다."); 
@@ -739,7 +695,6 @@
                 pool.splice(i, 1);
             }
         }
-
         return true;
     }
 
@@ -888,10 +843,7 @@
             bTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.win = (m.win||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
         }
 
-        posOrder.forEach(p => {
-            boardState[`c${idx}-${p}`] = null;
-        });
-
+        posOrder.forEach(p => { boardState[`c${idx}-${p}`] = null; });
         lhy_dominoShiftSystem();
     }
 
@@ -1002,7 +954,6 @@
             try {
                 DB = JSON.parse(saved);
                 if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
-                
                 if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
                     DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
                 }
@@ -1013,7 +964,6 @@
                 });
                 if(!DB.matchHistory) DB.matchHistory = {};
                 if(!DB.config.matchRule) DB.config.matchRule = 'grade';
-                
             } catch(e) { lhy_loadDefaultDB(); }
         } else { lhy_loadDefaultDB(); }
         
@@ -1029,22 +979,13 @@
 
         let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
         if (isNewSession) {
-            DB.members.forEach(m => {
-                m.isAtt = false;
-                m.cnt = 0;
-                m.win = 0;
-                m.lose = 0;
-                delete m.attTime;
-            });
+            DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; });
             DB.members = DB.members.filter(m => !m.isG);
-
             DB.config.c = [true, true, false, false, false, false];
             DB.config.w = [true, false, false, false, false, false];
             DB.config.matchRule = 'grade';
-
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.matchHistory = {};
-
             sessionStorage.setItem('hwamok_session_v19', 'true');
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
@@ -1052,9 +993,7 @@
 
         const validIds = new Set(DB.members.map(m => m.id));
         Object.keys(boardState).forEach(key => {
-            if (boardState[key] && !validIds.has(boardState[key])) {
-                boardState[key] = null;
-            }
+            if (boardState[key] && !validIds.has(boardState[key])) { boardState[key] = null; }
         });
 
         window.addEventListener('beforeunload', () => {
@@ -1062,13 +1001,11 @@
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
-        // 4. 명단(List) 영역 다중 선택 드래그 온전한 초기화
         new Sortable(document.getElementById('ui-list'), { 
             ...dragOpt, 
             sort: true, 
             filter: ".is-not, .is-playing", 
             onAdd: (evt) => { 
-                // 보드에서 다시 명단으로 돌아온 경우 DOM은 삭제하고 상태만 업데이트 (새로고침 통해 렌더링)
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState();
                 if (!isManualMode) lhy_dominoShiftSystem(); 
@@ -1092,7 +1029,7 @@
         lhy_drawBoard(); lhy_dominoShiftSystem(); 
     }
 
-    function lhy_drawBoard() {
+function lhy_drawBoard() {
         const cG = document.getElementById('ui-court-grid'), wG = document.getElementById('ui-wait-grid');
         const cC = document.getElementById('ctrl-c'), wW = document.getElementById('ctrl-w');
         cG.innerHTML = ''; wG.innerHTML = ''; cC.innerHTML = ''; wW.innerHTML = '';
@@ -1100,17 +1037,19 @@
         let actC = 0, actW = 0;
         for(let i=1; i<=6; i++) { if(DB.config.c[i-1]) actC++; if(DB.config.w[i-1]) actW++; }
 
+        // [수정] 코트(c) 쪽 레이아웃 및 클래스 설정 (1개면 single-row, 2개 이하이면 few-rows 추가)
         let cCols = (actC <= 2) ? 1 : 2;
         let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
         cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`;
         cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
-        cG.className = `grid-wrapper layout-c${cCols}-r${cRows}`;
+        cG.className = `grid-wrapper layout-c${cCols}-r${cRows} ${actC <= 2 ? 'few-rows' : ''} ${actC === 1 ? 'single-row' : ''}`;
 
+        // [수정] 대기(w) 쪽 레이아웃 및 클래스 설정 (1개면 single-row, 2개 이하이면 few-rows 추가)
         let wCols = (actW <= 2) ? 1 : 2;
         let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
         wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`;
         wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
-        wG.className = `grid-wrapper layout-c${wCols}-r${wRows}`;
+        wG.className = `grid-wrapper layout-c${wCols}-r${wRows} ${actW <= 2 ? 'few-rows' : ''} ${actW === 1 ? 'single-row' : ''}`;
 
         for(let i=1; i<=6; i++) {
             ['c','w'].forEach(t => {
@@ -1142,7 +1081,6 @@
             });
         }
         
-        // 5. 코트 및 대기 슬롯 MultiDrag 드롭 로직 수정 (자동 분산 배치 및 밀어내기)
         document.querySelectorAll('.lhy-slot').forEach(el => {
             new Sortable(el, { 
                 ...dragOpt, 
@@ -1152,35 +1090,29 @@
                     let fromList = evt.from;
 
                     if (items.length === 1) {
-                        // 1명만 옮길 경우 (교체)
                         if (toSlot.children.length > 1) { 
                             const target = (toSlot.firstElementChild === items[0]) ? toSlot.lastElementChild : toSlot.firstElementChild; 
                             fromList.appendChild(target); 
                         }
                     } else {
-                        // 여러 명을 옮길 경우 (분산)
                         let unit = toSlot.closest('.lhy-unit');
                         let availableSlots = [];
                         if (unit) {
                             availableSlots = Array.from(unit.querySelectorAll('.lhy-slot')).filter(s => s !== toSlot && s.children.length === 0);
                         }
                         
-                        // 이미 들어있던 기존 선수는 명단으로 쫓아냄
                         let originalItems = Array.from(toSlot.children).filter(child => !items.includes(child));
                         originalItems.forEach(orig => fromList.appendChild(orig));
 
-                        // 1번째 사람은 현재 칸에, 나머지는 다른 빈 칸에
                         for (let i = 1; i < items.length; i++) {
                             if (availableSlots.length > 0) {
                                 availableSlots.shift().appendChild(items[i]);
                             } else {
-                                // 자리가 모자라면 다시 원래 목록으로
                                 fromList.appendChild(items[i]);
                             }
                         }
                     }
                     
-                    // 드롭 후 선택 상태 깔끔하게 지우기
                     items.forEach(el => el.classList.remove('is-sel'));
                     selectedPopIds = [];
                     lhy_syncBoardDOMToState();
@@ -1190,6 +1122,7 @@
         });
     }
 
+    // [핵심 수정 1] 우측 보드판(코트/대기조) 이름표 랜더링 안전화
     function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return;
         
@@ -1201,32 +1134,31 @@
         p.className = `player in-game ${sexClass}`;
         p.dataset.id = memberObj.id;
 
+        // 컨테이너 스타일 (높이를 강제로 제한하지 않고 유연하게 늘/줄어들게 함)
         Object.assign(p.style, {
             display: "flex", alignItems: "center", width: "100%", height: "100%",
-            minHeight: "40px", overflow: "hidden", boxSizing: "border-box", padding: "0 2px", position: "relative"
+            overflow: "hidden", boxSizing: "border-box", padding: "0 2px", position: "relative"
         });
 
+        // 1. 승패 컨테이너 (어떤 극한 환경에서도 절대 밖으로 튀어나가지 않는 비율)
         const stats = document.createElement('div');
-        stats.className = "p-stats";
         Object.assign(stats.style, {
-            display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-            flex: "0 0 25%", height: "100%", fontSize: "clamp(12px, 2.8vw, 16px)", lineHeight: "1.1", pointerEvents: "none"
+            display: "flex", flexDirection: "column", justifyContent: "center", alignItems: isLeft ? "flex-start" : "flex-end",
+            flex: "0 0 auto", width: "auto", maxWidth: "35%", height: "100%", pointerEvents: "none", padding: "0 2px"
         });
 stats.innerHTML = `
     <span class="stat-item" style="height: 50%; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.win}승</span>
     <span class="stat-item" style="height: 50%; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.lose}패</span>
 `;
+
+        // 2. 이름 컨테이너
         const nameDiv = document.createElement('div');
-        nameDiv.className = "p-name";
-        Object.assign(nameDiv.style, {
-            flex: "1", fontWeight: "900", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            textAlign: "center", fontSize: "clamp(14px, 4.5vw, 24px)", letterSpacing: "-0.5px"
-        });
+        nameDiv.className = "p-name"; // CSS에 정의된 안전한 스타일 적용
         nameDiv.textContent = pureName;
 
+        // 3. 화살표 모양 컨테이너
         const btn = document.createElement('div');
-        btn.className = isLeft ? "A-btn" : "B-btn";
-        Object.assign(btn.style, { flex: "0 0 15%", height: "100%", pointerEvents: "auto" });
+        Object.assign(btn.style, { flex: "0 0 15%", maxWidth: "30px", height: "100%", pointerEvents: "none" });
 
         if (isLeft) {
             btn.style.background = "linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%)";
@@ -1236,9 +1168,13 @@ stats.innerHTML = `
             btn.style.clipPath = "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)";
         }
 
-        if (isLeft) { p.append(btn, stats, nameDiv); } else { p.append(nameDiv, stats, btn); }
+        // 왼쪽 팀과 오른쪽 팀의 배열 순서 (화살표가 중앙을 향하도록)
+        if (isLeft) {
+            p.append(stats, nameDiv, btn);
+        } else {
+            p.append(btn, nameDiv, stats);
+        }
 
-        // 6. 보드에 위치한 플레이어 롱클릭 및 짧은 클릭(해제) 수정
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) return;
@@ -1248,13 +1184,13 @@ stats.innerHTML = `
             if (longClickTimer) clearTimeout(longClickTimer);
             longClickTimer = setTimeout(() => {
                 isLongClicked = true;
-                p.classList.toggle('is-sel'); // 토글 방식으로 다중 선택
+                p.classList.toggle('is-sel'); 
                 if (p.classList.contains('is-sel')) {
                     if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id);
                 } else {
                     selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id);
                 }
-            }, 400); // 좀 더 빠른 반응성
+            }, 400); 
         };
         const moveHandler = (e) => {
             const touch = e.touches ? e.touches[0] : null;
@@ -1269,7 +1205,6 @@ stats.innerHTML = `
         p.addEventListener('mousedown', startHandler); p.addEventListener('touchstart', startHandler, { passive: true });
         p.addEventListener('touchmove', moveHandler, { passive: false }); p.addEventListener('mouseup', endHandler); p.addEventListener('touchend', endHandler);
         
-        // 짧은 클릭은 취소 용도로만 사용
         p.onclick = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
             if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; }
@@ -1426,7 +1361,6 @@ stats.innerHTML = `
         html += `</div>`; viewer.innerHTML = html;
     }
 
-    // 7. 배열(selectedPopIds)을 사용하여 여러 선수를 한번에 취소/귀가 처리
     function lhy_topBtnCancelGame() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
@@ -1441,21 +1375,17 @@ stats.innerHTML = `
         localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
         
-        selectedPopIds = []; // 다중 배열 비우기
+        selectedPopIds = []; 
         isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
         lhy_renderBoardFromState();
         lhy_dominoShiftSystem();
         
-        try {
-            lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-        } catch (e) {
-            console.error("렌더링 오류 발생:", e);
-        }
+        try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
     }
 
-     function lhy_topBtnGoHome() {
+    function lhy_topBtnGoHome() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
         lhy_saveUndoState();
@@ -1478,17 +1408,13 @@ stats.innerHTML = `
         localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
         
-        selectedPopIds = []; // 다중 배열 비우기
+        selectedPopIds = [];
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
         lhy_syncBoardDOMToState();
         lhy_dominoShiftSystem();
         
-        try {
-            lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-        } catch (e) {
-            console.error("렌더링 오류 발생:", e);
-        }
+        try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
     }
 
     function lhy_applyOrientationLogic() {
@@ -1523,6 +1449,7 @@ stats.innerHTML = `
         });
     }
 
+    // [핵심 수정 2] 좌측 대기자 명단 리스트 랜더링 안전화
     function lhy_renderListOnly(isLandscapeMode) {
         const list = document.getElementById('ui-list'); if (!list) return;
         const count = DB.members.length; let cols = 5;
@@ -1551,19 +1478,28 @@ stats.innerHTML = `
             d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass}`;
             d.dataset.id = m.id;
             
-            d.innerHTML = `
-                <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
-                    <span style="font-weight: bold; font-size: 1.1em;">${pureName}</span>
-                    ${m.isAtt ? `
-                        <span class="p-cnt" style="font-size: clamp(15px, 1.2vh, 20px); margin-top:2px; font-weight:900; display:flex; gap:8px;">
-                            <span style="color: #2563eb; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.win || 0}승</span>
-                            <span style="color: #e11d48; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.lose || 0}패</span>
-                        </span>
-                    ` : ''}
+d.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; box-sizing: border-box;">
+        
+        <div class="p-name" style="text-align: center; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${pureName}
+        </div>
+
+        ${m.isAtt ? `
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; margin-top: 2px;">
+                <div style="font-size: clamp(6px, 1.2vh, 16px); font-weight: 900; color: #2563eb; 
+                            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
+                    ${m.win || 0}승
                 </div>
-            `;
+                <div style="font-size: clamp(6px, 1.2vh, 16px); font-weight: 900; color: #e11d48; 
+                            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
+                    ${m.lose || 0}패
+                </div>
+            </div>
+        ` : ''}
+    </div>
+`;
             
-            // 8. 명단 리스트 롱클릭 다중 선택 및 짧은 클릭(해제) 로직
             let touchStartX = 0; let touchStartY = 0;
             const startHandler = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) return;
@@ -1573,13 +1509,13 @@ stats.innerHTML = `
                 
                 longClickTimer = setTimeout(() => {
                     isLongClicked = true;
-                    d.classList.toggle('is-sel'); // 토글 다중선택
+                    d.classList.toggle('is-sel'); 
                     if (d.classList.contains('is-sel')) {
                         if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id);
                     } else {
                         selectedPopIds = selectedPopIds.filter(id => id !== m.id);
                     }
-                }, 400); // 좀 더 빠른 반응
+                }, 400); 
             };
             const moveHandler = (e) => {
                 const touch = e.touches ? e.touches[0] : null;
@@ -1598,7 +1534,6 @@ stats.innerHTML = `
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                // 이미 선택된 항목을 짧게 터치하면 '해제'만 합니다 (출석 변동 금지)
                 if (d.classList.contains('is-sel')) {
                     d.classList.remove('is-sel');
                     selectedPopIds = selectedPopIds.filter(id => id !== m.id);
