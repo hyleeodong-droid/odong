@@ -275,37 +275,34 @@
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
-.few-rows .lhy-slot {
-        font-size: clamp(14px, 40cqh, 30px) !important;
-    }
+/* 1. 대기 리스트의 기본 설정 */
+.few-rows .lhy-slot { font-size: clamp(14px, 40cqh, 30px) !important; }
+.single-row .lhy-slot { font-size: clamp(20px, 60cqh, 50px) !important; }
 
-    .single-row .lhy-slot {
-        font-size: clamp(20px, 60cqh, 50px) !important;
-    }
-
-/* 스마트폰(갤럭시 S23 울트라 등 좁은 화면) 전용 설정 */
+/* 2. 스마트폰 전용 설정 */
 @media (max-width: 450px) {
-    /* 1. 로그인 배경 이미지 조정 */
+    /* 로그인 배경 등 기존 설정 */
     #login-modal {
-    background-size: cover;          /* 핵심: 이미지 비율을 유지하며 화면을 꽉 채움 */
-    background-position: center;     /* 핵심: 이미지가 항상 중앙에 위치 */
-    background-repeat: no-repeat;    /* 핵심: 이미지가 반복되지 않게 함 */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 
-    /* 2. 전반적인 글씨 크기 최적화 */
-    body { font-size: 14px; }
-    
-    /* 3. 버튼 및 입력창 크기 조절 (터치하기 좋게) */
-    button, input, select {
-        font-size: 14px !important;
-        padding: 8px !important;
-    }
-
-    /* 4. 회원 명단 이름 및 승패 크기 조절 */
+    /* 일반적인 경우의 글씨 크기 (13px) */
     .p-name { font-size: 13px !important; }
+    
+    /* [핵심 수정] 대기가 1명일 때는 위 13px 설정을 무시하고 커지도록 설정 */
+    .single-row .p-name { 
+        font-size: 30px !important; 
+    }
+
     .stats div, .p-cnt div { font-size: 8px !important; }
     
-    /* 5. 혹시 모를 레이아웃 밀림 방지 */
+    /* 대기가 1명일 때 승패 글씨도 같이 키워주면 더 좋습니다 */
+    .single-row .stats div, .single-row .p-cnt div { 
+        font-size: 12px !important; 
+    }
+
     .container { padding: 5px !important; }
 }
     </style>
