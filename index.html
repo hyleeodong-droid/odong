@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260605-1</title>
+    <title>화목모임_20260605-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -70,7 +70,31 @@
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; }
 
+/* 부모 요소(stats)가 컨테이너 역할을 하도록 설정 */
+#stats {
+    container-type: size;
+    container-name: stats;
+    /* 만약 stats에 높이가 정해져 있지 않다면 height를 지정해야 작동합니다 */
+}
 
+/* 글자 크기 조절을 위한 클래스 */
+.stat-item {
+    display: flex;
+    align-items: center;
+    /* 핵심: 35px(최소) ~ 0.4cqh(권장) ~ 45px(최대)로 자동 조절 */
+    font-size: clamp(35px, 0.4cqh, 45px); 
+}
+
+/* 회원이름 전용 반응형 클래스 */
+.responsive-name {
+    display: flex;
+    align-items: center; /* 수직 중앙 정렬 */
+    height: 100%;        /* 부모 높이에 맞춤 */
+    font-size: clamp(10px, 0.4cqh, 24px); /* 최소 10px, 최대 24px 사이에서 자동 조절 */
+    white-space: nowrap; /* 글자가 줄바꿈되지 않게 */
+    overflow: hidden;    /* 글자가 칸을 벗어나면 숨김 */
+    text-overflow: ellipsis; /* 너무 길면 ...으로 표시 */
+}
 
 .lhy-label {
     display: none !important;
@@ -307,7 +331,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260605-1</div>
+    <div class="lhy-footer-filename">화목모임_20260605-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1176,11 +1200,10 @@
             display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
             flex: "0 0 25%", height: "100%", fontSize: "clamp(12px, 2.8vw, 16px)", lineHeight: "1.1", pointerEvents: "none"
         });
-        stats.innerHTML = `
-            <span style="color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.win}승</span>
-            <span style="color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.lose}패</span>
-        `;
-
+stats.innerHTML = `
+    <span class="stat-item" style="height: 50%; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.win}승</span>
+    <span class="stat-item" style="height: 50%; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${memberObj.lose}패</span>
+`;
         const nameDiv = document.createElement('div');
         nameDiv.className = "p-name";
         Object.assign(nameDiv.style, {
