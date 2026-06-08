@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260607-3</title>
+    <title>화목모임_20260609-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
 /* 1. 공통 디자인 (모든 곳에 적용되는 기본 외형) */
@@ -368,7 +368,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260607-3</div>
+    <div class="lhy-footer-filename">화목모임_20260609-1</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1207,12 +1207,12 @@ function lhy_insertPlayerToSlot(slot, memberObj) {
         if (isLeft) {
             btn.style.background = "linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%)";
             btn.style.clipPath = "polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%)";
-            // [왼쪽 팀] 화살표 - 이름 - 승패 순서로 배치
+            // [왼쪽 팀] 승패-이름 순서로 배치
             p.append(stats, nameDiv);
         } else {
             btn.style.background = "linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%)";
             btn.style.clipPath = "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)";
-            // [오른쪽 팀] 승패 - 이름 - 화살표 순서로 배치
+            // [오른쪽 팀] 이름 - 승패  순서로 배치
             p.append(nameDiv, stats);
         }
 
@@ -1682,5 +1682,27 @@ function lhy_insertPlayerToSlot(slot, memberObj) {
             </div>
         </div>
     </div>
+
+<script>
+        function lhy_lockOrientation() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape-primary').catch((err) => {
+                    console.warn("화면 잠금 시도 실패:", err);
+                });
+            }
+        }
+        
+        // 페이지가 완전히 로드된 후 실행
+        window.addEventListener('load', () => {
+            lhy_lockOrientation();
+        });
+        
+        // 사용자가 터치하면 강제로 한 번 더 고정 (브라우저 정책 우회)
+        document.addEventListener('touchstart', function() {
+            lhy_lockOrientation();
+        }, { once: true });
+    </script>
+
+
 </body>
 </html>
