@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260607-2</title>
+    <title>화목모임_20260607-3</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
 /* 1. 공통 디자인 (모든 곳에 적용되는 기본 외형) */
@@ -368,7 +368,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260607-2</div>
+    <div class="lhy-footer-filename">화목모임_20260607-3</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1145,20 +1145,20 @@ function lhy_drawBoard() {
         });
     }
 
-    // [핵심 수정 1] 우측 보드판(코트/대기조) 이름표 랜더링 안전화
-    function lhy_insertPlayerToSlot(slot, memberObj) {
+function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return;
 
         const sexClass = lhy_getSexClass(memberObj);
         const pureName = lhy_getPureName(memberObj.name);
         const isLeft = slot.id.includes('-L');
-       const winCount = Number(memberObj.win || 0);
-       const loseCount = Number(memberObj.lose || 0);
+        const winCount = Number(memberObj.win || 0);
+        const loseCount = Number(memberObj.lose || 0);
 
         const p = document.createElement('div');
         p.className = `player in-game ${sexClass}`;
         p.dataset.id = memberObj.id;
 
+        // 1. 부모 요소 설정 - containerType: 'size' 추가 (자식들의 자동 크기 조절 기준)
         Object.assign(p.style, {
             display: 'flex',
             alignItems: 'center',
@@ -1166,59 +1166,57 @@ function lhy_drawBoard() {
             width: '100%',
             height: '100%',
             overflow: 'hidden',
-           boxSizing: 'border-box',
-           padding: '12px',
-            position: 'relative'
+            boxSizing: 'border-box',
+            padding: '2px',
+            position: 'relative',
+            containerType: 'size'
         });
 
-// [수정된 stats 생성 부분]
-const stats = document.createElement('div');
-Object.assign(stats.style, {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 세로 중앙 정렬
-    alignItems: isLeft ? 'flex-start' : 'flex-end',
-    flex: '0 0 auto',
-    width: 'auto',
-    maxWidth: '35%',
-    height: '100%',
-    pointerEvents: 'none',
-    // padding: '12px', // 고정 패딩 제거 (공간 확보)
-    padding: '2px 4px', // 아주 약간의 좌우 여백만 적용
-    fontSize: 'clamp(9px, 1.5cqh, 14px)',
-    lineHeight: 'normal' // 1.0 보다는 normal이 폰트 중앙 맞추기에 안전
-});
+        // 2. stats 컨테이너 설정 - cqh 단위(칸 높이 기준) 적용
+        const stats = document.createElement('div');
+        Object.assign(stats.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: isLeft ? 'flex-start' : 'flex-end',
+            flex: '0 0 auto',
+            width: 'auto',
+            maxWidth: '35%',
+            height: '100%',
+            pointerEvents: 'none',
+            padding: '0 2px',
+            fontSize: 'clamp(9px, 35cqh, 14px)', // 칸 높이에 비례하여 자동 조절
+            lineHeight: 'normal'
+        });
 
-// [승패 아이템을 중앙으로 강제 정렬하는 수정 코드]
-stats.innerHTML = `
-    <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span>
-    <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
-`;
+        // 3. 승패 텍스트 삽입 - flex: 1을 사용하여 수직 정중앙 정렬
+        stats.innerHTML = `
+            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span>
+            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
+        `;
 
-        // 2. 이름 컨테이너
+        // 4. 이름 컨테이너
         const nameDiv = document.createElement('div');
-        nameDiv.className = "p-name"; // CSS에 정의된 안전한 스타일 적용
-       nameDiv.textContent = pureName;
+        nameDiv.className = "p-name";
+        nameDiv.textContent = pureName;
 
-        // 3. 화살표 모양 컨테이너
-       const btn = document.createElement('div');
-       Object.assign(btn.style, { flex: "0 0 15%", maxWidth: "30px", height: "100%", pointerEvents: "none" });
+        // 5. 화살표 모양 컨테이너
+        const btn = document.createElement('div');
+        Object.assign(btn.style, { flex: "0 0 15%", maxWidth: "30px", height: "100%", pointerEvents: "none" });
 
-       if (isLeft) {
-           btn.style.background = "linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%)";
-           btn.style.clipPath = "polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%)";
-        } else {
-            btn.style.background = "linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%)";
-           btn.style.clipPath = "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)";
-        }
-
-        // 왼쪽 팀과 오른쪽 팀의 배열 순서 (화살표가 중앙을 향하도록)
         if (isLeft) {
+            btn.style.background = "linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%)";
+            btn.style.clipPath = "polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%)";
+            // [왼쪽 팀] 화살표 - 이름 - 승패 순서로 배치
             p.append(stats, nameDiv);
         } else {
+            btn.style.background = "linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%)";
+            btn.style.clipPath = "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)";
+            // [오른쪽 팀] 승패 - 이름 - 화살표 순서로 배치
             p.append(nameDiv, stats);
         }
 
+        // 기존 이벤트 핸들러 유지
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) return;
