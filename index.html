@@ -321,23 +321,24 @@
             <div class="section-container"><div class="lhy-control-col" id="ctrl-c"></div><div class="grid-wrapper" id="ui-court-grid"></div></div>
             <div class="section-container" style="border:none;"><div class="lhy-control-col" id="ctrl-w"></div><div class="grid-wrapper" id="ui-wait-grid"></div></div>
         </div>
-        <div class="lhy-side-area">
-            <div class="lhy-menu-grid" id="ui-menu-grid">
-                <button id="btn-manual-toggle" style="background:linear-gradient(180deg, #3b82f6, #1d4ed8); color:#fff;" onclick="lhy_toggleManualMode()">자동배정</button>
-                <button style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">가로/ 세로</button>
-                <button id="btn-reset-enter" style="background:linear-gradient(180deg, #2ecc71, #27ae60);" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
-                <button id="btn-undo" style="background:linear-gradient(180deg, #ffe033, #FFD700); color:#000;" onclick="lhy_fnUndoAction()">실행취소</button>
-                
-                <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#000;" onclick="lhy_topBtnCancelGame()">게임취소</button>
-                <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
-                
-                <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
-                <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
-                <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
-            </div>
-            <div class="lhy-player-list" id="ui-list"></div>
-        </div>
+<div class="lhy-side-area">
+    <div class="lhy-menu-grid" id="ui-menu-grid">
+        <button id="btn-manual-toggle" style="background:linear-gradient(180deg, #3b82f6, #1d4ed8); color:#fff;" onclick="lhy_toggleManualMode()">자동</button>
+        
+        <button id="btn-orient-toggle" style="background:linear-gradient(180deg, #5c0099, #4b0082);" onclick="lhy_fnToggleOrientationButton()">가로</button>
+        
+        <button id="btn-reset-enter" style="background:linear-gradient(180deg, #2ecc71, #27ae60);" onclick="lhy_fnHandleResetOrEnterClick()">입장</button>
+        <button id="btn-undo" style="background:linear-gradient(180deg, #ffe033, #FFD700); color:#000;" onclick="lhy_fnUndoAction()">이전</button>
+        
+        <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#000;" onclick="lhy_topBtnCancelGame()">취소</button>
+        <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
+        
+        <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
+        <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
+        <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
     </div>
+    <div class="lhy-player-list" id="ui-list"></div>
+</div>
 
     <div class="lhy-footer-filename">화목모임_20260609-2</div>
 
@@ -424,7 +425,7 @@
         const btn = document.getElementById('btn-manual-toggle');
         
         if (isManualMode) {
-            btn.innerText = "수동배정";
+            btn.innerText = "수동";
             btn.style.background = "linear-gradient(180deg, #d946ef, #a21caf)";
             btn.style.color = "#fff";
             
@@ -455,6 +456,7 @@
         }
         lhy_applyOrientationLogic();
     }
+
     
     function lhy_getMatchScore(id1, id2) {
         if (!id1 || !id2) return 0;
@@ -1404,37 +1406,43 @@
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
     }
 
-    function lhy_applyOrientationLogic() {
-        const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
-        
-        b.style.width = "100%"; b.style.height = "100%"; b.style.transform = "none"; b.classList.remove('real-landscape');
-        
-        let targetLandscape = false;
-        
-        if (rotationState === 'auto') { 
-            if (w > h) targetLandscape = true; 
-        } 
-        else if (rotationState === 'force-landscape') {
-            targetLandscape = true;
-            if (w < h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; 
-            }
-        } 
-        else if (rotationState === 'force-portrait') {
-            targetLandscape = false;
-            if (w > h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; 
-            }
+function lhy_applyOrientationLogic() {
+    const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
+    
+    b.style.width = "100%"; b.style.height = "100%"; b.style.transform = "none"; b.classList.remove('real-landscape');
+    
+    let targetLandscape = false;
+    
+    if (rotationState === 'auto') { 
+        if (w > h) targetLandscape = true; 
+    } 
+    else if (rotationState === 'force-landscape') {
+        targetLandscape = true;
+        if (w < h) { 
+            b.style.width = h + "px"; b.style.height = w + "px"; 
+            b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; 
         }
-        
-        if (targetLandscape) b.classList.add('real-landscape');
-        
-        requestAnimationFrame(() => {
-            lhy_renderListOnly(targetLandscape);
-        });
+    } 
+    else if (rotationState === 'force-portrait') {
+        targetLandscape = false;
+        if (w > h) { 
+            b.style.width = h + "px"; b.style.height = w + "px"; 
+            b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; 
+        }
     }
+    
+    if (targetLandscape) b.classList.add('real-landscape');
+    
+    // [수정된 부분] 버튼 텍스트 업데이트
+    const btn = document.getElementById('btn-orient-toggle');
+    if (btn) {
+        btn.innerText = targetLandscape ? "가로" : "세로";
+    }
+    
+    requestAnimationFrame(() => {
+        lhy_renderListOnly(targetLandscape);
+    });
+}
 
     // [핵심 수정 2] 좌측 대기자 명단 리스트 랜더링 안전화
     function lhy_renderListOnly(isLandscapeMode) {
