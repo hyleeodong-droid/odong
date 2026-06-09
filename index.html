@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260609-1</title>
+    <title>화목모임_20260609-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-/* 1. 공통 디자인 (모든 곳에 적용되는 기본 외형) */
-:root {
-    --bg-court: #457b3b; --bg-wait: #d9ead3;
-    --p-black: #000; --p-pink: #FF007F; --p-guest: #00f;
-}
+        /* 1. 공통 디자인 (모든 곳에 적용되는 기본 외형) */
+        :root {
+            --bg-court: #457b3b; --bg-wait: #d9ead3;
+            --p-black: #000; --p-pink: #FF007F; --p-guest: #00f;
+        }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
         
@@ -70,14 +70,10 @@
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; display: none !important; }
 
-        /* 터치 지연 방지. [중요] 여기에 있던 min-height:44px 삭제 (버그원인) */
+        /* 터치 지연 방지 */
         .player, .A-btn, .B-btn {
             touch-action: manipulation; 
             user-select: none; 
-        }
-
-        @media (max-width: 1024px) {
-            .pc-only-info { display: none; } 
         }
 
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
@@ -94,65 +90,47 @@
             container-type: size;
         }
         
-/* ======================================================== */
-/* 1. 공통 플레이어 카드 디자인 (모든 영역 적용) */
-/* ======================================================== */
-.player { 
-    display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 4px;
-    border-radius: 8px; width: 100%; height: 100%; min-height: 0;
-    transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
-    container-type: size;
-    background: transparent !important;
-    border: 1px solid rgba(156, 163, 175, 0.6) !important; 
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-}
-.player:active { transform: scale(0.96); box-shadow: 1px 1px 2px rgba(0,0,0,0.4) !important; }
+        /* 1. 공통 플레이어 카드 디자인 */
+        .player { 
+            display: flex; align-items: center; justify-content: center; cursor: move; touch-action: none; position: relative; user-select: none; -webkit-user-select: none; padding: 0 4px;
+            border-radius: 8px; width: 100%; height: 100%; min-height: 0;
+            transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+            container-type: size;
+            background: transparent !important;
+            border: 1px solid rgba(156, 163, 175, 0.6) !important; 
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+        }
+        .player:active { transform: scale(0.96); box-shadow: 1px 1px 2px rgba(0,0,0,0.4) !important; }
 
-/* ======================================================== */
-/* 2. 회원 명단 스타일 (v2 버전의 굵고 선명한 디자인) */
-/* ======================================================== */
-.p-name {
-    flex: 1; min-width: 0;
-    font-weight: 999 !important;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    line-height: 1.0; display: flex; align-items: center; justify-content: center;
-    height: 100%; pointer-events: none;
-    /* v2 핵심: 흰색 테두리 효과 */
-    text-shadow: 
-        -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff,
-        -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff,
-        0px 3px 5px rgba(0,0,0,0.9);
-    font-size: 18px !important; /* 명단 글씨 크기 */
-}
+        /* 2. 회원 명단 스타일 */
+        .p-name {
+            flex: 1; min-width: 0;
+            font-weight: 999 !important;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.0; display: flex; align-items: center; justify-content: center;
+            height: 100%; pointer-events: none;
+            text-shadow: 
+                -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff,
+                -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff,
+                0px 3px 5px rgba(0,0,0,0.9);
+            font-size: 18px !important;
+        }
 
-/* 승패/기록 (가로 배치) */
-.p-cnt { 
-    display: inline-flex; align-items: center; justify-content: center;
-    font-weight: 999; margin-left: 4px;
-    font-size: 14px !important;
-    white-space: nowrap;
-    text-shadow: 0px 1px 1px rgba(255,255,255,0.8);
-}
+        .p-cnt { 
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 999; margin-left: 4px;
+            font-size: 14px !important;
+            white-space: nowrap;
+            text-shadow: 0px 1px 1px rgba(255,255,255,0.8);
+        }
 
-/* ======================================================== */
-/* 3. 코트/대기 영역 오버라이드 (그리드 전용 자동 크기 조절) */
-/* ======================================================== */
-.grid-wrapper .p-name {
-    font-size: clamp(10px, 12cqi, 20px) !important;
-}
-.grid-wrapper.few-rows .p-name { 
-    font-size: clamp(14px, 40cqh, 30px) !important; 
-}
-.grid-wrapper.single-row .p-name { 
-    font-size: clamp(20px, 60cqh, 45px) !important; 
-}
-/* 그리드 내 승패 기록 */
-.grid-wrapper .p-cnt { font-size: clamp(8px, 15cqi, 14px) !important; }
+        /* 3. 코트/대기 영역 오버라이드 */
+        .grid-wrapper .p-name { font-size: clamp(10px, 12cqi, 20px) !important; }
+        .grid-wrapper.few-rows .p-name { font-size: clamp(14px, 40cqh, 30px) !important; }
+        .grid-wrapper.single-row .p-name { font-size: clamp(20px, 60cqh, 45px) !important; }
+        .grid-wrapper .p-cnt { font-size: clamp(8px, 15cqi, 14px) !important; }
 
-/* ======================================================== */
-/* 4. 상태 및 성별 색상 */
-/* ======================================================== */
-/* 미출석 (기울어지고 얇은 글씨) */
+        /* 4. 상태 및 성별 색상 */
         .is-sel { 
             background: #ffe033 !important;
             border: none !important;
@@ -190,8 +168,6 @@
                 -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff,
                 0px 3px 5px rgba(0,0,0,0.9);
         }
-        .name-black { color: #000 !important; }
-        .name-pink { color: #d63384 !important; }
 
         .m-sex .p-name { color: var(--p-black); } 
         .m-sex .p-cnt { color: var(--p-black) !important; }
@@ -200,11 +176,6 @@
         .g-sex .p-name { color: var(--p-guest) !important; } 
         .g-sex .p-cnt { color: var(--p-guest) !important; }
         .p-cnt { font-size: clamp(10px, 20cqh, 20px) !important; font-weight: 999; margin-left: 0px; display: inline-block; letter-spacing: -0.5px; }
-
-///////////////.m-sex .p-name { color: #000 !important; }
-//////////////.f-sex .p-name { color: #FF007F !important; }
-//////////////.g-sex .p-name { color: #00f !important; }
-
 
         .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
 
@@ -275,36 +246,36 @@
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
-/* 1. 대기 리스트의 기본 설정 */
-.few-rows .lhy-slot { font-size: clamp(14px, 40cqh, 30px) !important; }
-.single-row .lhy-slot { font-size: clamp(20px, 60cqh, 50px) !important; }
+        /* 1. 대기 리스트의 기본 설정 */
+        .few-rows .lhy-slot { font-size: clamp(14px, 40cqh, 30px) !important; }
+        .single-row .lhy-slot { font-size: clamp(20px, 60cqh, 50px) !important; }
 
-/* 2. 스마트폰 전용 설정 */
-@media (max-width: 450px) {
-    /* 로그인 배경 등 기존 설정 */
-    #login-modal {
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
+        /* 기기별 미디어 쿼리 */
+        /* 1. 스마트폰 (450px 이하) */
+        @media (max-width: 450px) {
+            #login-modal { background-size: cover; background-position: center; background-repeat: no-repeat; }
+            .p-name { font-size: 13px !important; }
+            .single-row .p-name { font-size: 30px !important; }
+            .stats div, .p-cnt div { font-size: 8px !important; }
+            .single-row .stats div, .single-row .p-cnt div { font-size: 12px !important; }
+            .container { padding: 5px !important; }
+        }
 
-    /* 일반적인 경우의 글씨 크기 (13px) */
-    .p-name { font-size: 13px !important; }
-    
-    /* [핵심 수정] 대기가 1명일 때는 위 13px 설정을 무시하고 커지도록 설정 */
-    .single-row .p-name { 
-        font-size: 30px !important; 
-    }
+        /* 2. 태블릿 (451px ~ 1024px) */
+        @media (min-width: 451px) and (max-width: 1024px) {
+            .p-name { font-size: 16px !important; }
+            .single-row .p-name { font-size: 36px !important; }
+            .stats .stat-item, .p-cnt div { font-size: 10px !important; }
+            .single-row .stats .stat-item, .single-row .p-cnt div { font-size: 14px !important; }
+        }
 
-    .stats div, .p-cnt div { font-size: 8px !important; }
-    
-    /* 대기가 1명일 때 승패 글씨도 같이 키워주면 더 좋습니다 */
-    .single-row .stats div, .single-row .p-cnt div { 
-        font-size: 12px !important; 
-    }
-
-    .container { padding: 5px !important; }
-}
+        /* 3. PC (1025px 이상) */
+        @media (min-width: 1025px) {
+            .p-name { font-size: 20px !important; }
+            .single-row .p-name { font-size: 40px !important; }
+            .stats .stat-item, .p-cnt div { font-size: 12px !important; }
+            .single-row .stats .stat-item, .single-row .p-cnt div { font-size: 16px !important; }
+        }
     </style>
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
@@ -368,7 +339,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260609-1</div>
+    <div class="lhy-footer-filename">화목모임_20260609-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1052,7 +1023,7 @@
         lhy_drawBoard(); lhy_dominoShiftSystem(); 
     }
 
-function lhy_drawBoard() {
+    function lhy_drawBoard() {
         const cG = document.getElementById('ui-court-grid'), wG = document.getElementById('ui-wait-grid');
         const cC = document.getElementById('ctrl-c'), wW = document.getElementById('ctrl-w');
         cG.innerHTML = ''; wG.innerHTML = ''; cC.innerHTML = ''; wW.innerHTML = '';
@@ -1060,14 +1031,12 @@ function lhy_drawBoard() {
         let actC = 0, actW = 0;
         for(let i=1; i<=6; i++) { if(DB.config.c[i-1]) actC++; if(DB.config.w[i-1]) actW++; }
 
-        // [수정] 코트(c) 쪽 레이아웃 및 클래스 설정 (1개면 single-row, 2개 이하이면 few-rows 추가)
         let cCols = (actC <= 2) ? 1 : 2;
         let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
         cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`;
         cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
         cG.className = `grid-wrapper layout-c${cCols}-r${cRows} ${actC <= 2 ? 'few-rows' : ''} ${actC === 1 ? 'single-row' : ''}`;
 
-        // [수정] 대기(w) 쪽 레이아웃 및 클래스 설정 (1개면 single-row, 2개 이하이면 few-rows 추가)
         let wCols = (actW <= 2) ? 1 : 2;
         let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
         wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`;
@@ -1145,7 +1114,8 @@ function lhy_drawBoard() {
         });
     }
 
-function lhy_insertPlayerToSlot(slot, memberObj) {
+    // [핵심 수정] 우측 보드판 랜더링 안전화 및 z-index 부여 (화살표 제거)
+    function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return;
 
         const sexClass = lhy_getSexClass(memberObj);
@@ -1158,65 +1128,40 @@ function lhy_insertPlayerToSlot(slot, memberObj) {
         p.className = `player in-game ${sexClass}`;
         p.dataset.id = memberObj.id;
 
-        // 1. 부모 요소 설정 - containerType: 'size' 추가 (자식들의 자동 크기 조절 기준)
+        // zIndex: 20을 추가하여 이름표가 중앙 화살표 버튼보다 항상 위에 오게 함
         Object.assign(p.style, {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            boxSizing: 'border-box',
-            padding: '2px',
-            position: 'relative',
-            containerType: 'size'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box',
+            padding: '2px', position: 'relative', containerType: 'size',
+            zIndex: 20 
         });
 
-        // 2. stats 컨테이너 설정 - cqh 단위(칸 높이 기준) 적용
         const stats = document.createElement('div');
         Object.assign(stats.style, {
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
             alignItems: isLeft ? 'flex-start' : 'flex-end',
-            flex: '0 0 auto',
-            width: 'auto',
-            maxWidth: '35%',
-            height: '100%',
-            pointerEvents: 'none',
-            padding: '0 2px',
-            fontSize: 'clamp(9px, 35cqh, 14px)', // 칸 높이에 비례하여 자동 조절
-            lineHeight: 'normal'
+            flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%',
+            pointerEvents: 'none', padding: '0 2px',
+            fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal'
         });
 
-        // 3. 승패 텍스트 삽입 - flex: 1을 사용하여 수직 정중앙 정렬
         stats.innerHTML = `
             <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span>
             <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
         `;
 
-        // 4. 이름 컨테이너
         const nameDiv = document.createElement('div');
         nameDiv.className = "p-name";
         nameDiv.textContent = pureName;
 
-        // 5. 화살표 모양 컨테이너
-        const btn = document.createElement('div');
-        Object.assign(btn.style, { flex: "0 0 15%", maxWidth: "30px", height: "100%", pointerEvents: "none" });
-
+        // [오류 원인이었던 btn 코드 완전히 삭제]
+        // 왼쪽/오른쪽 팀에 따라 순서만 정해서 넣음
         if (isLeft) {
-            btn.style.background = "linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%)";
-            btn.style.clipPath = "polygon(10% 0%, 100% 0%, 100% 100%, 10% 100%, 0% 50%)";
-            // [왼쪽 팀] 승패-이름 순서로 배치
             p.append(stats, nameDiv);
         } else {
-            btn.style.background = "linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%)";
-            btn.style.clipPath = "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)";
-            // [오른쪽 팀] 이름 - 승패  순서로 배치
             p.append(nameDiv, stats);
         }
 
-        // 기존 이벤트 핸들러 유지
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) return;
@@ -1684,25 +1629,23 @@ function lhy_insertPlayerToSlot(slot, memberObj) {
     </div>
 
 <script>
-        function lhy_lockOrientation() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape-primary').catch((err) => {
-                    console.warn("화면 잠금 시도 실패:", err);
-                });
-            }
+    // 화면 자동회전 방지(가로 모드 고정) 스크립트
+    function lhy_lockOrientation() {
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape-primary').catch((err) => {
+                console.warn("화면 잠금 시도 실패:", err);
+            });
         }
-        
-        // 페이지가 완전히 로드된 후 실행
-        window.addEventListener('load', () => {
-            lhy_lockOrientation();
-        });
-        
-        // 사용자가 터치하면 강제로 한 번 더 고정 (브라우저 정책 우회)
-        document.addEventListener('touchstart', function() {
-            lhy_lockOrientation();
-        }, { once: true });
-    </script>
-
+    }
+    
+    window.addEventListener('load', () => {
+        lhy_lockOrientation();
+    });
+    
+    document.addEventListener('touchstart', function() {
+        lhy_lockOrientation();
+    }, { once: true });
+</script>
 
 </body>
 </html>
