@@ -437,9 +437,15 @@
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
         } else {
-            btn.innerText = "자동배정 ON";
+            btn.innerText = "자동";
             btn.style.background = "linear-gradient(180deg, #3b82f6, #1d4ed8)";
             btn.style.color = "#fff";
+ DB.config.w = [true, false, false, false, false, false];
+            lhy_drawBoard(); 
+            if (typeof lhy_renderBoardFromState === 'function') {
+                lhy_renderBoardFromState();
+            }
+            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             
             alert("자동 배정 모드가 켜졌습니다.");
             lhy_dominoShiftSystem();
