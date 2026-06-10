@@ -285,7 +285,7 @@
     // 1. 전역 DB 선언 (가장 먼저 선언하여 에러 방지)
     let DB = { members: [] };
 
-// 2. CSV 로드 함수 (수정본: 기존 코드와 호환되게 NAMES 배열도 같이 채움)
+// [중요] 기존 코드와 호환성을 맞추기 위해 NAMES를 강제로 생성하는 로직 포함
     async function lhy_loadMembersFromCSV() {
         try {
             const response = await fetch('members.csv?t=' + new Date().getTime());
@@ -295,7 +295,7 @@
             const rows = text.split('\n');
             
             let newMembers = [];
-            let newNames = []; // 기존 코드 호환용 배열
+            let legacyNames = []; // 기존 코드용 배열
 
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i].trim()) continue;
@@ -312,19 +312,19 @@
                     grade: cols[3]?.trim() || 'A1'
                 });
 
-                // 2. 옛날 코드 호환용 (예: "강경순(여)")
-                let formattedName = mSex ? `${mName}(${mSex})` : mName;
-                newNames.push(formattedName);
+                // 2. [핵심] 기존 함수가 NAMES 배열을 찾는다면 이것으로 대응
+                // 형식: "이름(성별)"
+                legacyNames.push(`${mName}(${mSex})`);
             }
             
             DB.members = newMembers;
-            window.NAMES = newNames; // 기존 코드의 NAMES 변수에 덮어씌움
+            window.NAMES = legacyNames; // <--- 기존 코드가 이 변수를 참조하면 해결됨!
             
-            console.log("CSV 로드 성공:", DB.members.length, "명");
-            console.log("기존 코드용 NAMES 배열:", window.NAMES);
+            console.log("CSV 로드 완료 및 NAMES 호환성 유지");
+            
         } catch (e) {
             console.error("CSV 로드 실패:", e);
-            alert("명단 파일을 불러오지 못했습니다.");
+            alert("파일을 불러오지 못했습니다.");
         }
     }
 
