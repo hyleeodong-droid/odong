@@ -282,78 +282,24 @@
 </div>
 
 <script>
-    // 1. 전역 DB 선언 (가장 먼저 선언하여 에러 방지)
-    let DB = { members: [] };
+    try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-// [중요] 기존 코드와 호환성을 맞추기 위해 NAMES를 강제로 생성하는 로직 포함
-    async function lhy_loadMembersFromCSV() {
-        try {
-            const response = await fetch('members.csv?t=' + new Date().getTime());
-            if (!response.ok) throw new Error("파일 없음");
-
-            const text = await response.text();
-            const rows = text.split('\n');
-            
-            let newMembers = [];
-            let legacyNames = []; // 기존 코드용 배열
-
-            for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                const cols = rows[i].split(',');
-                
-                const mName = cols[0]?.replace(/"/g, '').trim();
-                const mSex = cols[1]?.trim() || '';
-                
-                // 1. 새 구조 (DB용)
-                newMembers.push({
-                    name: mName,
-                    sex: mSex,
-                    age: cols[2]?.trim() || '20',
-                    grade: cols[3]?.trim() || 'A1'
-                });
-
-                // 2. [핵심] 기존 함수가 NAMES 배열을 찾는다면 이것으로 대응
-                // 형식: "이름(성별)"
-                legacyNames.push(`${mName}(${mSex})`);
-            }
-            
-            DB.members = newMembers;
-            window.NAMES = legacyNames; // <--- 기존 코드가 이 변수를 참조하면 해결됨!
-            
-            console.log("CSV 로드 완료 및 NAMES 호환성 유지");
-            
-        } catch (e) {
-            console.error("CSV 로드 실패:", e);
-            alert("파일을 불러오지 못했습니다.");
-        }
-    }
-
-    // 3. 통합 로그인 및 실행 함수
-    async function checkPassword() {
+    // [요청반영 2] 로그인 시 가로모드 및 전체화면 강제
+    function checkPassword() {
         const input = document.getElementById('pw-input').value;
-        
-        if (input === "12") {
-            // 명단 불러오기 실행
-            await lhy_loadMembersFromCSV();
-            
-            // 로그인 화면 숨기기
+        if (input === "12") { 
             document.getElementById('auth-gate').style.display = 'none';
-            
-            // 전체화면 및 가로모드 전환
             try {
                 if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                    await document.documentElement.requestFullscreen();
+                    document.documentElement.requestFullscreen().then(() => {
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(() => {});
+                        }
+                    }).catch(() => {});
+                } else if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
                 }
-                if (screen.orientation && screen.orientation.lock) {
-                    await screen.orientation.lock('landscape').catch(() => {});
-                }
-            } catch(e) { console.warn("화면 설정 오류:", e); }
-
-            // ★ 중요: 여기에 기존 앱 시작 함수를 호출하세요.
-            // 예: lhy_renderBoardFromState();
-            if (typeof lhy_renderBoardFromState === 'function') {
-                lhy_renderBoardFromState();
-            }
+            } catch(e) {}
         } else {
             alert("비밀번호가 틀렸습니다.");
         }
