@@ -92,6 +92,16 @@
             container-type: size;
         }
 
+.lhy-menu-grid button {
+    white-space: nowrap;      /* 줄바꿈 금지 */
+    overflow: hidden;         /* 글자 넘침 방지 */
+    display: flex;            /* 글자 중앙 정렬 */
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s; /* 부드럽게 축소 */
+    transform-origin: center;   /* 중앙 기준으로 축소 */
+}
+
         /* ======================================================== */
         /* 3. 회원 카드 공통 및 상태 디자인 (JS 간섭 배제) */
         /* ======================================================== */
@@ -503,6 +513,24 @@ function lhy_toggleManualMode() {
     localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
 }
 // 모든 메뉴 버튼의 상태를 한 번에 동기화하는 함수
+// 1. 글자 폭 자동 조절 함수 (이걸 스크립트 아무 곳에나 추가해 두세요)
+function lhy_fitButtonTextWidth() {
+    const buttons = document.querySelectorAll('.lhy-menu-grid button');
+    buttons.forEach(btn => {
+        // 초기화: 원래 크기로 돌려놓고 비교
+        btn.style.transform = "scaleX(1)"; 
+        
+        // 버튼 내부 글자가 버튼 너비보다 크면 축소
+        if (btn.scrollWidth > btn.clientWidth) {
+            // 여유 공간 4px을 두고 비율 계산
+            const scaleFactor = (btn.clientWidth - 4) / btn.scrollWidth;
+            // 가로 폭만 줄임
+            btn.style.transform = `scaleX(${scaleFactor})`;
+        }
+    });
+}
+
+// 2. 통합 메뉴 관리 함수 (원본에 로직 추가됨)
 function lhy_refreshMenuUI() {
     // 1. 자동/수동 버튼 업데이트
     const btnManual = document.getElementById('btn-manual-toggle');
@@ -518,13 +546,32 @@ function lhy_refreshMenuUI() {
     const btnOrient = document.getElementById('btn-orient-toggle');
     if (btnOrient) {
         btnOrient.innerText = isLandscape ? "세로" : "가로";
-        // 상태에 따라 색상 변경 (가로일 때 기본색, 세로일 때 다른색 등 원하시는 대로 조정 가능)
         btnOrient.style.background = isLandscape ? 
             "linear-gradient(180deg, #5c0099, #4b0082)" : 
             "linear-gradient(180deg, #99005c, #82004b)";
         btnOrient.style.color = "#fff";
     }
+
+    // [추가] 메뉴가 갱신된 직후 글자 폭 조절 실행
+    setTimeout(lhy_fitButtonTextWidth, 10); 
 }
+
+function lhy_fitButtonTextWidth() {
+    const buttons = document.querySelectorAll('.lhy-menu-grid button');
+    buttons.forEach(btn => {
+        // 1. 초기화: 우선 원래 크기(1배)로 돌려놓고 비교
+        btn.style.transform = "scaleX(1)"; 
+        
+        // 2. 글자 폭(scrollWidth)이 버튼 폭(clientWidth)보다 크면 축소
+        if (btn.scrollWidth > btn.clientWidth) {
+            // 여유 공간을 4px 정도 주고 비율 계산
+            const scaleFactor = (btn.clientWidth - 4) / btn.scrollWidth;
+            // 계산된 비율로 가로 폭만 줄임
+            btn.style.transform = `scaleX(${scaleFactor})`;
+        }
+    });
+}
+
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
         if (rotationState === 'auto') {
