@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260610-2</title>
+    <title>화목모임_20260610-3</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -294,26 +294,32 @@
 <script>
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-    // [요청반영 2] 로그인 시 가로모드 및 전체화면 강제
-    function checkPassword() {
-        const input = document.getElementById('pw-input').value;
-        if (input === "12") { 
-            document.getElementById('auth-gate').style.display = 'none';
-            try {
-                if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().then(() => {
-                        if (screen.orientation && screen.orientation.lock) {
-                            screen.orientation.lock('landscape').catch(() => {});
-                        }
-                    }).catch(() => {});
-                } else if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(() => {});
-                }
-            } catch(e) {}
+function checkPassword() {
+    const input = document.getElementById('pw-input').value;
+    if (input === "12") { 
+        document.getElementById('auth-gate').style.display = 'none';
+        
+        // 전체화면 및 방향 잠금 시도
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().then(() => {
+                lhy_safeLockOrientation(); // 수정된 안전 함수 호출
+            }).catch(() => {});
         } else {
-            alert("비밀번호가 틀렸습니다.");
+            lhy_safeLockOrientation(); // 수정된 안전 함수 호출
         }
+    } else {
+        alert("비밀번호가 틀렸습니다.");
     }
+}
+function lhy_safeLockOrientation() {
+    try {
+        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+    } catch (e) {
+        // 기기에서 지원하지 않는 경우 예외 처리를 무시하여 콘솔 에러 방지
+    }
+}
 </script>
 
     <header class="lhy-header">
@@ -347,7 +353,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260610-2</div>
+    <div class="lhy-footer-filename">화목모임_20260610-3</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -453,34 +459,59 @@
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
     }
 
-    function lhy_toggleManualMode() {
+function lhy_toggleManualMode() {
         isManualMode = !isManualMode;
         const btn = document.getElementById('btn-manual-toggle');
         
+        // 데이터 유지 확인용
+        lhy_syncBoardDOMToState(); 
+
         if (isManualMode) {
             btn.innerText = "수동배정";
             btn.style.background = "linear-gradient(180deg, #d946ef, #a21caf)";
             btn.style.color = "#fff";
             
+            // 수동모드: 대기팀을 4팀으로 확장
             DB.config.w = [true, true, true, true, false, false];
             lhy_drawBoard(); 
-            if (typeof lhy_renderBoardFromState === 'function') {
-                lhy_renderBoardFromState();
-            }
+            
+            // 데이터 유지하며 화면 갱신
+            lhy_renderBoardFromState();
+            
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
         } else {
             btn.innerText = "자동배정";
             btn.style.background = "linear-gradient(180deg, #3b82f6, #1d4ed8)";
             btn.style.color = "#fff";
-            DB.config.w = [true, false, false, false, false, false];
-            lhy_drawBoard(); 
-            if (typeof lhy_renderBoardFromState === 'function') {
-                lhy_renderBoardFromState();
+            
+            // [핵심 변경] 현재 존재하는 대기팀 개수 계산
+            let currentWaitCount = 0;
+            for (let i = 1; i <= 4; i++) { // w1 ~ w4까지 검사
+                const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
+                // 해당 대기팀(w1~w4) 중 단 한 명이라도 배정되어 있으면 팀이 있는 것으로 간주
+                if (slots.some(s => boardState[s] !== null)) {
+                    currentWaitCount++;
+                }
             }
+
+            // 최소 1팀은 유지하되, 현재 2팀 이상이면 그 개수를 유지
+            const targetWaitCount = Math.max(1, currentWaitCount);
+            
+            // DB.config.w 설정 동적 업데이트
+            DB.config.w = [false, false, false, false, false, false];
+            for (let i = 0; i < targetWaitCount; i++) {
+                DB.config.w[i] = true;
+            }
+
+            lhy_drawBoard(); 
+            
+            // 데이터 유지하며 화면 갱신
+            lhy_renderBoardFromState();
+            
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             
-            alert("자동 배정 모드가 켜졌습니다.");
+            alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
             lhy_dominoShiftSystem();
         }
     }
@@ -576,33 +607,65 @@
         reader.readAsText(file, 'utf-8');
     }
 
-    // [요청반영 1] 코트 및 대기팀 1명 제한 보장 (Sortable 이벤트 설정)
-    const dragOpt = { 
-        group: { name: 'sh', pull: true, put: true }, 
-        animation: 150, 
-        delay: 150, 
-        delayOnTouchOnly: true, 
-        fallbackTolerance: 5,
-        multiDrag: true, 
-        selectedClass: 'is-sel', 
-        onStart: function() { 
-            isListDragging = true; 
-            if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
-            lhy_saveUndoState(); 
-        },
-        onAdd: function(evt) {
-            // 이 처리는 하단 lhy_drawBoard 내부의 개별 슬롯 선언부에서 완벽히 제어합니다.
-        },
-        onEnd: function(evt) {
-            setTimeout(() => { isListDragging = false; }, 50);
-            document.querySelectorAll('.player').forEach(p => {
-                p.classList.remove('is-sel'); 
-                p.classList.remove('is-selected-target');
-            });
-            selectedPopIds = [];
-            lhy_syncBoardDOMToState();
-        } 
-    };
+// [요청반영 1] 코트 및 대기팀 1명 제한 및 중복 배정 방지 로직 (_260610-4)
+const dragOpt = { 
+    group: { name: 'sh', pull: true, put: true }, 
+    animation: 150, 
+    delay: 150, 
+    delayOnTouchOnly: true, 
+    fallbackTolerance: 5,
+    multiDrag: true, 
+    selectedClass: 'is-sel', 
+    
+    onStart: function() { 
+        isListDragging = true; 
+        if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
+        lhy_saveUndoState(); 
+    },
+
+    onAdd: function(evt) {
+        const item = evt.item; // 드래그한 요소
+        const to = evt.to;     // 이동된 칸
+        const from = evt.from; // 출발했던 칸
+        
+        // 회원의 고유 ID 확인 (data-id 속성 필수)
+        const memberId = item.getAttribute('data-id');
+
+        // 1. [1명 제한] 칸에 이미 사람이 있는 경우 (원래 있던 사람 + 지금 들어온 사람 > 1)
+        // 만약 들어온 칸의 자식이 1개를 초과하면 무조건 거부
+        if (to.children.length > 1) {
+            alert("이 칸에는 이미 다른 사람이 있습니다.");
+            from.appendChild(item); // 원래 자리로 롤백
+            return;
+        }
+
+        // 2. [중복 방지] 이미 boardState 내에 동일한 ID가 다른 슬롯에 존재하는지 검사
+        // (현재 이동 중인 해당 슬롯은 제외하고 검사)
+        const isDuplicate = Object.keys(boardState).some(slotKey => {
+            return boardState[slotKey] === memberId && slotKey !== to.id;
+        });
+
+        if (isDuplicate) {
+            alert("이미 다른 곳에 배정된 회원입니다!");
+            from.appendChild(item); // 롤백
+            return;
+        }
+
+        // 모든 검사 통과 시 상태 동기화
+        lhy_syncBoardDOMToState();
+    },
+
+    onEnd: function(evt) {
+        setTimeout(() => { isListDragging = false; }, 50);
+        // 선택 해제 처리
+        document.querySelectorAll('.player').forEach(p => {
+            p.classList.remove('is-sel'); 
+            p.classList.remove('is-selected-target');
+        });
+        selectedPopIds = [];
+        lhy_syncBoardDOMToState();
+    } 
+};
 
     const HELP_DATA = {
         1: { title: "💡 일반 출석 및 가변형 버튼 사용법", steps: ["<strong>회원 이름 터치(출석 토글):</strong> 좌측 전체 명단에서 이름을 누르면 불이 켜지며 우측 대기 명단에 자동으로 즉시 들어갑니다.", "<strong>스마트 이름/승패 UI:</strong> 좁은 모바일 화면을 최적화하기 위해 이름과 승패가 예쁘게 정렬됩니다.", "<strong>🔄 스마트 화면 전환 버튼:</strong> 기기가 세로 상태인지 가로 상태인지 판별하여 즉시 회전시켜 줍니다."] },
@@ -1644,20 +1707,26 @@ function lhy_renderBoardFromState() {
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         }
     }
-</script>
 
-<script>
+
     // 화면 자동회전 방지 추가 로직
     function lhy_lockOrientation() {
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch((err) => {
-                console.warn("화면 잠금 시도 실패:", err);
+        // 1. 기능이 존재하는지(undefined가 아닌지) && 함수인지 확인
+        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+            // 2. 잠금 시도 (에러 발생 시 catch에서 아무것도 하지 않음)
+            screen.orientation.lock('landscape').catch(() => {
+                // 경고 로그 제거: 에러가 나도 콘솔에 찍히지 않도록 빈 블록 유지
             });
         }
     }
     
+    // 초기 실행
     window.addEventListener('load', () => { lhy_lockOrientation(); });
-    document.addEventListener('touchstart', function() { lhy_lockOrientation(); }, { once: true });
+    // 터치 이벤트 발생 시 (사용자 상호작용 후) 다시 시도
+    document.addEventListener('touchstart', function() { 
+        lhy_lockOrientation(); 
+    }, { once: true });
+
 </script>
 
 </body>
