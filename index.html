@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260610-3</title>
+    <title>화목모임_20260610-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -353,7 +353,7 @@ function lhy_safeLockOrientation() {
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260610-3</div>
+    <div class="lhy-footer-filename">화목모임_20260610-4</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -454,68 +454,77 @@ function lhy_safeLockOrientation() {
 
     let isManualMode = false;
     let boardState = {};
+let isLandscape = true; // 가로/세로 상태를 저장할 변수 (기본값)
     
     function safeExecute(fn) {
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
     }
 
 function lhy_toggleManualMode() {
-        isManualMode = !isManualMode;
-        const btn = document.getElementById('btn-manual-toggle');
-        
-        // 데이터 유지 확인용
-        lhy_syncBoardDOMToState(); 
+    isManualMode = !isManualMode;
+    
+    // 데이터 동기화
+    lhy_syncBoardDOMToState(); 
 
-        if (isManualMode) {
-            btn.innerText = "수동배정";
-            btn.style.background = "linear-gradient(180deg, #d946ef, #a21caf)";
-            btn.style.color = "#fff";
-            
-            // 수동모드: 대기팀을 4팀으로 확장
-            DB.config.w = [true, true, true, true, false, false];
-            lhy_drawBoard(); 
-            
-            // 데이터 유지하며 화면 갱신
-            lhy_renderBoardFromState();
-            
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
-        } else {
-            btn.innerText = "자동배정";
-            btn.style.background = "linear-gradient(180deg, #3b82f6, #1d4ed8)";
-            btn.style.color = "#fff";
-            
-            // [핵심 변경] 현재 존재하는 대기팀 개수 계산
-            let currentWaitCount = 0;
-            for (let i = 1; i <= 4; i++) { // w1 ~ w4까지 검사
-                const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
-                // 해당 대기팀(w1~w4) 중 단 한 명이라도 배정되어 있으면 팀이 있는 것으로 간주
-                if (slots.some(s => boardState[s] !== null)) {
-                    currentWaitCount++;
-                }
+    if (isManualMode) {
+        // 수동모드: 대기팀을 4팀으로 확장
+        DB.config.w = [true, true, true, true, false, false];
+        alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
+    } else {
+        // [자동모드 전환] 현재 존재하는 대기팀 개수 계산
+        let currentWaitCount = 0;
+        for (let i = 1; i <= 4; i++) { 
+            const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
+            // 해당 대기팀(w1~w4) 중 단 한 명이라도 배정되어 있으면 팀이 있는 것으로 간주
+            if (slots.some(s => boardState[s] !== null)) {
+                currentWaitCount++;
             }
-
-            // 최소 1팀은 유지하되, 현재 2팀 이상이면 그 개수를 유지
-            const targetWaitCount = Math.max(1, currentWaitCount);
-            
-            // DB.config.w 설정 동적 업데이트
-            DB.config.w = [false, false, false, false, false, false];
-            for (let i = 0; i < targetWaitCount; i++) {
-                DB.config.w[i] = true;
-            }
-
-            lhy_drawBoard(); 
-            
-            // 데이터 유지하며 화면 갱신
-            lhy_renderBoardFromState();
-            
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            
-            alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
-            lhy_dominoShiftSystem();
         }
+
+        // 최소 1팀은 유지하되, 현재 2팀 이상이면 그 개수를 유지
+        const targetWaitCount = Math.max(1, currentWaitCount);
+        
+        // DB.config.w 설정 동적 업데이트
+        DB.config.w = [false, false, false, false, false, false];
+        for (let i = 0; i < targetWaitCount; i++) {
+            DB.config.w[i] = true;
+        }
+
+        alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
+        lhy_dominoShiftSystem();
     }
 
+    // ★ UI 업데이트는 여기서 통합 관리 (중복 코드 제거됨)
+    lhy_refreshMenuUI();
+
+    // 공통 실행 로직
+    lhy_drawBoard(); 
+    lhy_renderBoardFromState();
+    localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+}
+// 모든 메뉴 버튼의 상태를 한 번에 동기화하는 함수
+function lhy_refreshMenuUI() {
+    // 1. 자동/수동 버튼 업데이트
+    const btnManual = document.getElementById('btn-manual-toggle');
+    if (btnManual) {
+        btnManual.innerText = isManualMode ? "수동배정" : "자동배정";
+        btnManual.style.background = isManualMode ? 
+            "linear-gradient(180deg, #d946ef, #a21caf)" : 
+            "linear-gradient(180deg, #3b82f6, #1d4ed8)";
+        btnManual.style.color = "#fff";
+    }
+
+    // 2. 가로/세로 전환 버튼 업데이트
+    const btnOrient = document.getElementById('btn-orient-toggle');
+    if (btnOrient) {
+        btnOrient.innerText = isLandscape ? "세로" : "가로";
+        // 상태에 따라 색상 변경 (가로일 때 기본색, 세로일 때 다른색 등 원하시는 대로 조정 가능)
+        btnOrient.style.background = isLandscape ? 
+            "linear-gradient(180deg, #5c0099, #4b0082)" : 
+            "linear-gradient(180deg, #99005c, #82004b)";
+        btnOrient.style.color = "#fff";
+    }
+}
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
         if (rotationState === 'auto') {
