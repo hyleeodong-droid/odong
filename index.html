@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260610-1</title>
+    <title>화목모임_20260610-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -285,10 +285,9 @@
     // 1. 전역 DB 선언 (가장 먼저 선언하여 에러 방지)
     let DB = { members: [] };
 
-    // 2. CSV 로드 함수 (파일 이름이 무엇이든 CSV 형식이기만 하면 읽습니다)
+// 2. CSV 로드 함수 (수정본: 기존 코드와 호환되게 NAMES 배열도 같이 채움)
     async function lhy_loadMembersFromCSV() {
         try {
-            // 깃허브에 올린 파일명 'members.csv'로 고정
             const response = await fetch('members.csv?t=' + new Date().getTime());
             if (!response.ok) throw new Error("파일 없음");
 
@@ -296,22 +295,36 @@
             const rows = text.split('\n');
             
             let newMembers = [];
+            let newNames = []; // 기존 코드 호환용 배열
+
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i].trim()) continue;
                 const cols = rows[i].split(',');
-                // CSV 데이터 파싱
+                
+                const mName = cols[0]?.replace(/"/g, '').trim();
+                const mSex = cols[1]?.trim() || '';
+                
+                // 1. 새 구조 (DB용)
                 newMembers.push({
-                    name: cols[0]?.replace(/"/g, '').trim(),
-                    sex: cols[1]?.trim() || '남',
+                    name: mName,
+                    sex: mSex,
                     age: cols[2]?.trim() || '20',
                     grade: cols[3]?.trim() || 'A1'
                 });
+
+                // 2. 옛날 코드 호환용 (예: "강경순(여)")
+                let formattedName = mSex ? `${mName}(${mSex})` : mName;
+                newNames.push(formattedName);
             }
+            
             DB.members = newMembers;
+            window.NAMES = newNames; // 기존 코드의 NAMES 변수에 덮어씌움
+            
             console.log("CSV 로드 성공:", DB.members.length, "명");
+            console.log("기존 코드용 NAMES 배열:", window.NAMES);
         } catch (e) {
             console.error("CSV 로드 실패:", e);
-            alert("명단 파일을 불러오지 못했습니다. (members.csv 파일 확인 요망)");
+            alert("명단 파일을 불러오지 못했습니다.");
         }
     }
 
@@ -378,7 +391,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260610-1</div>
+    <div class="lhy-footer-filename">화목모임_20260610-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
