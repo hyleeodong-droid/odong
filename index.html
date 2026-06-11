@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260610-4</title>
+    <title>화목모임_20260611-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -55,8 +55,17 @@
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
         .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
-        .lhy-menu-grid button { height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: transform 0.1s, box-shadow 0.1s; }
-        .lhy-menu-grid button:active { transform: translateY(2px); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
+        
+        /* 통합된 버튼 스타일 (글자폭 자동 압축 속성 포함) */
+        .lhy-menu-grid button { 
+            height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; 
+            cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; 
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6); 
+            transition: transform 0.1s, box-shadow 0.1s; 
+            white-space: nowrap; overflow: hidden; display: flex; justify-content: center; align-items: center; transform-origin: center;
+        }
+        .lhy-menu-grid button:active { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
 
         .lhy-player-list { flex: 1; display: grid; background: #cbd5e1; gap: 6px; padding: 6px; overflow-y: auto; overflow-x: hidden; min-height: 0; touch-action: pan-y; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         
@@ -92,14 +101,24 @@
             container-type: size;
         }
 
-.lhy-menu-grid button {
-    white-space: nowrap;      /* 줄바꿈 금지 */
-    overflow: hidden;         /* 글자 넘침 방지 */
-    display: flex;            /* 글자 중앙 정렬 */
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.1s; /* 부드럽게 축소 */
-    transform-origin: center;   /* 중앙 기준으로 축소 */
+/* 오른쪽 하단 전체화면 버튼 */
+.btn-fullscreen-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.5); /* 50% 불투명도 */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    backdrop-filter: blur(4px); /* 살짝 뿌옇게 하여 더 투명해 보임 */
+    transition: background 0.3s;
+}
+.btn-fullscreen-toggle:hover {
+    background: rgba(0, 0, 0, 0.7);
 }
 
         /* ======================================================== */
@@ -272,16 +291,15 @@
             .stats .stat-item, .p-cnt div { font-size: 12px !important; }
             .single-row .stats .stat-item, .single-row .p-cnt div { font-size: 16px !important; }
         }
-/* _260610-2: 회원 이름 및 그림자 최적화 스타일 */
-.slot-many { 
-    font-size: 14px; /* 2개 이상일 때 */
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 얇은 그림자 */
-}
-.slot-single { 
-    font-size: 20px; /* 1개일 때 최대한 크게 */
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 1.0); /* 원본 그림자 */
-}
-
+        /* _260610-2: 회원 이름 및 그림자 최적화 스타일 */
+        .slot-many { 
+            font-size: 14px; 
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); 
+        }
+        .slot-single { 
+            font-size: 20px; 
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 1.0); 
+        }
     </style>
 </head>
 <body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
@@ -304,32 +322,29 @@
 <script>
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-function checkPassword() {
-    const input = document.getElementById('pw-input').value;
-    if (input === "12") { 
-        document.getElementById('auth-gate').style.display = 'none';
-        
-        // 전체화면 및 방향 잠금 시도
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().then(() => {
-                lhy_safeLockOrientation(); // 수정된 안전 함수 호출
-            }).catch(() => {});
+    function checkPassword() {
+        const input = document.getElementById('pw-input').value;
+        if (input === "12") { 
+            document.getElementById('auth-gate').style.display = 'none';
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().then(() => {
+                    lhy_safeLockOrientation(); 
+                }).catch(() => {});
+            } else {
+                lhy_safeLockOrientation(); 
+            }
         } else {
-            lhy_safeLockOrientation(); // 수정된 안전 함수 호출
+            alert("비밀번호가 틀렸습니다.");
         }
-    } else {
-        alert("비밀번호가 틀렸습니다.");
     }
-}
-function lhy_safeLockOrientation() {
-    try {
-        if (screen.orientation && typeof screen.orientation.lock === 'function') {
-            screen.orientation.lock('landscape').catch(() => {});
-        }
-    } catch (e) {
-        // 기기에서 지원하지 않는 경우 예외 처리를 무시하여 콘솔 에러 방지
+    
+    function lhy_safeLockOrientation() {
+        try {
+            if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        } catch (e) {}
     }
-}
 </script>
 
     <header class="lhy-header">
@@ -363,7 +378,7 @@ function lhy_safeLockOrientation() {
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260610-4</div>
+    <div class="lhy-footer-filename">화목모임_20260611-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -454,7 +469,9 @@ function lhy_safeLockOrientation() {
             </div>
         </div>
     </div>
+
     <script>
+    // --- 글로벌 변수 및 초기화 ---
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; 
@@ -462,115 +479,81 @@ function lhy_safeLockOrientation() {
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
     let isListDragging = false; 
 
+    // 모드 제어용 상태 변수
     let isManualMode = false;
+    let isLandscape = true;
     let boardState = {};
-let isLandscape = true; // 가로/세로 상태를 저장할 변수 (기본값)
-    
+
     function safeExecute(fn) {
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
     }
 
-function lhy_toggleManualMode() {
-    isManualMode = !isManualMode;
-    
-    // 데이터 동기화
-    lhy_syncBoardDOMToState(); 
-
-    if (isManualMode) {
-        // 수동모드: 대기팀을 4팀으로 확장
-        DB.config.w = [true, true, true, true, false, false];
-        alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
-    } else {
-        // [자동모드 전환] 현재 존재하는 대기팀 개수 계산
-        let currentWaitCount = 0;
-        for (let i = 1; i <= 4; i++) { 
-            const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
-            // 해당 대기팀(w1~w4) 중 단 한 명이라도 배정되어 있으면 팀이 있는 것으로 간주
-            if (slots.some(s => boardState[s] !== null)) {
-                currentWaitCount++;
+    // --- 통합 UI 갱신 및 글자폭 동적 보정 함수 ---
+    function lhy_fitButtonTextWidth() {
+        const buttons = document.querySelectorAll('.lhy-menu-grid button');
+        buttons.forEach(btn => {
+            btn.style.transform = "scaleX(1)"; 
+            if (btn.scrollWidth > btn.clientWidth) {
+                const scaleFactor = (btn.clientWidth - 4) / btn.scrollWidth;
+                btn.style.transform = `scaleX(${scaleFactor})`;
             }
-        }
-
-        // 최소 1팀은 유지하되, 현재 2팀 이상이면 그 개수를 유지
-        const targetWaitCount = Math.max(1, currentWaitCount);
-        
-        // DB.config.w 설정 동적 업데이트
-        DB.config.w = [false, false, false, false, false, false];
-        for (let i = 0; i < targetWaitCount; i++) {
-            DB.config.w[i] = true;
-        }
-
-        alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
-        lhy_dominoShiftSystem();
+        });
     }
 
-    // ★ UI 업데이트는 여기서 통합 관리 (중복 코드 제거됨)
-    lhy_refreshMenuUI();
-
-    // 공통 실행 로직
-    lhy_drawBoard(); 
-    lhy_renderBoardFromState();
-    localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-}
-// 모든 메뉴 버튼의 상태를 한 번에 동기화하는 함수
-// 1. 글자 폭 자동 조절 함수 (이걸 스크립트 아무 곳에나 추가해 두세요)
-function lhy_fitButtonTextWidth() {
-    const buttons = document.querySelectorAll('.lhy-menu-grid button');
-    buttons.forEach(btn => {
-        // 초기화: 원래 크기로 돌려놓고 비교
-        btn.style.transform = "scaleX(1)"; 
-        
-        // 버튼 내부 글자가 버튼 너비보다 크면 축소
-        if (btn.scrollWidth > btn.clientWidth) {
-            // 여유 공간 4px을 두고 비율 계산
-            const scaleFactor = (btn.clientWidth - 4) / btn.scrollWidth;
-            // 가로 폭만 줄임
-            btn.style.transform = `scaleX(${scaleFactor})`;
+    function lhy_refreshMenuUI() {
+        const btnManual = document.getElementById('btn-manual-toggle');
+        if (btnManual) {
+            btnManual.innerText = isManualMode ? "수동배정" : "자동배정";
+            btnManual.style.background = isManualMode ? 
+                "linear-gradient(180deg, #d946ef, #a21caf)" : 
+                "linear-gradient(180deg, #3b82f6, #1d4ed8)";
+            btnManual.style.color = "#fff";
         }
-    });
-}
 
-// 2. 통합 메뉴 관리 함수 (원본에 로직 추가됨)
-function lhy_refreshMenuUI() {
-    // 1. 자동/수동 버튼 업데이트
-    const btnManual = document.getElementById('btn-manual-toggle');
-    if (btnManual) {
-        btnManual.innerText = isManualMode ? "수동배정" : "자동배정";
-        btnManual.style.background = isManualMode ? 
-            "linear-gradient(180deg, #d946ef, #a21caf)" : 
-            "linear-gradient(180deg, #3b82f6, #1d4ed8)";
-        btnManual.style.color = "#fff";
+        const btnOrient = document.getElementById('btn-orient-toggle');
+        if (btnOrient) {
+            btnOrient.innerText = isLandscape ? "가로" : "세로";
+            btnOrient.style.background = isLandscape ? 
+                "linear-gradient(180deg, #5c0099, #4b0082)" : 
+                "linear-gradient(180deg, #99005c, #82004b)";
+            btnOrient.style.color = "#fff";
+        }
+
+        setTimeout(lhy_fitButtonTextWidth, 10); 
     }
 
-    // 2. 가로/세로 전환 버튼 업데이트
-    const btnOrient = document.getElementById('btn-orient-toggle');
-    if (btnOrient) {
-        btnOrient.innerText = isLandscape ? "세로" : "가로";
-        btnOrient.style.background = isLandscape ? 
-            "linear-gradient(180deg, #5c0099, #4b0082)" : 
-            "linear-gradient(180deg, #99005c, #82004b)";
-        btnOrient.style.color = "#fff";
-    }
+    // --- 모드 전환 토글 (수동/자동 유지 로직 포함) ---
+    function lhy_toggleManualMode() {
+        isManualMode = !isManualMode;
+        lhy_syncBoardDOMToState(); 
 
-    // [추가] 메뉴가 갱신된 직후 글자 폭 조절 실행
-    setTimeout(lhy_fitButtonTextWidth, 10); 
-}
+        if (isManualMode) {
+            DB.config.w = [true, true, true, true, false, false];
+            alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
+        } else {
+            let currentWaitCount = 0;
+            for (let i = 1; i <= 4; i++) { 
+                const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
+                if (slots.some(s => boardState[s] !== null)) {
+                    currentWaitCount++;
+                }
+            }
 
-function lhy_fitButtonTextWidth() {
-    const buttons = document.querySelectorAll('.lhy-menu-grid button');
-    buttons.forEach(btn => {
-        // 1. 초기화: 우선 원래 크기(1배)로 돌려놓고 비교
-        btn.style.transform = "scaleX(1)"; 
-        
-        // 2. 글자 폭(scrollWidth)이 버튼 폭(clientWidth)보다 크면 축소
-        if (btn.scrollWidth > btn.clientWidth) {
-            // 여유 공간을 4px 정도 주고 비율 계산
-            const scaleFactor = (btn.clientWidth - 4) / btn.scrollWidth;
-            // 계산된 비율로 가로 폭만 줄임
-            btn.style.transform = `scaleX(${scaleFactor})`;
+            const targetWaitCount = Math.max(1, currentWaitCount);
+            DB.config.w = [false, false, false, false, false, false];
+            for (let i = 0; i < targetWaitCount; i++) {
+                DB.config.w[i] = true;
+            }
+
+            alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
+            lhy_dominoShiftSystem();
         }
-    });
-}
+
+        lhy_refreshMenuUI();
+        lhy_drawBoard(); 
+        lhy_renderBoardFromState();
+        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+    }
 
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
@@ -663,65 +646,56 @@ function lhy_fitButtonTextWidth() {
         reader.readAsText(file, 'utf-8');
     }
 
-// [요청반영 1] 코트 및 대기팀 1명 제한 및 중복 배정 방지 로직 (_260610-4)
-const dragOpt = { 
-    group: { name: 'sh', pull: true, put: true }, 
-    animation: 150, 
-    delay: 150, 
-    delayOnTouchOnly: true, 
-    fallbackTolerance: 5,
-    multiDrag: true, 
-    selectedClass: 'is-sel', 
-    
-    onStart: function() { 
-        isListDragging = true; 
-        if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
-        lhy_saveUndoState(); 
-    },
-
-    onAdd: function(evt) {
-        const item = evt.item; // 드래그한 요소
-        const to = evt.to;     // 이동된 칸
-        const from = evt.from; // 출발했던 칸
+    const dragOpt = { 
+        group: { name: 'sh', pull: true, put: true }, 
+        animation: 150, 
+        delay: 150, 
+        delayOnTouchOnly: true, 
+        fallbackTolerance: 5,
+        multiDrag: true, 
+        selectedClass: 'is-sel', 
         
-        // 회원의 고유 ID 확인 (data-id 속성 필수)
-        const memberId = item.getAttribute('data-id');
+        onStart: function() { 
+            isListDragging = true; 
+            if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
+            lhy_saveUndoState(); 
+        },
 
-        // 1. [1명 제한] 칸에 이미 사람이 있는 경우 (원래 있던 사람 + 지금 들어온 사람 > 1)
-        // 만약 들어온 칸의 자식이 1개를 초과하면 무조건 거부
-        if (to.children.length > 1) {
-            alert("이 칸에는 이미 다른 사람이 있습니다.");
-            from.appendChild(item); // 원래 자리로 롤백
-            return;
-        }
+        onAdd: function(evt) {
+            const item = evt.item; 
+            const to = evt.to;     
+            const from = evt.from; 
+            const memberId = item.getAttribute('data-id');
 
-        // 2. [중복 방지] 이미 boardState 내에 동일한 ID가 다른 슬롯에 존재하는지 검사
-        // (현재 이동 중인 해당 슬롯은 제외하고 검사)
-        const isDuplicate = Object.keys(boardState).some(slotKey => {
-            return boardState[slotKey] === memberId && slotKey !== to.id;
-        });
+            if (to.children.length > 1) {
+                alert("이 칸에는 이미 다른 사람이 있습니다.");
+                from.appendChild(item);
+                return;
+            }
 
-        if (isDuplicate) {
-            alert("이미 다른 곳에 배정된 회원입니다!");
-            from.appendChild(item); // 롤백
-            return;
-        }
+            const isDuplicate = Object.keys(boardState).some(slotKey => {
+                return boardState[slotKey] === memberId && slotKey !== to.id;
+            });
 
-        // 모든 검사 통과 시 상태 동기화
-        lhy_syncBoardDOMToState();
-    },
+            if (isDuplicate) {
+                alert("이미 다른 곳에 배정된 회원입니다!");
+                from.appendChild(item); 
+                return;
+            }
 
-    onEnd: function(evt) {
-        setTimeout(() => { isListDragging = false; }, 50);
-        // 선택 해제 처리
-        document.querySelectorAll('.player').forEach(p => {
-            p.classList.remove('is-sel'); 
-            p.classList.remove('is-selected-target');
-        });
-        selectedPopIds = [];
-        lhy_syncBoardDOMToState();
-    } 
-};
+            lhy_syncBoardDOMToState();
+        },
+
+        onEnd: function(evt) {
+            setTimeout(() => { isListDragging = false; }, 50);
+            document.querySelectorAll('.player').forEach(p => {
+                p.classList.remove('is-sel'); 
+                p.classList.remove('is-selected-target');
+            });
+            selectedPopIds = [];
+            lhy_syncBoardDOMToState();
+        } 
+    };
 
     const HELP_DATA = {
         1: { title: "💡 일반 출석 및 가변형 버튼 사용법", steps: ["<strong>회원 이름 터치(출석 토글):</strong> 좌측 전체 명단에서 이름을 누르면 불이 켜지며 우측 대기 명단에 자동으로 즉시 들어갑니다.", "<strong>스마트 이름/승패 UI:</strong> 좁은 모바일 화면을 최적화하기 위해 이름과 승패가 예쁘게 정렬됩니다.", "<strong>🔄 스마트 화면 전환 버튼:</strong> 기기가 세로 상태인지 가로 상태인지 판별하여 즉시 회전시켜 줍니다."] },
@@ -1782,8 +1756,22 @@ function lhy_renderBoardFromState() {
     document.addEventListener('touchstart', function() { 
         lhy_lockOrientation(); 
     }, { once: true });
+// 전체화면 토글 함수
+function lhy_toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        // 전체화면 모드 진입
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`전체화면 오류: ${err.message}`);
+        });
+    } else {
+        // 전체화면 모드 해제
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
 
 </script>
-
+<button class="btn-fullscreen-toggle" onclick="lhy_toggleFullScreen()">⛶ 전체/축소</button>
 </body>
 </html>
