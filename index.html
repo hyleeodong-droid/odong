@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260615-2</title>
+    <title>화목모임_20260617-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -381,7 +381,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260615-2</div>
+    <div class="lhy-footer-filename">화목모임_20260617-1</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1243,7 +1243,7 @@ function lhy_syncBoardDOMToState() {
         if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
     }
 
-    function lhy_init() {
+function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
@@ -1300,6 +1300,80 @@ function lhy_syncBoardDOMToState() {
             localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
+
+// =====================================================================
+        // [수정 포인트: 이벤트 위임 최종판] 
+        // 롱클릭(다중선택) 및 출석 클릭 완벽 호환, 기존 버그 원천 차단
+        // =====================================================================
+        document.addEventListener('click', function(e) {
+            // 1. 롱클릭 후 손가락을 뗄 때 발생하는 '가짜 클릭' 완벽 차단
+            if (typeof isLongClicked !== 'undefined' && isLongClicked) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // 하위 요소의 클릭 이벤트 발생을 완전 차단
+                
+                // 찰나의 순간이 지난 후(100ms)에 안전하게 잠금 해제
+                setTimeout(() => { isLongClicked = false; }, 100); 
+                return; 
+            }
+
+            const playerCard = e.target.closest('.player');
+            
+            if (playerCard) {
+                // 드래그 중일 때 클릭 무시
+                if (typeof isListDragging !== 'undefined' && isListDragging) return;
+                
+                // 2. 이미 선택된(노란색) 카드를 다시 클릭하면 -> [선택 해제]
+                if (playerCard.classList.contains('is-sel')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    playerCard.classList.remove('is-sel');
+                    const memberId = playerCard.dataset.id;
+                    selectedPopIds = selectedPopIds.filter(id => id !== memberId);
+                    
+                    if (typeof lhy_updateGroupDragBtnPosition === 'function') {
+                        lhy_updateGroupDragBtnPosition();
+                    }
+                    return;
+                }
+
+                // 3. 우측 명단(#ui-list)에 있는 일반 카드를 클릭하면 -> [출석/미출석 토글]
+                if (playerCard.closest('#ui-list')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    if (typeof isAdminMode !== 'undefined' && isAdminMode) { 
+                        alert("관리자 모드 중에는 작동하지 않습니다."); 
+                        return; 
+                    }
+
+                    const memberId = playerCard.dataset.id;
+                    if (memberId) {
+                        const m = DB.members.find(x => x.id === memberId);
+                        if (m) {
+                            if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
+                            
+                            m.isAtt = !m.isAtt; // 상태 반전
+                            
+                            if (m.isAtt) {
+                                m.attTime = Date.now();
+                            } else {
+                                delete m.attTime;
+                                Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
+                                if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
+                            }
+                            
+                            if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
+                            if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic(); 
+                        }
+                    }
+                }
+            }
+        }, true); // true: '캡처 단계'에서 이벤트를 가장 먼저 가로채어 오류를 압살함
+        // =====================================================================
 
         new Sortable(document.getElementById('ui-list'), { 
             ...dragOpt, 
@@ -1502,7 +1576,7 @@ function lhy_syncBoardDOMToState() {
         slot.appendChild(p);
     }
 
-    function lhy_renderBoardFromState() {
+function lhy_renderBoardFromState() {
         const occupancy = {};
         Object.keys(boardState).forEach(key => {
             const container = key.split('-')[0];
@@ -1518,8 +1592,17 @@ function lhy_syncBoardDOMToState() {
                 
                 if (pid) {
                     const m = DB.members.find(x => x.id === pid);
-                    if (m && m.isAtt) {
+                    
+                    // [수정 포인트] m.isAtt 조건을 빼서 회원이 DB에 존재하기만 하면 무조건 그리도록 변경
+                    if (m) {
                         lhy_insertPlayerToSlot(slot, m);
+                        
+                        // [선택 사항] 미출석 상태일 때 카드를 약간 흐리게 만드는 클래스 추가
+                        if (!m.isAtt) {
+                            slot.classList.add('is-not-att');
+                        } else {
+                            slot.classList.remove('is-not-att');
+                        }
                         
                         const container = key.split('-')[0];
                         const count = occupancy[container] || 0;
@@ -1529,9 +1612,9 @@ function lhy_syncBoardDOMToState() {
                         
                         if (m.selected) slot.classList.add('selected');
                         else slot.classList.remove('selected');
-                    } else {
-                        boardState[key] = null;
-                    }
+                    } 
+                    // [핵심 해결] 원래 여기에 있던 else { boardState[key] = null; } 구문을 완전히 삭제했습니다.
+                    // 이제 코트나 대기에 배정된 후 출석 버튼을 클릭해도 배정 데이터가 절대 날아가지 않습니다.
                 }
             }
         });
