@@ -1653,7 +1653,7 @@ function lhy_renderBoardFromState() {
         requestAnimationFrame(() => { lhy_renderListOnly(targetLandscape); });
     }
 
-    function lhy_renderListOnly(isLandscapeMode) {
+function lhy_renderListOnly(isLandscapeMode) {
         const list = document.getElementById('ui-list'); if (!list) return;
         const count = DB.members.length; let cols = 5;
         if (!isLandscapeMode) { if(count <= 12) cols = 3; else if(count <= 24) cols = 4; else if(count <= 45) cols = 5; else if(count <= 60) cols = 6; else cols = 8; } 
@@ -1675,6 +1675,9 @@ function lhy_renderBoardFromState() {
             return a.name.localeCompare(b.name, 'ko');
         }).forEach(m => {
             const isP = playing.includes(m.id);
+
+            // [수정사항] 코트나 대기열에 배정된 사람(isP)은 명단 그리기에서 제외 (화면에서 숨김)
+            if (isP) return;
 
             const sexClass = lhy_getSexClass(m); const pureName = lhy_getPureName(m.name);
             const d = document.createElement('div'); 
