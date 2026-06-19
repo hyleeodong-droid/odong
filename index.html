@@ -307,7 +307,7 @@
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
     </style>
 </head>
-<body onload="lhy_init()" onresize="lhy_applyOrientationLogic()" onclick="lhy_handleFirstTouchFullscreen()">
+<body onload="lhy_init()" onresize="lhy_applyOrientationLogic()">
 
 <div id="auth-gate" style="
     position:fixed; top:0; left:0; width:100%; height:100%; 
@@ -327,17 +327,11 @@
 <script>
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-    function checkPassword() {
+function checkPassword() {
         const input = document.getElementById('pw-input').value;
         if (input === "12") { 
             document.getElementById('auth-gate').style.display = 'none';
-            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().then(() => {
-                    lhy_safeLockOrientation(); 
-                }).catch(() => {});
-            } else {
-                lhy_safeLockOrientation(); 
-            }
+            lhy_safeLockOrientation(); // 가로모드 고정만 유지하고 전체화면 강제 실행은 제거
         } else { alert("비밀번호가 틀렸습니다."); }
     }
     
