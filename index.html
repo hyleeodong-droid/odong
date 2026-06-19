@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260617-1</title>
+    <title>화목모임_260619-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -381,7 +381,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260617-1</div>
+    <div class="lhy-footer-filename">화목모임_260619-1</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -475,6 +475,16 @@
 
     <script>
     // --- 글로벌 변수 및 초기화 ---
+    const HELP_DATA = {
+        1: { title: "1. 일반 출석 및 가변형 버튼", steps: ["우측 명단의 회원을 클릭하여 출석/미출석 상태를 변경합니다.", "모드 변경, 가로/세로 전환 등의 버튼으로 환경을 제어할 수 있습니다."] },
+        2: { title: "2. 회원관리 인라인 제어 규칙", steps: ["관리자 모드 접속 시 (비번: 12) 회원 정보를 직접 수정할 수 있습니다.", "성별, 나이, 등급을 변경한 후 '저장 및 닫기'를 누르면 즉시 반영됩니다."] },
+        3: { title: "3. 실행취소 및 시스템 마감", steps: ["실행취소 버튼으로 직전 배정 상태로 되돌릴 수 있습니다.", "모임 종료 시 '나가기'를 통해 데이터를 초기화하고 마감합니다."] },
+        4: { title: "4. [상황] 자동배정", steps: ["자동배정 모드에서는 빈 코트나 대기열이 생기면 출석 순서와 등급에 따라 자동으로 선수가 채워집니다."] },
+        5: { title: "5. [상황] 수동배정", steps: ["수동배정 모드에서는 자동 이동이 멈추며, 관리자가 직접 선수를 드래그하여 배치해야 합니다."] },
+        6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: ["배정된 선수를 롱클릭 후 '게임취소'를 누르면 대기열로 돌아갑니다.", "'귀가'를 누르면 명단에서 미출석 상태로 변경됩니다."] },
+        7: { title: "7. 조편성 기준 및 알고리즘", steps: ["기본적으로 등급을 우선으로 하여 점수 균형을 맞춥니다.", "과거 같은 팀이었던 이력을 최소화하는 방향으로 매칭됩니다."] }
+    };
+
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let longClickTimer = null; let isLongClicked = false; 
@@ -823,7 +833,7 @@
             lhy_syncBoardDOMToState();
         },
 
-onEnd: function(evt) {
+        onEnd: function(evt) {
             setTimeout(() => { isListDragging = false; }, 50);
             document.querySelectorAll('.player').forEach(p => {
                 p.classList.remove('is-sel'); 
@@ -834,11 +844,9 @@ onEnd: function(evt) {
             // 1. 보드 상태 동기화
             lhy_syncBoardDOMToState();
             
-            // 2. [추가] 배정된 사람을 명단에서 제거하는 로직 실행
-            // 명단을 렌더링하는 함수(예: lhy_renderPlayerList 또는 유사한 이름)를 호출하세요.
-            // 만약 그런 함수가 없다면 아래와 같이 직접 명단을 갱신하는 코드를 추가하세요.
-            if (typeof lhy_refreshPlayerList === 'function') {
-                lhy_refreshPlayerList();
+            // 2. 배정된 사람을 명단에서 제거하는 로직 실행
+            if (typeof lhy_renderListOnly === 'function') {
+                lhy_renderListOnly(document.body.classList.contains('real-landscape'));
             }
         }    
     };
@@ -1134,7 +1142,7 @@ onEnd: function(evt) {
         });
     }
 
-function lhy_syncBoardDOMToState() {
+    function lhy_syncBoardDOMToState() {
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         const seenIds = new Set(); 
 
@@ -1164,17 +1172,17 @@ function lhy_syncBoardDOMToState() {
         // 1. 보드 화면 갱신
         lhy_renderBoardFromState();
         
-        // 2. [추가] 배정된 인원을 명단에서 사라지게 하기 위한 필터링 및 갱신
+        // 2. 배정된 인원을 명단에서 사라지게 하기 위한 필터링 및 갱신
         const assignedIds = Object.values(boardState).filter(id => id !== null);
         const playerList = document.getElementById('player-list');
         
         if (playerList) {
             Array.from(playerList.children).forEach(el => {
-                const pid = el.dataset.id; // 선수의 ID를 가져옴
+                const pid = el.dataset.id;
                 if (assignedIds.includes(pid)) {
-                    el.style.display = 'none'; // 배정된 선수는 명단에서 숨김
+                    el.style.display = 'none'; 
                 } else {
-                    el.style.display = '';     // 배정되지 않은 선수는 보이게 함
+                    el.style.display = '';     
                 }
             });
         }
@@ -1243,7 +1251,7 @@ function lhy_syncBoardDOMToState() {
         if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
     }
 
-function lhy_init() {
+    function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
@@ -1301,18 +1309,15 @@ function lhy_init() {
             localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         });
 
-// =====================================================================
-        // [수정 포인트: 이벤트 위임 최종판] 
-        // 롱클릭(다중선택) 및 출석 클릭 완벽 호환, 기존 버그 원천 차단
+        // =====================================================================
+        // 이벤트 위임 최종판
         // =====================================================================
         document.addEventListener('click', function(e) {
-            // 1. 롱클릭 후 손가락을 뗄 때 발생하는 '가짜 클릭' 완벽 차단
             if (typeof isLongClicked !== 'undefined' && isLongClicked) {
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation(); // 하위 요소의 클릭 이벤트 발생을 완전 차단
+                e.stopImmediatePropagation(); 
                 
-                // 찰나의 순간이 지난 후(100ms)에 안전하게 잠금 해제
                 setTimeout(() => { isLongClicked = false; }, 100); 
                 return; 
             }
@@ -1320,10 +1325,8 @@ function lhy_init() {
             const playerCard = e.target.closest('.player');
             
             if (playerCard) {
-                // 드래그 중일 때 클릭 무시
                 if (typeof isListDragging !== 'undefined' && isListDragging) return;
                 
-                // 2. 이미 선택된(노란색) 카드를 다시 클릭하면 -> [선택 해제]
                 if (playerCard.classList.contains('is-sel')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1339,7 +1342,6 @@ function lhy_init() {
                     return;
                 }
 
-                // 3. 우측 명단(#ui-list)에 있는 일반 카드를 클릭하면 -> [출석/미출석 토글]
                 if (playerCard.closest('#ui-list')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1356,7 +1358,7 @@ function lhy_init() {
                         if (m) {
                             if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
                             
-                            m.isAtt = !m.isAtt; // 상태 반전
+                            m.isAtt = !m.isAtt;
                             
                             if (m.isAtt) {
                                 m.attTime = Date.now();
@@ -1372,7 +1374,7 @@ function lhy_init() {
                     }
                 }
             }
-        }, true); // true: '캡처 단계'에서 이벤트를 가장 먼저 가로채어 오류를 압살함
+        }, true); 
         // =====================================================================
 
         new Sortable(document.getElementById('ui-list'), { 
@@ -1576,7 +1578,7 @@ function lhy_init() {
         slot.appendChild(p);
     }
 
-function lhy_renderBoardFromState() {
+    function lhy_renderBoardFromState() {
         const occupancy = {};
         Object.keys(boardState).forEach(key => {
             const container = key.split('-')[0];
@@ -1593,11 +1595,9 @@ function lhy_renderBoardFromState() {
                 if (pid) {
                     const m = DB.members.find(x => x.id === pid);
                     
-                    // [수정 포인트] m.isAtt 조건을 빼서 회원이 DB에 존재하기만 하면 무조건 그리도록 변경
                     if (m) {
                         lhy_insertPlayerToSlot(slot, m);
                         
-                        // [선택 사항] 미출석 상태일 때 카드를 약간 흐리게 만드는 클래스 추가
                         if (!m.isAtt) {
                             slot.classList.add('is-not-att');
                         } else {
@@ -1609,12 +1609,7 @@ function lhy_renderBoardFromState() {
                         
                         slot.classList.remove('slot-many', 'slot-single');
                         slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
-                        
-                        if (m.selected) slot.classList.add('selected');
-                        else slot.classList.remove('selected');
                     } 
-                    // [핵심 해결] 원래 여기에 있던 else { boardState[key] = null; } 구문을 완전히 삭제했습니다.
-                    // 이제 코트나 대기에 배정된 후 출석 버튼을 클릭해도 배정 데이터가 절대 날아가지 않습니다.
                 }
             }
         });
@@ -1653,7 +1648,7 @@ function lhy_renderBoardFromState() {
         requestAnimationFrame(() => { lhy_renderListOnly(targetLandscape); });
     }
 
-function lhy_renderListOnly(isLandscapeMode) {
+    function lhy_renderListOnly(isLandscapeMode) {
         const list = document.getElementById('ui-list'); if (!list) return;
         const count = DB.members.length; let cols = 5;
         if (!isLandscapeMode) { if(count <= 12) cols = 3; else if(count <= 24) cols = 4; else if(count <= 45) cols = 5; else if(count <= 60) cols = 6; else cols = 8; } 
@@ -1676,7 +1671,6 @@ function lhy_renderListOnly(isLandscapeMode) {
         }).forEach(m => {
             const isP = playing.includes(m.id);
 
-            // [수정사항] 코트나 대기열에 배정된 사람(isP)은 명단 그리기에서 제외 (화면에서 숨김)
             if (isP) return;
 
             const sexClass = lhy_getSexClass(m); const pureName = lhy_getPureName(m.name);
@@ -1856,7 +1850,7 @@ function lhy_renderListOnly(isLandscapeMode) {
         if (sexVal === '여' && !nameVal.includes('여')) nameVal = `${nameVal}(여)`;
         
         DB.members.push({ 
-            id: 'p' + Date.now() + Math.random().toString(36).substr(2, 3), 
+            id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5), 
             name: nameVal, sex: sexVal, age: ageVal, grade: gradeVal, joinDate: `${yy}${mm}${dd}`, 
             isAtt: true, cnt: 0, win: 0, lose: 0, isG: isG, attTime: Date.now() 
         });
