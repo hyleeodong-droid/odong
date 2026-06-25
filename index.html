@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260619-2</title>
+    <title>화목모임_20260625-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ======================================================== */
@@ -84,8 +84,8 @@
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; display: none !important; }
 
-        /* 터치 지연 방지 */
-        .player, .A-btn, .B-btn { touch-action: manipulation; user-select: none; }
+        /* 터치 지연 방지 (수정: player 클래스 제외하여 롱클릭 방해 제거) */
+        .A-btn, .B-btn { touch-action: manipulation; user-select: none; }
 
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
         
@@ -325,13 +325,11 @@
 </div>
 
 <script>
-    try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
-
-function checkPassword() {
+    function checkPassword() {
         const input = document.getElementById('pw-input').value;
         if (input === "12") { 
             document.getElementById('auth-gate').style.display = 'none';
-            lhy_safeLockOrientation(); // 가로모드 고정만 유지하고 전체화면 강제 실행은 제거
+            lhy_safeLockOrientation(); 
         } else { alert("비밀번호가 틀렸습니다."); }
     }
     
@@ -375,7 +373,7 @@ function checkPassword() {
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260619-2</div>
+    <div class="lhy-footer-filename">화목모임_20260625-1</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -544,7 +542,6 @@ function checkPassword() {
             initialX = touch.clientX;
             initialY = touch.clientY;
             
-            // 드래그 시 자연스럽게 잡히도록 마우스 좌표와 버튼 좌상단 간의 차이 저장
             const rect = btn.getBoundingClientRect();
             offsetX = touch.clientX - rect.left - (rect.width / 2); 
             offsetY = touch.clientY - rect.top - (rect.height / 2);
@@ -570,7 +567,6 @@ function checkPassword() {
             if (btn) {
                 btn.classList.remove('active');
                 
-                // 버튼을 잠시 숨겨서 하단 요소 탐색
                 btn.style.display = 'none';
                 
                 const touch = e.changedTouches ? e.changedTouches[0] : e;
@@ -591,19 +587,16 @@ function checkPassword() {
                     if (emptySlots.length >= selectedPopIds.length) {
                         lhy_saveUndoState();
 
-                        // 기존 위치 잔상 제거
                         Object.keys(boardState).forEach(key => {
                             if (selectedPopIds.includes(boardState[key])) {
                                 boardState[key] = null;
                             }
                         });
 
-                        // 새 위치 배치
                         selectedPopIds.forEach((id, index) => {
                             boardState[emptySlots[index]] = id;
                         });
 
-                        // 출석 동기화
                         selectedPopIds.forEach(id => {
                             const member = DB.members.find(m => m.id === id);
                             if (member) {
@@ -787,14 +780,15 @@ function checkPassword() {
         reader.readAsText(file, 'utf-8');
     }
 
+    // 라이브러리의 자체 동작 모듈을 비활성화하고, 그룹이동(🖐) 기능으로 일원화합니다.
     const dragOpt = { 
         group: { name: 'sh', pull: true, put: true }, 
         animation: 150, 
         delay: 150, 
         delayOnTouchOnly: true, 
         fallbackTolerance: 5,
-        multiDrag: true, 
-        selectedClass: 'is-sel', 
+        // multiDrag: true, // 제거됨: 선택 충돌 원인
+        // selectedClass: 'is-sel', // 제거됨: 자체 로직과 꼬임 방지
         
         onStart: function() { 
             isListDragging = true; 
@@ -835,10 +829,8 @@ function checkPassword() {
             });
             selectedPopIds = [];
             
-            // 1. 보드 상태 동기화
             lhy_syncBoardDOMToState();
             
-            // 2. 배정된 사람을 명단에서 제거하는 로직 실행
             if (typeof lhy_renderListOnly === 'function') {
                 lhy_renderListOnly(document.body.classList.contains('real-landscape'));
             }
@@ -1163,10 +1155,8 @@ function checkPassword() {
         localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
         localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
 
-        // 1. 보드 화면 갱신
         lhy_renderBoardFromState();
         
-        // 2. 배정된 인원을 명단에서 사라지게 하기 위한 필터링 및 갱신
         const assignedIds = Object.values(boardState).filter(id => id !== null);
         const playerList = document.getElementById('player-list');
         
@@ -1521,53 +1511,47 @@ function checkPassword() {
             <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
         `;
 
-// 1. 이름과 (나이/등급)을 위아래로 묶을 컨테이너 생성
-const nameWrapper = document.createElement('div');
-nameWrapper.className = "name-wrapper_260305-1";
-nameWrapper.style.display = 'flex';
-nameWrapper.style.flexDirection = 'column'; 
-nameWrapper.style.alignItems = 'center';    
-nameWrapper.style.justifyContent = 'center';
-nameWrapper.style.flex = '1';
-nameWrapper.style.minWidth = '0';
-nameWrapper.style.height = '70%'; // 컨테이너 높이 꽉 채우기
+        const nameWrapper = document.createElement('div');
+        nameWrapper.className = "name-wrapper_260305-1";
+        nameWrapper.style.display = 'flex';
+        nameWrapper.style.flexDirection = 'column'; 
+        nameWrapper.style.alignItems = 'center';    
+        nameWrapper.style.justifyContent = 'center';
+        nameWrapper.style.flex = '1';
+        nameWrapper.style.minWidth = '0';
+        nameWrapper.style.height = '70%'; 
+        nameWrapper.style.pointerEvents = 'none';
 
-// 2. 기존 이름 엘리먼트
-const nameDiv = document.createElement('div');
-nameDiv.className = "p-name p-name_260305-1";
-nameDiv.style.flex = 'none';
-nameDiv.textContent = pureName;
+        const nameDiv = document.createElement('div');
+        nameDiv.className = "p-name p-name_260305-1";
+        nameDiv.style.flex = 'none';
+        nameDiv.textContent = pureName;
 
-// 3. 하단 작은 글씨 (나이대 / 등급) 엘리먼트 생성
-const infoDiv = document.createElement('div');
-infoDiv.className = "p-info_260305-1";
-infoDiv.style.display = 'flex';
-infoDiv.style.flexDirection = 'row'; 
-infoDiv.style.gap = '4px';           
-infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; 
-infoDiv.style.fontWeight = '900';
-infoDiv.style.lineHeight = '1';
-infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
+        const infoDiv = document.createElement('div');
+        infoDiv.className = "p-info_260305-1";
+        infoDiv.style.display = 'flex';
+        infoDiv.style.flexDirection = 'row'; 
+        infoDiv.style.gap = '4px';           
+        infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; 
+        infoDiv.style.fontWeight = '900';
+        infoDiv.style.lineHeight = '1';
+        infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
+        infoDiv.style.pointerEvents = 'none';
 
-const ageStr = memberObj.age ? `<span style="color:#FFD700">${memberObj.age}</span>` : '';
-const gradeStr = memberObj.grade ? `<span style="color:#0FF">${memberObj.grade}</span>` : '';
-infoDiv.innerHTML = `${ageStr}${gradeStr}`;
+        const ageStr = memberObj.age ? `<span style="color:#FFD700">${memberObj.age}</span>` : '';
+        const gradeStr = memberObj.grade ? `<span style="color:#0FF">${memberObj.grade}</span>` : '';
+        infoDiv.innerHTML = `${ageStr}${gradeStr}`;
 
-// ★ 핵심 해결: 나이/등급이 있을 경우 이름 폰트 크기를 살짝 줄이고 간격을 벌림
-if (memberObj.age || memberObj.grade) {
-    // 기존 50cqh(박스 높이의 50%) -> 50cqh 정도로 강제 축소해서 공간 확보
-    nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important');
- ////   infoDiv.style.marginTop = '0.1px'; // 말씀하신 위아래 간격 띄우기 적용
-}
+        if (memberObj.age || memberObj.grade) {
+            nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important');
+        }
 
-// 4. 조립
-nameWrapper.appendChild(nameDiv);
-if (memberObj.age || memberObj.grade) {
-    nameWrapper.appendChild(infoDiv);
-}
+        nameWrapper.appendChild(nameDiv);
+        if (memberObj.age || memberObj.grade) {
+            nameWrapper.appendChild(infoDiv);
+        }
 
-// 5. 부모에 삽입
-if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
+        if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
 
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
@@ -1590,7 +1574,7 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         const moveHandler = (e) => {
             const touch = e.touches ? e.touches[0] : null;
             if (touch) {
-                if (Math.abs(touch.clientX - touchStartX) > 6 || Math.abs(touch.clientY - touchStartY) > 6) {
+                if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) {
                     if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
                 }
             }
@@ -1603,12 +1587,6 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         p.onclick = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
             if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; }
-            if (p.classList.contains('is-sel')) {
-                p.classList.remove('is-sel');
-                selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id);
-                lhy_updateGroupDragBtnPosition(); 
-                return;
-            }
         };
 
         slot.appendChild(p);
@@ -1748,7 +1726,7 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
             const moveHandler = (e) => {
                 const touch = e.touches ? e.touches[0] : null;
                 if (touch) {
-                    if (Math.abs(touch.clientX - touchStartX) > 6 || Math.abs(touch.clientY - touchStartY) > 6) {
+                    if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) {
                         if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
                     }
                 }
@@ -1934,7 +1912,8 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         selectedPopIds = []; isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
-        lhy_renderBoardFromState(); lhy_dominoShiftSystem();
+        lhy_renderBoardFromState(); 
+        lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
         
         lhy_updateGroupDragBtnPosition(); 
@@ -1958,8 +1937,11 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
         
         selectedPopIds = [];
+        isLongClicked = false;
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
-        lhy_syncBoardDOMToState(); lhy_dominoShiftSystem();
+        
+        lhy_renderBoardFromState(); 
+        lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
         
         lhy_updateGroupDragBtnPosition(); 
