@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260626-4</title>
+    <title>화목모임_260626-5</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -325,12 +325,23 @@
         /* 게임 중인 선수 식별 스타일 */
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
 
-        /* [추가 _260626-4] 네온사인 효과 추가 */
-        @keyframes neon-blink-anim {
-            0%, 100% { box-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; transform: scale(1.02); }
-            50% { box-shadow: 0 0 5px #ff00de, 0 0 10px #ff00de; transform: scale(1.0); }
+        /* [수정 _260626-5] 텍스트 및 그림자 색상 반전 (5회 반복 애니메이션) */
+        .color-swap-active.m-sex .p-name { animation: swap-m-anim 0.5s 5 !important; }
+        .color-swap-active.f-sex .p-name { animation: swap-f-anim 0.5s 5 !important; }
+        .color-swap-active.g-sex .p-name { animation: swap-g-anim 0.5s 5 !important; }
+
+        @keyframes swap-m-anim {
+            0%, 100% { color: #000 !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #000, 2.5px -2.5px 0 #000, -2.5px 2.5px 0 #000, 2.5px 2.5px 0 #000, -2.5px 0 0 #000, 2.5px 0 0 #000, 0 -2.5px 0 #000, 0 2.5px 0 #000, 0px 3px 5px rgba(0,0,0,0.9) !important; }
         }
-        .neon-active { animation: neon-blink-anim 0.5s linear infinite; border: 2px solid #fff !important; z-index: 100 !important; }
+        @keyframes swap-f-anim {
+            0%, 100% { color: #d63384 !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #d63384, 2.5px -2.5px 0 #d63384, -2.5px 2.5px 0 #d63384, 2.5px 2.5px 0 #d63384, -2.5px 0 0 #d63384, 2.5px 0 0 #d63384, 0 -2.5px 0 #d63384, 0 2.5px 0 #d63384, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+        }
+        @keyframes swap-g-anim {
+            0%, 100% { color: #00f !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #00f, 2.5px -2.5px 0 #00f, -2.5px 2.5px 0 #00f, 2.5px 2.5px 0 #00f, -2.5px 0 0 #00f, 2.5px 0 0 #00f, 0 -2.5px 0 #00f, 0 2.5px 0 #00f, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+        }
 
     </style>
 </head>
@@ -352,7 +363,7 @@
 </div>
 
 <script>
-    // [추가 _260626-4] 딩동 소리 3회 재생 함수 (브라우저 정책 우회 구조 최적화)
+    // [수정 _260626-5] 딩동 소리 단 1회 재생
     let globalAudioCtx = null;
     function lhy_playDingDongSound() {
         if (!globalAudioCtx) {
@@ -379,19 +390,18 @@
             osc.stop(startTime + duration);
         };
         
-        // 딩동~ 3번 재생
-        for(let i=0; i<3; i++) {
-            playTone(880, 0.3, i * 1.0);       // 딩
-            playTone(659, 0.3, i * 1.0 + 0.4); // 동
-        }
+        // 딩동~ 1번 재생
+        playTone(880, 0.3, 0);       // 딩
+        playTone(659, 0.3, 0.4);     // 동
     }
 
-    // [추가 _260626-4] 특정 멤버 네온사인 활성화 함수
-    function lhy_triggerNeonEffect(memberId) {
+    // [수정 _260626-5] 특정 멤버 이름/그림자 색상 반전 애니메이션 활성화
+    function lhy_triggerColorSwapEffect(memberId) {
         const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
         targetEls.forEach(el => {
-            el.classList.add('neon-active');
-            setTimeout(() => el.classList.remove('neon-active'), 5000); // 5초간 반짝임
+            el.classList.add('color-swap-active');
+            // 0.5초 * 5회 = 2.5초 (여유롭게 2.6초 뒤에 클래스 제거)
+            setTimeout(() => el.classList.remove('color-swap-active'), 2600); 
         });
     }
 
@@ -448,7 +458,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260626-4</div>
+    <div class="lhy-footer-filename">화목모임_260626-5</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -598,7 +608,7 @@
     }
 
     // ==========================================
-    // 💡 [수정 _260626-4] 글로벌 알림 (TTS 대신 딩동 및 네온사인 트리거용 배열 전송)
+    // 💡 글로벌 알림 (딩동 및 네온사인 트리거용 배열 전송)
     // ==========================================
     function sendGlobalAction(memberIds) {
         if (!memberIds || memberIds.length === 0) return;
@@ -614,7 +624,8 @@
             // 시간차가 10초 이내인 액션만 실행 (이전 기록 무시)
             if (log && log.ids && Array.isArray(log.ids) && (Date.now() - log.time < 10000)) { 
                 lhy_playDingDongSound();
-                log.ids.forEach(id => lhy_triggerNeonEffect(id));
+                // [수정 _260626-5] 함수명 변경 반영
+                log.ids.forEach(id => lhy_triggerColorSwapEffect(id));
             }
         });
         setTimeout(() => { isFirstLoad = false; }, 2000);
@@ -736,7 +747,6 @@
                             }
                         });
                         
-                        // [추가 _260626-4] 드래그 완료 후 글로벌 액션 전송
                         sendGlobalAction([...selectedPopIds]);
 
                         lhy_syncToFirebase();
@@ -917,7 +927,7 @@
             // 리스트 영역으로 드래그 된 경우 (경기 취소 및 복귀)
             if (to.id === 'ui-list') {
                 if(item) item.remove(); 
-                sendGlobalAction([memberId]); // [추가] 리스트 복귀 알림
+                sendGlobalAction([memberId]); 
                 lhy_syncBoardDOMToState();
                 if (!isManualMode) lhy_dominoShiftSystem();
                 lhy_syncToFirebase();
@@ -1022,7 +1032,7 @@
         boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id; boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
         
         let selectedIds = selected.map(p => p.id);
-        sendGlobalAction(selectedIds); // [추가 _260626-4] 배정 알림
+        sendGlobalAction(selectedIds); 
         
         lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id); lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
         
@@ -1078,7 +1088,7 @@
                                     boardState[`w${w}-${p}`] = null;
                                     if (memberId) movedIds.push(memberId);
                                 });
-                                if(movedIds.length > 0) sendGlobalAction(movedIds); // [추가] 코트 배정 알림
+                                if(movedIds.length > 0) sendGlobalAction(movedIds); 
                                 shiftedAny = true; break;
                             }
                         }
@@ -1236,7 +1246,6 @@
                 });
             }
 
-            // [추가 _260626-4] 시프트 이동 시 전역 알림
             if (allMovedMemberIds.length > 0) {
                 sendGlobalAction(allMovedMemberIds);
             }
@@ -1279,7 +1288,6 @@
             if (data) {
                 if (data.DB) DB = data.DB;
                 
-                // [추가 _260626-4] Firebase가 누락시킨 undefined 슬롯을 강력하게 null로 복구 
                 boardState = data.boardState || {};
                 for (let i = 1; i <= 6; i++) {
                     ['L1', 'L2', 'R1', 'R2'].forEach(p => {
@@ -1336,7 +1344,7 @@
                             Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
                             if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); }
                             
-                            sendGlobalAction([m.id]); // [추가] 귀가 알림 트리거
+                            sendGlobalAction([m.id]); 
                             
                             if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                             if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
@@ -1351,7 +1359,7 @@
                                 m.isAtt = true;
                                 m.attTime = Date.now();
                                 
-                                sendGlobalAction([m.id]); // [추가] 출석 알림 트리거
+                                sendGlobalAction([m.id]); 
                                 
                                 if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                                 if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
@@ -1630,7 +1638,6 @@
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                // [수정 _260626-4] 출석/귀가 클릭 로직은 문서(document) 이벤트로 일원화 (중복 트리거 방지)
                 if (d.classList.contains('is-sel')) { d.classList.remove('is-sel'); selectedPopIds = selectedPopIds.filter(id => id !== m.id); lhy_updateGroupDragBtnPosition(); e.stopPropagation(); return; }
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); e.stopPropagation(); return; }
             };
@@ -1760,14 +1767,14 @@
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
         lhy_saveUndoState();
-        let actionIds = [...selectedPopIds]; // 복사본 생성
+        let actionIds = [...selectedPopIds]; 
         selectedPopIds.forEach(selId => {
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
             const m = DB.members.find(x => x.id === selId);
             if (m) { m.isAtt = true; } 
         });
         
-        sendGlobalAction(actionIds); // [추가] 취소 복귀 알림 트리거
+        sendGlobalAction(actionIds); 
 
         selectedPopIds = []; isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -1782,7 +1789,7 @@
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
         lhy_saveUndoState();
-        let actionIds = [...selectedPopIds]; // 복사본 생성
+        let actionIds = [...selectedPopIds]; 
         selectedPopIds.forEach(selId => {
             const m = DB.members.find(x => x.id === selId);
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
@@ -1793,7 +1800,7 @@
             }
         });
 
-        sendGlobalAction(actionIds); // [추가] 귀가 알림 트리거
+        sendGlobalAction(actionIds); 
         
         selectedPopIds = []; isLongClicked = false;
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -1863,7 +1870,6 @@
             }
         }
 
-        // [추가 _260626-4] 배정된 전원에게 한 번에 알림 전송
         if(assignedIds.length > 0) {
             sendGlobalAction(assignedIds);
         }
