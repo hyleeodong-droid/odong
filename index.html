@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260626-5</title>
+    <title>화목모임_260626-8</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -342,7 +342,7 @@
             0%, 100% { color: #00f !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
             50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #00f, 2.5px -2.5px 0 #00f, -2.5px 2.5px 0 #00f, 2.5px 2.5px 0 #00f, -2.5px 0 0 #00f, 2.5px 0 0 #00f, 0 -2.5px 0 #00f, 0 2.5px 0 #00f, 0px 3px 5px rgba(0,0,0,0.9) !important; }
         }
-
+.limited-hide { display: none !important; }
     </style>
 </head>
 <body>
@@ -363,6 +363,7 @@
 </div>
 
 <script>
+let isLimitedMode = false; // [추가 _260626-8]
     // [수정 _260626-5] 딩동 소리 단 1회 재생
     let globalAudioCtx = null;
     function lhy_playDingDongSound() {
@@ -405,18 +406,38 @@
         });
     }
 
-    function checkPassword() {
-        const input = document.getElementById('pw-input').value;
-        if (input === "12") { 
-            // 로그인 클릭 시 오디오 컨텍스트를 한 번 초기화하여 브라우저의 소리 차단 정책 우회
-            if (!globalAudioCtx) {
-                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                globalAudioCtx.resume();
-            }
-            document.getElementById('auth-gate').style.display = 'none';
-            lhy_safeLockOrientation(); 
-        } else { alert("비밀번호가 틀렸습니다."); }
+// [로그인 로직]
+function checkPassword() {
+    const input = document.getElementById('pw-input').value;
+
+    // 관리자 모드
+    if (input === "12") {
+        isLimitedMode = false;
+        // 기존 로그인 처리
+        if (!globalAudioCtx) {
+            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            globalAudioCtx.resume();
+        }
+        document.getElementById('auth-gate').style.display = 'none';
+        lhy_safeLockOrientation();
     }
+    // 제한 모드 (비번 없음)
+    else if (input === "") {
+        isLimitedMode = true;
+        if (!globalAudioCtx) {
+            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            globalAudioCtx.resume();
+        }
+        document.getElementById('auth-gate').style.display = 'none';
+        lhy_safeLockOrientation();
+        
+        // 제한 모드 적용 (버튼 숨기기)
+        applyAccessControl();
+    }
+    else {
+        alert("비밀번호가 틀렸습니다.");
+    }
+}
     
     function lhy_safeLockOrientation() {
         try {
@@ -450,15 +471,15 @@
                 <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#fff;" onclick="lhy_topBtnCancelGame()">게임취소</button>
                 <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
                 
-                <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
-                <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
-                <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
+<button id="btn-add-new" style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
+<button id="btn-add-guest" style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
+<button id="btn-exit-app" style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
             </div>
             <div class="lhy-player-list" id="ui-list"></div>
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260626-5</div>
+    <div class="lhy-footer-filename">화목모임_260626-8</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1894,6 +1915,29 @@
             document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); });
         } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
     }
+// [UI 제어 함수]
+function applyAccessControl() {
+    if (!isLimitedMode) return;
+    
+    // 숨기고 싶은 모든 버튼의 ID 목록
+    const buttonsToHide = [
+        'btn-admin-toggle',    // 관리자 버튼
+        'btn-manual-toggle',   // 자동배정
+        'btn-orient-toggle',   // 가로/세로전환
+        'btn-reset-enter',     // 입장/초기화
+        'btn-undo',            // 실행취소
+        
+        // 새로 추가한 버튼 ID들
+        'btn-add-new',         // 신입
+        'btn-add-guest',       // 손님
+        'btn-exit-app'         // 나가기
+    ];
+    
+    buttonsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('limited-hide');
+    });
+}
 </script>
 
 <button class="btn-fullscreen-toggle" onclick="lhy_toggleFullScreen()">⛶ 전체/축소</button>
