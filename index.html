@@ -3,45 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260626-3</title>
+    <title>화목모임_260626-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-// [추가] 통합 알림용 변수
-let groupingTimer = null;
-let nameBuffer = [];
-let currentTarget = "";
-
-function lhy_notifyGroup(name, targetName) {
-    // 1. 타겟이 바뀌면 이전 그룹 즉시 처리
-    if (currentTarget !== targetName && nameBuffer.length > 0) {
-        processAlert();
-    }
-    
-    // 2. 현재 타겟 설정 및 이름 추가
-    currentTarget = targetName;
-    if (!nameBuffer.includes(name)) nameBuffer.push(name);
-    
-    // 3. 0.1초 동안 추가 입력이 있는지 대기 (매우 짧아서 즉시처럼 느껴짐)
-    clearTimeout(groupingTimer);
-    groupingTimer = setTimeout(() => {
-        processAlert();
-    }, 100); 
-}
-
-function processAlert() {
-    if (nameBuffer.length === 0) return;
-    
-    const names = nameBuffer.join(", ");
-    const msg = `${names}님${nameBuffer.length > 1 ? '들' : ''}이 ${currentTarget}에 배정되었습니다.`;
-    
-    lhy_notify(msg); // 기존 알림 함수 호출
-    
-    // 초기화
-    nameBuffer = [];
-    currentTarget = "";
-}
     // Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyDMRBeaLb255zqBRN0N1X1Gbf0LpU63LL8",
@@ -359,12 +325,12 @@ function processAlert() {
         /* 게임 중인 선수 식별 스타일 */
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
 
-/* 네온사인 효과 추가 */
-@keyframes neon-blink-anim {
-    0%, 100% { box-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; transform: scale(1.02); }
-    50% { box-shadow: 0 0 5px #ff00de, 0 0 10px #ff00de; transform: scale(1.0); }
-}
-.neon-active { animation: neon-blink-anim 0.5s linear infinite; border: 2px solid #fff !important; z-index: 100 !important; }
+        /* [추가 _260626-4] 네온사인 효과 추가 */
+        @keyframes neon-blink-anim {
+            0%, 100% { box-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; transform: scale(1.02); }
+            50% { box-shadow: 0 0 5px #ff00de, 0 0 10px #ff00de; transform: scale(1.0); }
+        }
+        .neon-active { animation: neon-blink-anim 0.5s linear infinite; border: 2px solid #fff !important; z-index: 100 !important; }
 
     </style>
 </head>
@@ -386,54 +352,57 @@ function processAlert() {
 </div>
 
 <script>
-
-// [추가] 딩동 소리 3회 재생 함수
-function lhy_playDingDongSound() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const playTone = (freq, duration, time) => {
-        setTimeout(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+    // [추가 _260626-4] 딩동 소리 3회 재생 함수 (브라우저 정책 우회 구조 최적화)
+    let globalAudioCtx = null;
+    function lhy_playDingDongSound() {
+        if (!globalAudioCtx) {
+            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (globalAudioCtx.state === 'suspended') {
+            globalAudioCtx.resume();
+        }
+        const playTone = (freq, duration, timeOffset) => {
+            const osc = globalAudioCtx.createOscillator();
+            const gain = globalAudioCtx.createGain();
             osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(globalAudioCtx.destination);
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }, time);
-    };
-    
-    // 딩동~ 3번 (딩 880Hz, 동 659Hz)
-    for(let i=0; i<3; i++) {
-        playTone(880, 0.3, i * 1000);     // 딩
-        playTone(659, 0.3, i * 1000 + 400); // 동
+            
+            const startTime = globalAudioCtx.currentTime + timeOffset;
+            osc.frequency.setValueAtTime(freq, startTime);
+            
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+        
+        // 딩동~ 3번 재생
+        for(let i=0; i<3; i++) {
+            playTone(880, 0.3, i * 1.0);       // 딩
+            playTone(659, 0.3, i * 1.0 + 0.4); // 동
+        }
     }
-}
 
-// [추가] 특정 멤버 네온사인 활성화 함수
-function lhy_triggerMemberEffect(memberId) {
-    const playerEl = document.querySelector(`.player[data-id="${memberId}"]`);
-    if (playerEl) {
-        playerEl.classList.add('neon-active');
-        setTimeout(() => playerEl.classList.remove('neon-active'), 5000); // 5초간 반짝임
+    // [추가 _260626-4] 특정 멤버 네온사인 활성화 함수
+    function lhy_triggerNeonEffect(memberId) {
+        const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
+        targetEls.forEach(el => {
+            el.classList.add('neon-active');
+            setTimeout(() => el.classList.remove('neon-active'), 5000); // 5초간 반짝임
+        });
     }
-}
 
-// [수정] 알림 통합 관리 함수 (lhy_dominoShiftSystem 등의 호출부에서 사용)
-function lhy_triggerAlertEvent(memberIds) {
-    if (!Array.isArray(memberIds)) memberIds = [memberIds];
-    
-    // 1. 소리 재생
-    lhy_playDingDongSound();
-    
-    // 2. 해당 멤버들 네온사인 효과 적용
-    memberIds.forEach(id => lhy_triggerMemberEffect(id));
-}
     function checkPassword() {
         const input = document.getElementById('pw-input').value;
         if (input === "12") { 
+            // 로그인 클릭 시 오디오 컨텍스트를 한 번 초기화하여 브라우저의 소리 차단 정책 우회
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                globalAudioCtx.resume();
+            }
             document.getElementById('auth-gate').style.display = 'none';
             lhy_safeLockOrientation(); 
         } else { alert("비밀번호가 틀렸습니다."); }
@@ -479,7 +448,7 @@ function lhy_triggerAlertEvent(memberIds) {
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260626-3</div>
+    <div class="lhy-footer-filename">화목모임_260626-4</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -599,8 +568,8 @@ function lhy_triggerAlertEvent(memberIds) {
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
     }
 
-// ==========================================
-    // 💡 [핵심] 1. 전역 동기화 (Firebase 업데이트) - 강력한 안전망 추가
+    // ==========================================
+    // 💡 1. 전역 동기화 (Firebase 업데이트)
     // ==========================================
     function lhy_syncToFirebase() {
         isSyncing = true;
@@ -610,16 +579,13 @@ function lhy_triggerAlertEvent(memberIds) {
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         for(let i=1; i<=6; i++) {
             posOrder.forEach(p => {
-                // 값이 undefined면 강제로 null을 대입하여 에러 차단
                 safeBoardState[`c${i}-${p}`] = boardState[`c${i}-${p}`] || null;
                 safeBoardState[`w${i}-${p}`] = boardState[`w${i}-${p}`] || null;
             });
         }
 
-        // 2. DB 내부의 undefined(예: attTime 등)를 깔끔하게 제거하는 마법의 코드
         const safeDB = JSON.parse(JSON.stringify(DB));
 
-        // 3. 안전하게 정제된 데이터만 Firebase로 전송
         database.ref('appData').set({
             DB: safeDB,
             boardState: safeBoardState
@@ -632,10 +598,12 @@ function lhy_triggerAlertEvent(memberIds) {
     }
 
     // ==========================================
-    // 💡 [핵심] 3. 글로벌 음성/팝업 알림 (Firebase 연동)
+    // 💡 [수정 _260626-4] 글로벌 알림 (TTS 대신 딩동 및 네온사인 트리거용 배열 전송)
     // ==========================================
-    function sendGlobalNotify(msg) {
-        database.ref('logs').push({ msg: msg, time: firebase.database.ServerValue.TIMESTAMP });
+    function sendGlobalAction(memberIds) {
+        if (!memberIds || memberIds.length === 0) return;
+        if (!Array.isArray(memberIds)) memberIds = [memberIds];
+        database.ref('logs').push({ ids: memberIds, time: firebase.database.ServerValue.TIMESTAMP });
     }
 
     function initGlobalNotifications() {
@@ -643,8 +611,10 @@ function lhy_triggerAlertEvent(memberIds) {
         database.ref('logs').limitToLast(1).on('child_added', (snapshot) => {
             if (isFirstLoad) return; 
             const log = snapshot.val();
-            if (log && log.msg && (Date.now() - log.time < 10000)) { 
-                lhy_notify(log.msg);
+            // 시간차가 10초 이내인 액션만 실행 (이전 기록 무시)
+            if (log && log.ids && Array.isArray(log.ids) && (Date.now() - log.time < 10000)) { 
+                lhy_playDingDongSound();
+                log.ids.forEach(id => lhy_triggerNeonEffect(id));
             }
         });
         setTimeout(() => { isFirstLoad = false; }, 2000);
@@ -765,6 +735,9 @@ function lhy_triggerAlertEvent(memberIds) {
                                 if (!member.attTime) member.attTime = Date.now();
                             }
                         });
+                        
+                        // [추가 _260626-4] 드래그 완료 후 글로벌 액션 전송
+                        sendGlobalAction([...selectedPopIds]);
 
                         lhy_syncToFirebase();
 
@@ -941,16 +914,22 @@ function lhy_triggerAlertEvent(memberIds) {
             const item = evt.item; const to = evt.to; const from = evt.from; 
             const memberId = item.getAttribute('data-id');
 
+            // 리스트 영역으로 드래그 된 경우 (경기 취소 및 복귀)
+            if (to.id === 'ui-list') {
+                if(item) item.remove(); 
+                sendGlobalAction([memberId]); // [추가] 리스트 복귀 알림
+                lhy_syncBoardDOMToState();
+                if (!isManualMode) lhy_dominoShiftSystem();
+                lhy_syncToFirebase();
+                return;
+            }
+
             if (to.children.length > 1) { alert("이 칸에는 이미 다른 사람이 있습니다."); from.appendChild(item); return; }
             const isDuplicate = Object.keys(boardState).some(slotKey => { return boardState[slotKey] === memberId && slotKey !== to.id; });
             if (isDuplicate) { alert("이미 다른 곳에 배정된 회원입니다!"); from.appendChild(item); return; }
             
-            // 배정 시 알림 트리거
-            const m = DB.members.find(x => x.id === memberId);
-            if (m && to.id.includes('-')) {
-                const areaId = to.id.split('-')[0];
-                sendGlobalNotify(`${m.name}님 ${getAreaName(areaId)}에 배정되었습니다.`);
-            }
+            // 보드판 수동 배정 시 글로벌 알림
+            sendGlobalAction([memberId]);
 
             lhy_syncBoardDOMToState();
         },
@@ -1042,12 +1021,11 @@ function lhy_triggerAlertEvent(memberIds) {
         boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id; boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
         boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id; boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
         
-        // 배정 글로벌 알림
-selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix)}에 배정되었습니다.`); });
+        let selectedIds = selected.map(p => p.id);
+        sendGlobalAction(selectedIds); // [추가 _260626-4] 배정 알림
         
         lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id); lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
         
-        let selectedIds = selected.map(p => p.id);
         for (let i = pool.length - 1; i >= 0; i--) { if (selectedIds.includes(pool[i].id)) { pool.splice(i, 1); } }
         return true;
     }
@@ -1093,15 +1071,14 @@ selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix
                         if (DB.config.w[w-1]) {
                             let waitCount = posOrder.filter(p => boardState[`w${w}-${p}`] !== null).length;
                             if (waitCount === 4) { 
+                                let movedIds = [];
                                 posOrder.forEach(p => {
                                     const memberId = boardState[`w${w}-${p}`];
                                     boardState[`c${i}-${p}`] = memberId;
                                     boardState[`w${w}-${p}`] = null;
-                                    if (memberId) {
-                                        const m = DB.members.find(x => x.id === memberId);
-                                        if (m) sendGlobalNotify(`${m.name}님 코트 ${i}에 배정되었습니다.`);
-                                    }
+                                    if (memberId) movedIds.push(memberId);
                                 });
+                                if(movedIds.length > 0) sendGlobalAction(movedIds); // [추가] 코트 배정 알림
                                 shiftedAny = true; break;
                             }
                         }
@@ -1223,96 +1200,58 @@ selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix
         lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
-// [도우미 함수 1: 소리 재생]
-function lhy_playDingDongSound() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const playTone = (freq, duration, time) => {
-        setTimeout(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }, time);
-    };
-    // 딩동~ 3번 (딩 880Hz, 동 659Hz)
-    for(let i=0; i<3; i++) {
-        playTone(880, 0.3, i * 1000);     // 딩
-        playTone(659, 0.3, i * 1000 + 400); // 동
-    }
-}
-
-// [도우미 함수 2: 네온사인 효과]
-function lhy_triggerNeonEffect(memberId) {
-    // memberId를 가진 요소를 찾아 클래스 추가
-    const targetEl = document.querySelector(`[data-id="${memberId}"]`) || 
-                     document.querySelector(`.player[data-name*="${memberId}"]`); 
-    if (targetEl) {
-        targetEl.classList.add('neon-active');
-        setTimeout(() => targetEl.classList.remove('neon-active'), 5000); // 5초 후 제거
-    }
-}
-
-function lhy_dominoShiftSystem() {
-    // _260626-5
-    if (isManualMode) {
-        let emptyCourtSlots = [];
-        for (let i = 1; i <= 6; i++) {
-            if (DB.config.c[i-1]) {
-                let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
-                if (isCourtEmpty) emptyCourtSlots.push(`c${i}`);
-            }
-        }
-        
-        let fullWaitTeams = [];
-        for (let w = 1; w <= 6; w++) {
-            if (DB.config.w[w-1]) {
-                let isWaitFull = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
-                if (isWaitFull) fullWaitTeams.push(`w${w}`);
-            }
-        }
-        
-        let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
-        let allMovedMemberIds = []; 
-
-        for(let i=0; i<moves; i++) {
-            let tCourt = emptyCourtSlots[i]; 
-            let sWait = fullWaitTeams[i];
-
-            posOrder.forEach(p => {
-                const memberId = boardState[`${sWait}-${p}`];
-                boardState[`${tCourt}-${p}`] = memberId;
-                boardState[`${sWait}-${p}`] = null;
-                
-                if (memberId) {
-                    allMovedMemberIds.push(memberId);
+    function lhy_dominoShiftSystem() {
+        if (isManualMode) {
+            let emptyCourtSlots = [];
+            for (let i = 1; i <= 6; i++) {
+                if (DB.config.c[i-1]) {
+                    let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
+                    if (isCourtEmpty) emptyCourtSlots.push(`c${i}`);
                 }
-            });
+            }
+            
+            let fullWaitTeams = [];
+            for (let w = 1; w <= 6; w++) {
+                if (DB.config.w[w-1]) {
+                    let isWaitFull = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
+                    if (isWaitFull) fullWaitTeams.push(`w${w}`);
+                }
+            }
+            
+            let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
+            let allMovedMemberIds = []; 
+
+            for(let i=0; i<moves; i++) {
+                let tCourt = emptyCourtSlots[i]; 
+                let sWait = fullWaitTeams[i];
+
+                posOrder.forEach(p => {
+                    const memberId = boardState[`${sWait}-${p}`];
+                    boardState[`${tCourt}-${p}`] = memberId;
+                    boardState[`${sWait}-${p}`] = null;
+                    
+                    if (memberId) {
+                        allMovedMemberIds.push(memberId);
+                    }
+                });
+            }
+
+            // [추가 _260626-4] 시프트 이동 시 전역 알림
+            if (allMovedMemberIds.length > 0) {
+                sendGlobalAction(allMovedMemberIds);
+            }
+            
+            lhy_compactWaitSlots(); 
+            lhy_renderBoardFromState(); 
+            lhy_updateResetButtonUI(); 
+            lhy_applyOrientationLogic();
+            lhy_syncToFirebase();
+            return;
         }
 
-        // --- 알림 메시지 호출부를 완전히 삭제함 ---
-        if (allMovedMemberIds.length > 0) {
-            lhy_playDingDongSound(); // 소리 재생
-            allMovedMemberIds.forEach(id => lhy_triggerNeonEffect(id)); // 네온 효과 재생
-        }
-        // ------------------------------------------
-        
         lhy_compactWaitSlots(); 
-        lhy_renderBoardFromState(); 
-        lhy_updateResetButtonUI(); 
-        lhy_applyOrientationLogic();
-        lhy_syncToFirebase();
-        return;
+        lhy_rotationalMatchEngine();
     }
-
-    lhy_compactWaitSlots(); 
-    lhy_rotationalMatchEngine();
-}
 
     function lhy_getPureName(fullName) {
         if(!fullName) return "";
@@ -1334,18 +1273,25 @@ function lhy_dominoShiftSystem() {
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
         
-        // Firebase에서 초기 상태 불러오기 및 리스너 등록
         database.ref('appData').on('value', (snapshot) => {
-            if(isSyncing) return; // 자기가 보낸 데이터로 인한 루프 방지
+            if(isSyncing) return; 
             const data = snapshot.val();
             if (data) {
                 if (data.DB) DB = data.DB;
-                if (data.boardState) boardState = data.boardState;
+                
+                // [추가 _260626-4] Firebase가 누락시킨 undefined 슬롯을 강력하게 null로 복구 
+                boardState = data.boardState || {};
+                for (let i = 1; i <= 6; i++) {
+                    ['L1', 'L2', 'R1', 'R2'].forEach(p => {
+                        if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null;
+                        if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null;
+                    });
+                }
+
                 lhy_renderBoardFromState();
                 try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){}
                 lhy_updateResetButtonUI();
             } else {
-                // 데이터가 비어있으면 초기화 세팅 후 푸시
                 lhy_loadDefaultDB();
                 for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
                 lhy_syncToFirebase();
@@ -1354,17 +1300,15 @@ function lhy_dominoShiftSystem() {
 
         // 글로벌 알림 이벤트 수신기 초기화
         initGlobalNotifications();
-// 출석(1클릭)/귀가(2클릭) 구분 이벤트 변수
+        
         let clickTimer = null; 
 
         document.addEventListener('click', function(e) {
-            // 드래그 중이거나 관리자 모드인 경우 차단
             if (typeof isLongClicked !== 'undefined' && isLongClicked) return;
             if (typeof isListDragging !== 'undefined' && isListDragging) return;
 
             const playerCard = e.target.closest('.player');
             if (playerCard) {
-                // 선택(is-sel) 로직은 그대로 유지
                 if (playerCard.classList.contains('is-sel')) {
                     playerCard.classList.remove('is-sel');
                     const memberId = playerCard.dataset.id;
@@ -1380,42 +1324,40 @@ function lhy_dominoShiftSystem() {
                     const m = DB.members.find(x => x.id === memberId);
                     if (!m) return;
 
-                    // 💡 핵심: 클릭할 때마다 타이머를 확인하여 1클릭인지 2클릭인지 판별
                     if (clickTimer) {
-                        // 1. 더블 클릭 감지됨! (이미 타이머가 돌고 있는데 또 클릭함)
+                        // 2-클릭 (귀가 처리)
                         clearTimeout(clickTimer);
                         clickTimer = null;
                         
-                        // [더블 클릭 동작: 귀가 처리]
                         if (m.isAtt) {
                             if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
                             m.isAtt = false;
                             delete m.attTime;
                             Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
                             if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); }
-                            sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
+                            
+                            sendGlobalAction([m.id]); // [추가] 귀가 알림 트리거
                             
                             if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                             if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
                             lhy_syncToFirebase();
                         }
                     } else {
-                        // 2. 첫 번째 클릭! (0.3초 대기 후 출석 처리 실행)
+                        // 1-클릭 (출석 처리)
                         clickTimer = setTimeout(() => {
                             clickTimer = null;
-                            
-                            // [1클릭 동작: 출석 처리]
                             if (!m.isAtt) {
                                 if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
                                 m.isAtt = true;
                                 m.attTime = Date.now();
-                                sendGlobalNotify(`${m.name}님 출석하였습니다.`);
+                                
+                                sendGlobalAction([m.id]); // [추가] 출석 알림 트리거
                                 
                                 if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                                 if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
                                 lhy_syncToFirebase();
                             }
-                        }, 300); // 0.3초간 기다림 (이 시간 안에 두 번 클릭하면 위의 더블클릭 로직 실행)
+                        }, 300); 
                     }
                 }
             }
@@ -1688,22 +1630,9 @@ function lhy_dominoShiftSystem() {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                if (d.classList.contains('is-sel')) { d.classList.remove('is-sel'); selectedPopIds = selectedPopIds.filter(id => id !== m.id); lhy_updateGroupDragBtnPosition(); return; }
-                if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
-                
-                lhy_saveUndoState(); m.isAtt = !m.isAtt;
-                
-                if (m.isAtt) {
-                    m.attTime = Date.now();
-                    sendGlobalNotify(`${m.name}님 출석하였습니다.`);
-                } else {
-                    delete m.attTime;
-                    Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
-                    if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
-                    sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
-                }
-                
-                lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
+                // [수정 _260626-4] 출석/귀가 클릭 로직은 문서(document) 이벤트로 일원화 (중복 트리거 방지)
+                if (d.classList.contains('is-sel')) { d.classList.remove('is-sel'); selectedPopIds = selectedPopIds.filter(id => id !== m.id); lhy_updateGroupDragBtnPosition(); e.stopPropagation(); return; }
+                if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); e.stopPropagation(); return; }
             };
             list.appendChild(d);
         });
@@ -1831,12 +1760,15 @@ function lhy_dominoShiftSystem() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
         lhy_saveUndoState();
+        let actionIds = [...selectedPopIds]; // 복사본 생성
         selectedPopIds.forEach(selId => {
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
             const m = DB.members.find(x => x.id === selId);
             if (m) { m.isAtt = true; } 
         });
         
+        sendGlobalAction(actionIds); // [추가] 취소 복귀 알림 트리거
+
         selectedPopIds = []; isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
@@ -1850,6 +1782,7 @@ function lhy_dominoShiftSystem() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
         
         lhy_saveUndoState();
+        let actionIds = [...selectedPopIds]; // 복사본 생성
         selectedPopIds.forEach(selId => {
             const m = DB.members.find(x => x.id === selId);
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
@@ -1857,9 +1790,10 @@ function lhy_dominoShiftSystem() {
             if (m) {
                 if (m.isG) { DB.members = DB.members.filter(x => x.id !== selId); } 
                 else { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }
-                sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
             }
         });
+
+        sendGlobalAction(actionIds); // [추가] 귀가 알림 트리거
         
         selectedPopIds = []; isLongClicked = false;
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -1895,8 +1829,10 @@ function lhy_dominoShiftSystem() {
         }
     }
 
-function lhy_autoEntrySystem() {
+    function lhy_autoEntrySystem() {
         let moved = false;
+        let assignedIds = []; 
+
         for(let i=1; i<=6; i++) {
             if(!DB.config.w[i-1]) continue; 
             const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
@@ -1914,29 +1850,22 @@ function lhy_autoEntrySystem() {
                 if(targetCourt !== null) {
                     const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`];
                     
-                    // [수정] 이름을 모으기 위한 배열 선언
-                    let assignedNames = []; 
-
                     waitSlots.forEach((ws, idx) => {
                         boardState[courtSlots[idx]] = boardState[ws];
                         boardState[ws] = null;
                         
-                        // [수정] 알림을 즉시 보내지 않고 이름만 배열에 추가
                         const memberId = boardState[courtSlots[idx]];
-                        if(memberId) {
-                            const m = DB.members.find(x => x.id === memberId);
-                            if(m) assignedNames.push(m.name);
-                        }
+                        if(memberId) assignedIds.push(memberId);
                     });
-                    
-                    // [수정] 루프가 끝난 후 이름이 있다면 한 번에 알림 전송
-                    if(assignedNames.length > 0) {
-                        sendGlobalNotify(`${assignedNames.join(', ')}님 코트 ${targetCourt}에 배정되었습니다.`);
-                    }
                     
                     moved = true;
                 }
             }
+        }
+
+        // [추가 _260626-4] 배정된 전원에게 한 번에 알림 전송
+        if(assignedIds.length > 0) {
+            sendGlobalAction(assignedIds);
         }
         
         if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
@@ -1958,25 +1887,6 @@ function lhy_autoEntrySystem() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); });
         } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
-    }
-
-    // 알림 및 음성 출력 함수 (수정됨: 글로벌 호출 용)
-    function lhy_notify(message) {
-        // 1. 화면 팝업
- ///       const popup = document.createElement('div');
- ///       popup.style.cssText = "position:fixed; top:20%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#FFD700; padding:20px; border-radius:10px; z-index:99999; font-size:1.3rem; font-weight:bold; box-shadow:0 0 10px  /// rgba(0,0,0,0.5); border:1px solid #b8860b;";
-///        popup.innerText = message;
-///        document.body.appendChild(popup);
-///        setTimeout(() => popup.remove(), 3000);
-
-        // 2. 음성 출력 (TTS) - 한글 지원, 로그인을 통한 최초 클릭 후부터 작동 보장
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(message);
-            utterance.lang = 'ko-KR';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
     }
 </script>
 
