@@ -3,8 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_20260625-1</title>
+    <title>화목모임_260626-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+    // Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMRBeaLb255zqBRN0N1X1Gbf0LpU63LL8",
+        authDomain: "project-3038138701089742780.firebaseapp.com",
+        databaseURL: "https://project-3038138701089742780-default-rtdb.firebaseio.com",
+        projectId: "project-3038138701089742780",
+        storageBucket: "project-3038138701089742780.firebasestorage.app",
+        messagingSenderId: "677544254045",
+        appId: "1:677544254045:web:0bf1d4967b164e61310bb4",
+        measurementId: "G-E4W6MSBM4G"
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+    </script>
+
     <style>
         /* ======================================================== */
         /* 1. 공통 기본 디자인 및 변수 */
@@ -84,7 +104,6 @@
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; display: none !important; }
 
-        /* 터치 지연 방지 (수정: player 클래스 제외하여 롱클릭 방해 제거) */
         .A-btn, .B-btn { touch-action: manipulation; user-select: none; }
 
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
@@ -307,7 +326,7 @@
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
     </style>
 </head>
-<body onload="lhy_init()" onresize="lhy_applyOrientationLogic()">
+<body>
 
 <div id="auth-gate" style="
     position:fixed; top:0; left:0; width:100%; height:100%; 
@@ -373,7 +392,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_20260625-1</div>
+    <div class="lhy-footer-filename">화목모임_260626-1</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -465,7 +484,7 @@
         </div>
     </div>
 
-    <script>
+<script>
     // --- 글로벌 변수 및 초기화 ---
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: ["우측 명단의 회원을 클릭하여 출석/미출석 상태를 변경합니다.", "모드 변경, 가로/세로 전환 등의 버튼으로 환경을 제어할 수 있습니다."] },
@@ -478,19 +497,76 @@
     };
 
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
+    const posOrder = ['L1', 'L2', 'R1', 'R2'];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
+    let boardState = {};
     let longClickTimer = null; let isLongClicked = false; 
     let selectedPopIds = []; 
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
     let isListDragging = false; 
-
-    // 모드 제어용 상태 변수
     let isManualMode = false;
     let isLandscape = true;
-    let boardState = {};
+    let isSyncing = false; // 루프 방지용
 
     function safeExecute(fn) {
         try { return fn(); } catch(e) { console.error("오류 발생:", e); }
+    }
+
+// ==========================================
+    // 💡 [핵심] 1. 전역 동기화 (Firebase 업데이트) - 강력한 안전망 추가
+    // ==========================================
+    function lhy_syncToFirebase() {
+        isSyncing = true;
+        
+        // 1. 보드판의 undefined 방지 (빈칸은 반드시 null로 안전하게 치환)
+        let safeBoardState = {};
+        const posOrder = ['L1', 'L2', 'R1', 'R2'];
+        for(let i=1; i<=6; i++) {
+            posOrder.forEach(p => {
+                // 값이 undefined면 강제로 null을 대입하여 에러 차단
+                safeBoardState[`c${i}-${p}`] = boardState[`c${i}-${p}`] || null;
+                safeBoardState[`w${i}-${p}`] = boardState[`w${i}-${p}`] || null;
+            });
+        }
+
+        // 2. DB 내부의 undefined(예: attTime 등)를 깔끔하게 제거하는 마법의 코드
+        const safeDB = JSON.parse(JSON.stringify(DB));
+
+        // 3. 안전하게 정제된 데이터만 Firebase로 전송
+        database.ref('appData').set({
+            DB: safeDB,
+            boardState: safeBoardState
+        }).then(() => {
+            isSyncing = false;
+        }).catch(error => {
+            console.error("Firebase 저장 에러:", error);
+            isSyncing = false;
+        });
+    }
+
+    // ==========================================
+    // 💡 [핵심] 3. 글로벌 음성/팝업 알림 (Firebase 연동)
+    // ==========================================
+    function sendGlobalNotify(msg) {
+        database.ref('logs').push({ msg: msg, time: firebase.database.ServerValue.TIMESTAMP });
+    }
+
+    function initGlobalNotifications() {
+        let isFirstLoad = true;
+        database.ref('logs').limitToLast(1).on('child_added', (snapshot) => {
+            if (isFirstLoad) return; 
+            const log = snapshot.val();
+            if (log && log.msg && (Date.now() - log.time < 10000)) { 
+                lhy_notify(log.msg);
+            }
+        });
+        setTimeout(() => { isFirstLoad = false; }, 2000);
+    }
+
+    function getAreaName(areaId) {
+        if (areaId.startsWith('c')) return `코트 ${areaId.replace('c','')}`;
+        if (areaId.startsWith('w')) return `대기 ${areaId.replace('w','')}`;
+        return areaId;
     }
 
     // --- 동적 드래그 버튼 위치 업데이트 ---
@@ -547,7 +623,6 @@
             offsetY = touch.clientY - rect.top - (rect.height / 2);
 
             btn.classList.add('active');
-            console.log("그룹 드래그 시작!");
         };
 
         const handleMove = (e) => {
@@ -566,7 +641,6 @@
             
             if (btn) {
                 btn.classList.remove('active');
-                
                 btn.style.display = 'none';
                 
                 const touch = e.changedTouches ? e.changedTouches[0] : e;
@@ -605,8 +679,7 @@
                             }
                         });
 
-                        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-                        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+                        lhy_syncToFirebase();
 
                         selectedPopIds = [];
                         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -617,22 +690,18 @@
                         if(typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                         
                         btn.remove();
-                        console.log("이동 및 상태 갱신 완료");
                     } else {
                         alert("배치할 빈 자리가 부족합니다.");
                     }
                 }
                 lhy_updateGroupDragBtnPosition();
-                console.log("그룹 드래그 종료!");
             }
         };
 
         document.addEventListener('mousedown', handleStart);
         document.addEventListener('touchstart', handleStart, { passive: false });
-        
         document.addEventListener('mousemove', handleMove, { passive: false });
         document.addEventListener('touchmove', handleMove, { passive: false });
-        
         document.addEventListener('mouseup', handleEnd);
         document.addEventListener('touchend', handleEnd);
     }
@@ -641,18 +710,14 @@
         const btnManual = document.getElementById('btn-manual-toggle');
         if (btnManual) {
             btnManual.innerText = isManualMode ? "수동배정" : "자동배정";
-            btnManual.style.background = isManualMode ? 
-                "linear-gradient(180deg, #d946ef, #a21caf)" : 
-                "linear-gradient(180deg, #3b82f6, #1d4ed8)";
+            btnManual.style.background = isManualMode ? "linear-gradient(180deg, #d946ef, #a21caf)" : "linear-gradient(180deg, #3b82f6, #1d4ed8)";
             btnManual.style.color = "#fff";
         }
 
         const btnOrient = document.getElementById('btn-orient-toggle');
         if (btnOrient) {
             btnOrient.innerText = isLandscape ? "가로" : "세로";
-            btnOrient.style.background = isLandscape ? 
-                "linear-gradient(180deg, #5c0099, #4b0082)" : 
-                "linear-gradient(180deg, #99005c, #82004b)";
+            btnOrient.style.background = isLandscape ? "linear-gradient(180deg, #5c0099, #4b0082)" : "linear-gradient(180deg, #99005c, #82004b)";
             btnOrient.style.color = "#fff";
         }
     }
@@ -672,13 +737,9 @@
                     currentWaitCount++;
                 }
             }
-
             const targetWaitCount = Math.max(1, currentWaitCount);
             DB.config.w = [false, false, false, false, false, false];
-            for (let i = 0; i < targetWaitCount; i++) {
-                DB.config.w[i] = true;
-            }
-
+            for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
             alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
             lhy_dominoShiftSystem();
         }
@@ -686,15 +747,14 @@
         lhy_refreshMenuUI();
         lhy_drawBoard(); 
         lhy_renderBoardFromState();
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+        lhy_syncToFirebase();
     }
 
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
         if (rotationState === 'auto') {
             rotationState = isPhysicallyLandscape ? 'force-portrait' : 'force-landscape';
-        } 
-        else {
+        } else {
             rotationState = 'auto'; 
         }
         lhy_applyOrientationLogic();
@@ -718,7 +778,7 @@
         DB.config.matchRule = rule;
         lhy_renderRuleButtons();
         lhy_saveUndoState();
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+        lhy_syncToFirebase();
     }
 
     function lhy_renderRuleButtons() {
@@ -774,66 +834,46 @@
             }
             DB.members = newMembers;
             lhy_renderMasterTable();
+            lhy_syncToFirebase();
             alert("명단을 성공적으로 불러왔습니다.");
             event.target.value = '';
         };
         reader.readAsText(file, 'utf-8');
     }
 
-    // 라이브러리의 자체 동작 모듈을 비활성화하고, 그룹이동(🖐) 기능으로 일원화합니다.
     const dragOpt = { 
         group: { name: 'sh', pull: true, put: true }, 
-        animation: 150, 
-        delay: 150, 
-        delayOnTouchOnly: true, 
-        fallbackTolerance: 5,
-        // multiDrag: true, // 제거됨: 선택 충돌 원인
-        // selectedClass: 'is-sel', // 제거됨: 자체 로직과 꼬임 방지
+        animation: 150, delay: 150, delayOnTouchOnly: true, fallbackTolerance: 5,
         
         onStart: function() { 
             isListDragging = true; 
             if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
             lhy_saveUndoState(); 
         },
-
         onAdd: function(evt) {
-            const item = evt.item; 
-            const to = evt.to;     
-            const from = evt.from; 
+            const item = evt.item; const to = evt.to; const from = evt.from; 
             const memberId = item.getAttribute('data-id');
 
-            if (to.children.length > 1) {
-                alert("이 칸에는 이미 다른 사람이 있습니다.");
-                from.appendChild(item);
-                return;
-            }
-
-            const isDuplicate = Object.keys(boardState).some(slotKey => {
-                return boardState[slotKey] === memberId && slotKey !== to.id;
-            });
-
-            if (isDuplicate) {
-                alert("이미 다른 곳에 배정된 회원입니다!");
-                from.appendChild(item); 
-                return;
+            if (to.children.length > 1) { alert("이 칸에는 이미 다른 사람이 있습니다."); from.appendChild(item); return; }
+            const isDuplicate = Object.keys(boardState).some(slotKey => { return boardState[slotKey] === memberId && slotKey !== to.id; });
+            if (isDuplicate) { alert("이미 다른 곳에 배정된 회원입니다!"); from.appendChild(item); return; }
+            
+            // 배정 시 알림 트리거
+            const m = DB.members.find(x => x.id === memberId);
+            if (m && to.id.includes('-')) {
+                const areaId = to.id.split('-')[0];
+                sendGlobalNotify(`${m.name}님 ${getAreaName(areaId)}에 배정되었습니다.`);
             }
 
             lhy_syncBoardDOMToState();
         },
-
         onEnd: function(evt) {
             setTimeout(() => { isListDragging = false; }, 50);
-            document.querySelectorAll('.player').forEach(p => {
-                p.classList.remove('is-sel'); 
-                p.classList.remove('is-selected-target');
-            });
+            document.querySelectorAll('.player').forEach(p => { p.classList.remove('is-sel'); p.classList.remove('is-selected-target'); });
             selectedPopIds = [];
-            
             lhy_syncBoardDOMToState();
-            
-            if (typeof lhy_renderListOnly === 'function') {
-                lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-            }
+            if (typeof lhy_renderListOnly === 'function') { lhy_renderListOnly(document.body.classList.contains('real-landscape')); }
+            lhy_syncToFirebase();
         }    
     };
 
@@ -848,9 +888,7 @@
                 statEl.innerText = "회원관리"; 
                 statEl.classList.add('admin-active');
                 lhy_openMasterPop(); 
-            } else { 
-                if (pw !== null) alert("비밀번호가 일치하지 않습니다."); 
-            }
+            } else { if (pw !== null) alert("비밀번호가 일치하지 않습니다."); }
         } else {
             isAdminMode = false;
             document.getElementById('btn-admin-toggle').classList.remove('admin-mode');
@@ -861,9 +899,7 @@
         }
     }
 
-    function lhy_checkAdminPermission() {
-        if (!isAdminMode) { alert("🔒 접근 권한이 없습니다."); return false; } return true;
-    }
+    function lhy_checkAdminPermission() { if (!isAdminMode) { alert("🔒 접근 권한이 없습니다."); return false; } return true; }
 
     function lhy_saveUndoState() {
         const stateCopy = JSON.stringify({ DB: DB, boardState: boardState });
@@ -877,6 +913,7 @@
         const previousState = JSON.parse(undoStack.pop());
         DB = previousState.DB; boardState = previousState.boardState;
         lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+        lhy_syncToFirebase();
         alert("직전 작업 상태로 복구되었습니다.");
     }
 
@@ -885,10 +922,7 @@
         let hasPlayers = Object.values(boardState).some(id => id !== null);
         
         if (!hasPlayers) {
-            if(isManualMode) { 
-                alert("수동 배정 모드 상태입니다. 회원을 명단에서 보드판 대기조로 직접 드래그해서 배치해주세요."); 
-                return; 
-            }
+            if(isManualMode) { alert("수동 배정 모드 상태입니다. 회원을 명단에서 보드판 대기조로 직접 드래그해서 배치해주세요."); return; }
             lhy_saveUndoState();
             lhy_rotationalMatchEngine();
         } else {
@@ -896,6 +930,7 @@
                 lhy_saveUndoState();
                 Object.keys(boardState).forEach(key => { boardState[key] = null; });
                 lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+                lhy_syncToFirebase();
             }
         }
     }
@@ -903,59 +938,30 @@
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
-        
-        function getGVal(g) {
-            if(!g) return 0;
-            let c = g.charAt(0).toUpperCase();
-            return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
-        }
+        function getGVal(g) { if(!g) return 0; let c = g.charAt(0).toUpperCase(); return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0; }
 
-        let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3];
-        let selected = [p1, p2, p3, p4];
-
-        let cases = [
-            { t1: [p1, p2], t2: [p3, p4] },
-            { t1: [p1, p3], t2: [p2, p4] },
-            { t1: [p1, p4], t2: [p2, p3] }
-        ];
-
-        let bestCase = null;
-        let minPenalty = Infinity;
+        let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3]; let selected = [p1, p2, p3, p4];
+        let cases = [ { t1: [p1, p2], t2: [p3, p4] }, { t1: [p1, p3], t2: [p2, p4] }, { t1: [p1, p4], t2: [p2, p3] } ];
+        let bestCase = null; let minPenalty = Infinity;
 
         cases.forEach(c => {
             let historyPenalty = lhy_getMatchScore(c.t1[0].id, c.t1[1].id) + lhy_getMatchScore(c.t2[0].id, c.t2[1].id);
-
-            let t1Score = getGVal(c.t1[0].grade) + getGVal(c.t1[1].grade);
-            let t2Score = getGVal(c.t2[0].grade) + getGVal(c.t2[1].grade);
+            let t1Score = getGVal(c.t1[0].grade) + getGVal(c.t1[1].grade); let t2Score = getGVal(c.t2[0].grade) + getGVal(c.t2[1].grade);
             let balancePenalty = Math.abs(t1Score - t2Score);
-
-            let totalPenalty = 0;
-            if (rule === 'grade') {
-                totalPenalty = (balancePenalty * 100) + historyPenalty;
-            } else {
-                totalPenalty = (historyPenalty * 100) + balancePenalty;
-            }
-
-            if (totalPenalty < minPenalty) {
-                minPenalty = totalPenalty;
-                bestCase = c;
-            }
+            let totalPenalty = (rule === 'grade') ? (balancePenalty * 100) + historyPenalty : (historyPenalty * 100) + balancePenalty;
+            if (totalPenalty < minPenalty) { minPenalty = totalPenalty; bestCase = c; }
         });
 
-        boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id;
-        boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
-        boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id;
-        boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
+        boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id; boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
+        boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id; boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
         
-        lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id);
-        lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
+        // 배정 글로벌 알림
+        selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix)}에 배정되었습니다.`); });
+        
+        lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id); lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
         
         let selectedIds = selected.map(p => p.id);
-        for (let i = pool.length - 1; i >= 0; i--) {
-            if (selectedIds.includes(pool[i].id)) {
-                pool.splice(i, 1);
-            }
-        }
+        for (let i = pool.length - 1; i >= 0; i--) { if (selectedIds.includes(pool[i].id)) { pool.splice(i, 1); } }
         return true;
     }
 
@@ -971,15 +977,11 @@
     }
 
     function lhy_extractFirstFromWaitlist() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         for (let w = 1; w <= 6; w++) {
             if (DB.config.w[w-1]) {
                 for (let p of posOrder) {
                     let id = boardState[`w${w}-${p}`];
-                    if (id) {
-                        boardState[`w${w}-${p}`] = null; 
-                        return id;
-                    }
+                    if (id) { boardState[`w${w}-${p}`] = null; return id; }
                 }
             }
         }
@@ -987,24 +989,15 @@
     }
 
     function lhy_rebuildTeam(idsArr, boardPrefix) {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         posOrder.forEach(p => boardState[`${boardPrefix}-${p}`] = null);
-        
-        if(idsArr.length < 4) {
-            idsArr.forEach((id, idx) => { boardState[`${boardPrefix}-${posOrder[idx]}`] = id; });
-            return;
-        }
-
+        if(idsArr.length < 4) { idsArr.forEach((id, idx) => { boardState[`${boardPrefix}-${posOrder[idx]}`] = id; }); return; }
         let poolObjects = idsArr.map(id => DB.members.find(m => m.id === id)).filter(m => m !== undefined);
-        if(poolObjects.length === 4) {
-            lhy_pickAndPlace4(poolObjects, boardPrefix);
-        }
+        if(poolObjects.length === 4) { lhy_pickAndPlace4(poolObjects, boardPrefix); }
     }
 
     function lhy_rotationalMatchEngine() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let shiftedAny = false;
-        
+        // 1. 대기 팀 -> 코트 이동 로직
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -1014,11 +1007,15 @@
                             let waitCount = posOrder.filter(p => boardState[`w${w}-${p}`] !== null).length;
                             if (waitCount === 4) { 
                                 posOrder.forEach(p => {
-                                    boardState[`c${i}-${p}`] = boardState[`w${w}-${p}`];
+                                    const memberId = boardState[`w${w}-${p}`];
+                                    boardState[`c${i}-${p}`] = memberId;
                                     boardState[`w${w}-${p}`] = null;
+                                    if (memberId) {
+                                        const m = DB.members.find(x => x.id === memberId);
+                                        if (m) sendGlobalNotify(`${m.name}님 코트 ${i}에 배정되었습니다.`);
+                                    }
                                 });
-                                shiftedAny = true;
-                                break;
+                                shiftedAny = true; break;
                             }
                         }
                     }
@@ -1028,6 +1025,7 @@
         
         if (shiftedAny) { lhy_compactWaitSlots(); }
 
+        // 2. 부분 팀 채우기 로직 (코트)
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let cIds = posOrder.map(p => boardState[`c${i}-${p}`]).filter(id => id !== null);
@@ -1035,12 +1033,8 @@
                     let needed = 4 - cIds.length;
                     for(let k=0; k<needed; k++) {
                         let waitId = lhy_extractFirstFromWaitlist();
-                        if(waitId) {
-                            cIds.push(waitId);
-                        } else {
-                            let pool = lhy_getSortedPool();
-                            if(pool.length > 0) cIds.push(pool.shift().id);
-                        }
+                        if(waitId) { cIds.push(waitId); } 
+                        else { let pool = lhy_getSortedPool(); if(pool.length > 0) cIds.push(pool.shift().id); }
                     }
                     lhy_rebuildTeam(cIds, `c${i}`);
                 }
@@ -1049,6 +1043,7 @@
 
         lhy_compactWaitSlots();
 
+        // 3. 부분 팀 채우기 로직 (대기)
         for (let w = 1; w <= 6; w++) {
             if (DB.config.w[w-1]) {
                 let wIds = posOrder.map(p => boardState[`w${w}-${p}`]).filter(id => id !== null);
@@ -1063,6 +1058,7 @@
             }
         }
 
+        // 4. 빈 곳 채우기
         let pool = lhy_getSortedPool(); 
         const allAreas = [
             ...[1,2,3,4,5,6].map(i => ({ id: `c${i}`, active: DB.config.c[i-1] })),
@@ -1072,29 +1068,20 @@
         allAreas.forEach(area => {
             if (area.active) {
                 let isEmpty = posOrder.every(p => boardState[`${area.id}-${p}`] === null);
-                if (isEmpty && pool.length >= 4) {
-                    lhy_pickAndPlace4(pool, area.id);
-                }
+                if (isEmpty && pool.length >= 4) { lhy_pickAndPlace4(pool, area.id); }
             }
         });
         
-        lhy_renderBoardFromState();
-        lhy_updateResetButtonUI();
-        lhy_applyOrientationLogic();
+        lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+        lhy_syncToFirebase();
     }
 
     function lhy_fnGameEnd(type, idx, winner) {
         if (type !== 'c') return;
         lhy_saveUndoState();
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         
-        let pL1 = boardState[`c${idx}-L1`];
-        let pL2 = boardState[`c${idx}-L2`];
-        let pR1 = boardState[`c${idx}-R1`];
-        let pR2 = boardState[`c${idx}-R2`];
-
-        let aTeam = [pL1, pL2].filter(id => id);
-        let bTeam = [pR1, pR2].filter(id => id);
+        let pL1 = boardState[`c${idx}-L1`]; let pL2 = boardState[`c${idx}-L2`]; let pR1 = boardState[`c${idx}-R1`]; let pR2 = boardState[`c${idx}-R2`];
+        let aTeam = [pL1, pL2].filter(id => id); let bTeam = [pR1, pR2].filter(id => id);
 
         if (winner === 'A') {
             aTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.win = (m.win||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
@@ -1109,7 +1096,6 @@
     }
 
     function lhy_compactWaitSlots() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let activeWaitTeams = [];
         for (let i = 1; i <= 6; i++) {
             if (DB.config.w[i - 1]) {
@@ -1121,65 +1107,38 @@
         let slotIdx = 1;
         activeWaitTeams.forEach(team => {
             while (slotIdx <= 6 && !DB.config.w[slotIdx - 1]) { slotIdx++; }
-            if (slotIdx <= 6) {
-                posOrder.forEach((p, idx) => { boardState[`w${slotIdx}-${p}`] = team[idx]; });
-                slotIdx++;
-            }
+            if (slotIdx <= 6) { posOrder.forEach((p, idx) => { boardState[`w${slotIdx}-${p}`] = team[idx]; }); slotIdx++; }
         });
     }
 
     function lhy_syncBoardDOMToState() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         const seenIds = new Set(); 
-
         for (let i = 1; i <= 6; i++) {
             posOrder.forEach(p => {
                 ['c', 'w'].forEach(t => {
                     const slot = document.getElementById(`${t}${i}-${p}`);
                     if (slot && slot.children.length > 0) { 
                         const pid = slot.children[0].dataset.id;
-                        
-                        if (seenIds.has(pid)) {
-                            slot.innerHTML = ''; 
-                            boardState[`${t}${i}-${p}`] = null; 
-                        } else {
-                            seenIds.add(pid); 
-                            boardState[`${t}${i}-${p}`] = pid; 
-                        }
-                    } 
-                    else { boardState[`${t}${i}-${p}`] = null; }
+                        if (seenIds.has(pid)) { slot.innerHTML = ''; boardState[`${t}${i}-${p}`] = null; } 
+                        else { seenIds.add(pid); boardState[`${t}${i}-${p}`] = pid; }
+                    } else { boardState[`${t}${i}-${p}`] = null; }
                 });
             });
         }
-        
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-
         lhy_renderBoardFromState();
-        
         const assignedIds = Object.values(boardState).filter(id => id !== null);
         const playerList = document.getElementById('player-list');
-        
         if (playerList) {
             Array.from(playerList.children).forEach(el => {
-                const pid = el.dataset.id;
-                if (assignedIds.includes(pid)) {
-                    el.style.display = 'none'; 
-                } else {
-                    el.style.display = '';     
-                }
+                const pid = el.dataset.id; el.style.display = assignedIds.includes(pid) ? 'none' : '';     
             });
         }
-
-        lhy_updateResetButtonUI();
-        lhy_applyOrientationLogic();
+        lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
     function lhy_dominoShiftSystem() {
         if (isManualMode) {
-            const posOrder = ['L1', 'L2', 'R1', 'R2'];
             let emptyCourtSlots = [];
-            
             for (let i = 1; i <= 6; i++) {
                 if (DB.config.c[i-1]) {
                     let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -1197,31 +1156,28 @@
             
             let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
             for(let i=0; i<moves; i++) {
-                let tCourt = emptyCourtSlots[i];
-                let sWait = fullWaitTeams[i];
-                
+                let tCourt = emptyCourtSlots[i]; let sWait = fullWaitTeams[i];
                 posOrder.forEach(p => {
-                    boardState[`${tCourt}-${p}`] = boardState[`${sWait}-${p}`];
+                    const memberId = boardState[`${sWait}-${p}`];
+                    boardState[`${tCourt}-${p}`] = memberId;
                     boardState[`${sWait}-${p}`] = null;
+                    if (memberId) {
+                        const m = DB.members.find(x => x.id === memberId);
+                        if (m) sendGlobalNotify(`${m.name}님 코트 ${tCourt.replace('c','')}에 배정되었습니다.`);
+                    }
                 });
             }
-            
-            lhy_compactWaitSlots();
-            lhy_renderBoardFromState();
-            lhy_updateResetButtonUI();
-            lhy_applyOrientationLogic();
+            lhy_compactWaitSlots(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+            lhy_syncToFirebase();
             return;
         }
 
-        lhy_compactWaitSlots();
-        lhy_rotationalMatchEngine();
+        lhy_compactWaitSlots(); lhy_rotationalMatchEngine();
     }
 
     function lhy_getPureName(fullName) {
         if(!fullName) return "";
-        let pure = fullName.split(',')[0]; 
-        pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); 
-        return pure.trim();
+        let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim();
     }
 
     function lhy_getSexClass(memberObj) {
@@ -1231,151 +1187,112 @@
         return 'm-sex';
     }
 
-    function lhy_handleFirstTouchFullscreen() {
-        if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
-    }
-
+    // ==========================================
+    // 💡 2. 양방향 데이터 리스너 & 초기 세팅
+    // ==========================================
     function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
         
-        const saved = localStorage.getItem('lhy_v260520_storage');
-
-        if(saved) {
-            try {
-                DB = JSON.parse(saved);
-                if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
-                if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
-                    DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
-                }
-                DB.members.filter(m => !m.isG).forEach(m => { 
-                    if(!m.joinDate) m.joinDate = "260101"; 
-                    if(m.win === undefined) m.win = 0;
-                    if(m.lose === undefined) m.lose = 0;
-                });
-                if(!DB.matchHistory) DB.matchHistory = {};
-                if(!DB.config.matchRule) DB.config.matchRule = 'grade';
-            } catch(e) { lhy_loadDefaultDB(); }
-        } else { lhy_loadDefaultDB(); }
-        
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
-        const savedBoard = localStorage.getItem('lhy_v260520_boardState');
-        if(savedBoard) {
-            try { boardState = JSON.parse(savedBoard); } catch(e) {
+        // Firebase에서 초기 상태 불러오기 및 리스너 등록
+        database.ref('appData').on('value', (snapshot) => {
+            if(isSyncing) return; // 자기가 보낸 데이터로 인한 루프 방지
+            const data = snapshot.val();
+            if (data) {
+                if (data.DB) DB = data.DB;
+                if (data.boardState) boardState = data.boardState;
+                lhy_renderBoardFromState();
+                try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){}
+                lhy_updateResetButtonUI();
+            } else {
+                // 데이터가 비어있으면 초기화 세팅 후 푸시
+                lhy_loadDefaultDB();
                 for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
+                lhy_syncToFirebase();
             }
-        } else {
-            for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
-        }
-
-        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
-        if (isNewSession) {
-            DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; });
-            DB.members = DB.members.filter(m => !m.isG);
-            DB.config.c = [true, true, false, false, false, false];
-            DB.config.w = [true, false, false, false, false, false];
-            DB.config.matchRule = 'grade';
-            Object.keys(boardState).forEach(key => { boardState[key] = null; });
-            DB.matchHistory = {};
-            sessionStorage.setItem('hwamok_session_v19', 'true');
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        }
-
-        const validIds = new Set(DB.members.map(m => m.id));
-        Object.keys(boardState).forEach(key => {
-            if (boardState[key] && !validIds.has(boardState[key])) { boardState[key] = null; }
         });
 
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        });
+        // 글로벌 알림 이벤트 수신기 초기화
+        initGlobalNotifications();
+// 출석(1클릭)/귀가(2클릭) 구분 이벤트 변수
+        let clickTimer = null; 
 
-        // =====================================================================
-        // 이벤트 위임 최종판
-        // =====================================================================
         document.addEventListener('click', function(e) {
-            if (typeof isLongClicked !== 'undefined' && isLongClicked) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation(); 
-                
-                setTimeout(() => { isLongClicked = false; }, 100); 
-                return; 
-            }
+            // 드래그 중이거나 관리자 모드인 경우 차단
+            if (typeof isLongClicked !== 'undefined' && isLongClicked) return;
+            if (typeof isListDragging !== 'undefined' && isListDragging) return;
 
             const playerCard = e.target.closest('.player');
-            
             if (playerCard) {
-                if (typeof isListDragging !== 'undefined' && isListDragging) return;
-                
+                // 선택(is-sel) 로직은 그대로 유지
                 if (playerCard.classList.contains('is-sel')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    
                     playerCard.classList.remove('is-sel');
                     const memberId = playerCard.dataset.id;
                     selectedPopIds = selectedPopIds.filter(id => id !== memberId);
-                    
-                    if (typeof lhy_updateGroupDragBtnPosition === 'function') {
-                        lhy_updateGroupDragBtnPosition();
-                    }
+                    if (typeof lhy_updateGroupDragBtnPosition === 'function') lhy_updateGroupDragBtnPosition();
                     return;
                 }
 
                 if (playerCard.closest('#ui-list')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
-                    if (typeof isAdminMode !== 'undefined' && isAdminMode) { 
-                        alert("관리자 모드 중에는 작동하지 않습니다."); 
-                        return; 
-                    }
+                    if (typeof isAdminMode !== 'undefined' && isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
 
                     const memberId = playerCard.dataset.id;
-                    if (memberId) {
-                        const m = DB.members.find(x => x.id === memberId);
-                        if (m) {
+                    const m = DB.members.find(x => x.id === memberId);
+                    if (!m) return;
+
+                    // 💡 핵심: 클릭할 때마다 타이머를 확인하여 1클릭인지 2클릭인지 판별
+                    if (clickTimer) {
+                        // 1. 더블 클릭 감지됨! (이미 타이머가 돌고 있는데 또 클릭함)
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                        
+                        // [더블 클릭 동작: 귀가 처리]
+                        if (m.isAtt) {
                             if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
-                            
-                            m.isAtt = !m.isAtt;
-                            
-                            if (m.isAtt) {
-                                m.attTime = Date.now();
-                            } else {
-                                delete m.attTime;
-                                Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
-                                if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
-                            }
+                            m.isAtt = false;
+                            delete m.attTime;
+                            Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
+                            if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); }
+                            sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
                             
                             if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
-                            if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic(); 
+                            if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
+                            lhy_syncToFirebase();
                         }
+                    } else {
+                        // 2. 첫 번째 클릭! (0.3초 대기 후 출석 처리 실행)
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                            
+                            // [1클릭 동작: 출석 처리]
+                            if (!m.isAtt) {
+                                if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
+                                m.isAtt = true;
+                                m.attTime = Date.now();
+                                sendGlobalNotify(`${m.name}님 출석하였습니다.`);
+                                
+                                if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
+                                if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic();
+                                lhy_syncToFirebase();
+                            }
+                        }, 300); // 0.3초간 기다림 (이 시간 안에 두 번 클릭하면 위의 더블클릭 로직 실행)
                     }
                 }
             }
-        }, true); 
-        // =====================================================================
+        }, true);
 
         new Sortable(document.getElementById('ui-list'), { 
-            ...dragOpt, 
-            sort: true, 
-            filter: ".is-not, .is-playing", 
+            ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
             onAdd: (evt) => { 
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState();
-                if (!isManualMode) lhy_dominoShiftSystem(); 
+                if (!isManualMode) lhy_dominoShiftSystem();
+                lhy_syncToFirebase();
             } 
         });
         
-        lhy_drawBoard(); 
-        lhy_renderBoardFromState(); 
-        lhy_updateResetButtonUI(); 
-        lhy_applyOrientationLogic();
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
     function lhy_loadDefaultDB() {
@@ -1389,13 +1306,8 @@
     function toggleUnit(t, i) { 
         lhy_saveUndoState(); 
         DB.config[t][i-1] = !DB.config[t][i-1]; 
-        
-        if(!DB.config[t][i-1]) { 
-            ['L1', 'L2', 'R1', 'R2'].forEach(p => { 
-                boardState[`${t}${i}-${p}`] = null; 
-            }); 
-        }
-        lhy_drawBoard(); lhy_dominoShiftSystem(); 
+        if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); }
+        lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase();
     }
 
     function lhy_drawBoard() {
@@ -1406,24 +1318,19 @@
         let actC = 0, actW = 0;
         for(let i=1; i<=6; i++) { if(DB.config.c[i-1]) actC++; if(DB.config.w[i-1]) actW++; }
 
-        let cCols = (actC <= 2) ? 1 : 2;
-        let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
-        cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`;
-        cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
+        let cCols = (actC <= 2) ? 1 : 2; let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
+        cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`; cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
         cG.className = `grid-wrapper layout-c${cCols}-r${cRows} ${actC <= 2 ? 'few-rows' : ''} ${actC === 1 ? 'single-row' : ''}`;
 
-        let wCols = (actW <= 2) ? 1 : 2;
-        let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
-        wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`;
-        wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
+        let wCols = (actW <= 2) ? 1 : 2; let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
+        wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`; wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
         wG.className = `grid-wrapper layout-c${wCols}-r${wRows} ${actW <= 2 ? 'few-rows' : ''} ${actW === 1 ? 'single-row' : ''}`;
 
         for(let i=1; i<=6; i++) {
             ['c','w'].forEach(t => {
                 const isAct = DB.config[t][i-1];
                 const b = document.createElement('button');
-                b.className = `btn-ctrl ${isAct ? 'active' : ''}`;
-                b.onclick = () => toggleUnit(t, i);
+                b.className = `btn-ctrl ${isAct ? 'active' : ''}`; b.onclick = () => toggleUnit(t, i);
                 (t === 'c' ? cC : wW).appendChild(b);
 
                 if (isAct) {
@@ -1432,10 +1339,7 @@
                     if(t === 'c') {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
                                         <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
-                                        <div class="lhy-mid-btn-space">
-                                            <button class="lhy-btn-act-end A-btn" onclick="lhy_fnGameEnd('${t}',${i},'A')">승</button>
-                                            <button class="lhy-btn-act-end B-btn" onclick="lhy_fnGameEnd('${t}',${i},'B')">승</button>
-                                        </div>
+                                        <div class="lhy-mid-btn-space"><button class="lhy-btn-act-end A-btn" onclick="lhy_fnGameEnd('${t}',${i},'A')">승</button><button class="lhy-btn-act-end B-btn" onclick="lhy_fnGameEnd('${t}',${i},'B')">승</button></div>
                                         <div class="lhy-team B-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     } else {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
@@ -1453,8 +1357,7 @@
                 ...dragOpt, 
                 onAdd: function(evt) { 
                     let items = evt.items && evt.items.length > 0 ? Array.from(evt.items) : [evt.item];
-                    let toSlot = evt.to;
-                    let fromList = evt.from;
+                    let toSlot = evt.to; let fromList = evt.from;
 
                     if (toSlot.children.length > items.length) { 
                         let originalItems = Array.from(toSlot.children).filter(child => !items.includes(child));
@@ -1462,19 +1365,13 @@
                     }
                     
                     items.forEach(el => {
-                        const pid = el.dataset.id;
-                        const m = DB.members.find(x => x.id === pid);
-                        if (m) {
-                            m.isAtt = true;
-                            if (!m.attTime) m.attTime = Date.now();
-                        }
+                        const pid = el.dataset.id; const m = DB.members.find(x => x.id === pid);
+                        if (m) { m.isAtt = true; if (!m.attTime) m.attTime = Date.now(); }
                         el.classList.remove('is-sel');
                     });
                     
-                    selectedPopIds = [];
-                    lhy_syncBoardDOMToState();
+                    selectedPopIds = []; lhy_syncBoardDOMToState();
                     try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){}
-
                     if (!isManualMode) lhy_autoEntrySystem();
                 } 
             });
@@ -1483,73 +1380,35 @@
 
     function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return;
-
-        const sexClass = lhy_getSexClass(memberObj);
-        const pureName = lhy_getPureName(memberObj.name);
-        const isLeft = slot.id.includes('-L');
-        const winCount = Number(memberObj.win || 0);
-        const loseCount = Number(memberObj.lose || 0);
+        const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name);
+        const isLeft = slot.id.includes('-L'); const winCount = Number(memberObj.win || 0); const loseCount = Number(memberObj.lose || 0);
 
         const p = document.createElement('div');
-        p.className = `player in-game ${sexClass}`;
-        p.dataset.id = memberObj.id;
-
-        Object.assign(p.style, {
-            display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%',
-            overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20
-        });
+        p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id;
+        Object.assign(p.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20 });
 
         const stats = document.createElement('div');
-        Object.assign(stats.style, {
-            display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end',
-            flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px',
-            fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal'
-        });
-
-        stats.innerHTML = `
-            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span>
-            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
-        `;
+        Object.assign(stats.style, { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end', flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px', fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal' });
+        stats.innerHTML = `<span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span><span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>`;
 
         const nameWrapper = document.createElement('div');
-        nameWrapper.className = "name-wrapper_260305-1";
-        nameWrapper.style.display = 'flex';
-        nameWrapper.style.flexDirection = 'column'; 
-        nameWrapper.style.alignItems = 'center';    
-        nameWrapper.style.justifyContent = 'center';
-        nameWrapper.style.flex = '1';
-        nameWrapper.style.minWidth = '0';
-        nameWrapper.style.height = '70%'; 
-        nameWrapper.style.pointerEvents = 'none';
+        nameWrapper.className = "name-wrapper_260626-1";
+        nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
 
         const nameDiv = document.createElement('div');
-        nameDiv.className = "p-name p-name_260305-1";
-        nameDiv.style.flex = 'none';
-        nameDiv.textContent = pureName;
+        nameDiv.className = "p-name p-name_260626-1"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName;
 
         const infoDiv = document.createElement('div');
-        infoDiv.className = "p-info_260305-1";
-        infoDiv.style.display = 'flex';
-        infoDiv.style.flexDirection = 'row'; 
-        infoDiv.style.gap = '4px';           
-        infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; 
-        infoDiv.style.fontWeight = '900';
-        infoDiv.style.lineHeight = '1';
-        infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
-        infoDiv.style.pointerEvents = 'none';
+        infoDiv.className = "p-info_260626-1"; infoDiv.style.display = 'flex'; infoDiv.style.flexDirection = 'row'; infoDiv.style.gap = '4px'; infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; infoDiv.style.fontWeight = '900'; infoDiv.style.lineHeight = '1'; infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)'; infoDiv.style.pointerEvents = 'none';
 
         const ageStr = memberObj.age ? `<span style="color:#FFD700">${memberObj.age}</span>` : '';
         const gradeStr = memberObj.grade ? `<span style="color:#0FF">${memberObj.grade}</span>` : '';
         infoDiv.innerHTML = `${ageStr}${gradeStr}`;
 
-        if (memberObj.age || memberObj.grade) {
-            nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important');
-        }
+        if (memberObj.age || memberObj.grade) { nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important'); }
 
         nameWrapper.appendChild(nameDiv);
-        if (memberObj.age || memberObj.grade) {
-            nameWrapper.appendChild(infoDiv);
-        }
+        if (memberObj.age || memberObj.grade) { nameWrapper.appendChild(infoDiv); }
 
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
 
@@ -1561,29 +1420,20 @@
             
             if (longClickTimer) clearTimeout(longClickTimer);
             longClickTimer = setTimeout(() => {
-                isLongClicked = true;
-                p.classList.toggle('is-sel'); 
-                if (p.classList.contains('is-sel')) {
-                    if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id);
-                } else {
-                    selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id);
-                }
+                isLongClicked = true; p.classList.toggle('is-sel'); 
+                if (p.classList.contains('is-sel')) { if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id); } 
+                else { selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id); }
                 lhy_updateGroupDragBtnPosition(); 
             }, 400); 
         };
         const moveHandler = (e) => {
             const touch = e.touches ? e.touches[0] : null;
-            if (touch) {
-                if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) {
-                    if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
-                }
-            }
+            if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } }
         };
         const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
 
         p.addEventListener('mousedown', startHandler); p.addEventListener('touchstart', startHandler, { passive: true });
         p.addEventListener('touchmove', moveHandler, { passive: false }); p.addEventListener('mouseup', endHandler); p.addEventListener('touchend', endHandler);
-        
         p.onclick = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
             if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; }
@@ -1608,21 +1458,11 @@
                 
                 if (pid) {
                     const m = DB.members.find(x => x.id === pid);
-                    
                     if (m) {
                         lhy_insertPlayerToSlot(slot, m);
-                        
-                        if (!m.isAtt) {
-                            slot.classList.add('is-not-att');
-                        } else {
-                            slot.classList.remove('is-not-att');
-                        }
-                        
-                        const container = key.split('-')[0];
-                        const count = occupancy[container] || 0;
-                        
-                        slot.classList.remove('slot-many', 'slot-single');
-                        slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
+                        if (!m.isAtt) { slot.classList.add('is-not-att'); } else { slot.classList.remove('is-not-att'); }
+                        const container = key.split('-')[0]; const count = occupancy[container] || 0;
+                        slot.classList.remove('slot-many', 'slot-single'); slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
                     } 
                 }
             }
@@ -1631,34 +1471,21 @@
 
     function lhy_applyOrientationLogic() {
         const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
-        
         b.style.width = "100%"; b.style.height = "100%"; b.style.transform = "none"; b.classList.remove('real-landscape');
         
         let targetLandscape = false;
-        
-        if (rotationState === 'auto') { 
-            if (w > h) targetLandscape = true; 
-        } 
+        if (rotationState === 'auto') { if (w > h) targetLandscape = true; } 
         else if (rotationState === 'force-landscape') {
             targetLandscape = true;
-            if (w < h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; 
-            }
-        } 
-        else if (rotationState === 'force-portrait') {
+            if (w < h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; }
+        } else if (rotationState === 'force-portrait') {
             targetLandscape = false;
-            if (w > h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; 
-            }
+            if (w > h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; }
         }
         
         if (targetLandscape) b.classList.add('real-landscape');
-        
         const btn = document.getElementById('btn-orient-toggle');
         if (btn) { btn.innerText = targetLandscape ? "가로" : "세로"; }
-        
         requestAnimationFrame(() => { lhy_renderListOnly(targetLandscape); });
     }
 
@@ -1670,29 +1497,20 @@
 
         const rows = Math.ceil(count / cols);
         list.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; list.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-        
         const playing = Object.values(boardState).filter(id => id !== null);
         list.innerHTML = '';
         
         [...DB.members].sort((a,b) => {
             if (a.isAtt && !b.isAtt) return -1;
             if (!a.isAtt && b.isAtt) return 1;
-            if (a.isAtt && b.isAtt) {
-                if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0);
-            }
+            if (a.isAtt && b.isAtt) { if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); }
             if (a.isG !== b.isG) return b.isG - a.isG;
             return a.name.localeCompare(b.name, 'ko');
         }).forEach(m => {
-            const isP = playing.includes(m.id);
-
-            if (isP) return;
+            const isP = playing.includes(m.id); if (isP) return;
 
             const sexClass = lhy_getSexClass(m); const pureName = lhy_getPureName(m.name);
-            const d = document.createElement('div'); 
-            
-            d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass} ${isP ? 'is-playing' : ''}`;
-            d.dataset.id = m.id;
-            
+            const d = document.createElement('div'); d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass} ${isP ? 'is-playing' : ''}`; d.dataset.id = m.id;
             d.innerHTML = `
                 <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
                     <span style="font-weight: 999; font-size: 1.1em; color: inherit;">${pureName}</span>
@@ -1711,25 +1529,16 @@
                 isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
                 touchStartX = touch.clientX; touchStartY = touch.clientY;
                 if (longClickTimer) clearTimeout(longClickTimer);
-                
                 longClickTimer = setTimeout(() => {
-                    isLongClicked = true;
-                    d.classList.toggle('is-sel'); 
-                    if (d.classList.contains('is-sel')) {
-                        if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id);
-                    } else {
-                        selectedPopIds = selectedPopIds.filter(id => id !== m.id);
-                    }
+                    isLongClicked = true; d.classList.toggle('is-sel'); 
+                    if (d.classList.contains('is-sel')) { if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id); } 
+                    else { selectedPopIds = selectedPopIds.filter(id => id !== m.id); }
                     lhy_updateGroupDragBtnPosition(); 
                 }, 400); 
             };
             const moveHandler = (e) => {
                 const touch = e.touches ? e.touches[0] : null;
-                if (touch) {
-                    if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) {
-                        if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
-                    }
-                }
+                if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } }
             };
             const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
 
@@ -1740,33 +1549,27 @@
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                if (d.classList.contains('is-sel')) {
-                    d.classList.remove('is-sel');
-                    selectedPopIds = selectedPopIds.filter(id => id !== m.id);
-                    lhy_updateGroupDragBtnPosition(); 
-                    return;
-                }
-
+                if (d.classList.contains('is-sel')) { d.classList.remove('is-sel'); selectedPopIds = selectedPopIds.filter(id => id !== m.id); lhy_updateGroupDragBtnPosition(); return; }
                 if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
+                
                 lhy_saveUndoState(); m.isAtt = !m.isAtt;
                 
                 if (m.isAtt) {
                     m.attTime = Date.now();
+                    sendGlobalNotify(`${m.name}님 출석하였습니다.`);
                 } else {
                     delete m.attTime;
                     Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
                     if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
+                    sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
                 }
                 
-                lhy_dominoShiftSystem();
-                lhy_applyOrientationLogic(); 
+                lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
             };
             list.appendChild(d);
         });
         const statEl = document.getElementById('ui-stat');
         if(statEl && !isAdminMode) { statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`; }
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     }
 
     function lhy_updateResetButtonUI() {
@@ -1778,29 +1581,21 @@
 
     function lhy_openHelpPop() { 
         document.getElementById('lhy-pop-help').style.display = 'flex'; 
-        const firstBtn = document.querySelector('.help-menu-btn');
-        if (firstBtn) lhy_switchHelpTab(1, firstBtn);
+        const firstBtn = document.querySelector('.help-menu-btn'); if (firstBtn) lhy_switchHelpTab(1, firstBtn);
     }
     
     function lhy_closeHelpPop() { document.getElementById('lhy-pop-help').style.display = 'none'; }
     
     function lhy_openMasterPop() { 
         if(!lhy_checkAdminPermission()) return; 
-        lhy_renderMasterTable(); 
-        lhy_renderRuleButtons(); 
-        document.getElementById('lhy-pop-master').style.display = 'flex'; 
+        lhy_renderMasterTable(); lhy_renderRuleButtons(); document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
-            lhy_saveUndoState(); 
-            lhy_syncInlineInputsToState();
-            document.getElementById('lhy-pop-master').style.display = 'none'; 
-            lhy_dominoShiftSystem();
-        } else { 
-            document.getElementById('lhy-pop-master').style.display = 'none'; 
-        }
-
+            lhy_saveUndoState(); lhy_syncInlineInputsToState(); document.getElementById('lhy-pop-master').style.display = 'none'; 
+            lhy_dominoShiftSystem(); lhy_syncToFirebase();
+        } else { document.getElementById('lhy-pop-master').style.display = 'none'; }
         if (isAdminMode) { lhy_fnToggleAdminMode(); }
     }
 
@@ -1843,7 +1638,6 @@
 
     let tempAddType = '';
     function lhy_addMasterDirect(type) {
-        if (typeof lhy_checkAdminLock === 'function' && lhy_checkAdminLock()) return;
         tempAddType = type;
         document.getElementById('add-member-title').innerText = type + " 추가";
         const isG = (type === '손님');
@@ -1870,16 +1664,14 @@
         });
         
         document.getElementById('lhy-pop-add-member').style.display = 'none';
-        lhy_dominoShiftSystem();
-        lhy_applyOrientationLogic();
+        lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
         alert(`[${nameVal}] 님이 명단에 추가되었습니다.`);
     }
 
     function lhy_kickMasterInline(id) {
         const m = DB.members.find(x => x.id === id);
         if(m && confirm(`정말로 [${lhy_getPureName(m.name)}] 회원을 탈퇴 처리하시겠습니까?`)) {
-            DB.members = DB.members.filter(x => x.id !== id);
-            lhy_renderMasterTable();
+            DB.members = DB.members.filter(x => x.id !== id); lhy_renderMasterTable();
         }
     }
 
@@ -1906,17 +1698,13 @@
             if (m) { m.isAtt = true; } 
         });
         
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        
         selectedPopIds = []; isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
-        lhy_renderBoardFromState(); 
-        lhy_dominoShiftSystem();
+        lhy_renderBoardFromState(); lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
         
-        lhy_updateGroupDragBtnPosition(); 
+        lhy_updateGroupDragBtnPosition(); lhy_syncToFirebase();
     }
 
     function lhy_topBtnGoHome() {
@@ -1930,21 +1718,17 @@
             if (m) {
                 if (m.isG) { DB.members = DB.members.filter(x => x.id !== selId); } 
                 else { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }
+                sendGlobalNotify(`${m.name}님 귀가하였습니다.`);
             }
         });
         
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        
-        selectedPopIds = [];
-        isLongClicked = false;
+        selectedPopIds = []; isLongClicked = false;
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
         
-        lhy_renderBoardFromState(); 
-        lhy_dominoShiftSystem();
+        lhy_renderBoardFromState(); lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
         
-        lhy_updateGroupDragBtnPosition(); 
+        lhy_updateGroupDragBtnPosition(); lhy_syncToFirebase();
     }
 
     function lhy_fnExit(event) {
@@ -1955,18 +1739,17 @@
             DB.members = DB.members.filter(m => !m.isG);
             DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
             DB.matchHistory = {};
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-            sessionStorage.removeItem('hwamok_session_v19'); 
+            
+            lhy_syncToFirebase();
+
             lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
             if (document.fullscreenElement) { document.exitFullscreen(); }
             
-            window.close();
             setTimeout(() => {
                 document.body.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
                         <div style="font-size:1.6rem; font-weight:950; color:#2ecc71; margin-bottom:12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓ 오늘 모임 마감 완료</div>
-                        <div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
+                        <div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 초기화 및 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
                     </div>
                 `;
             }, 100);
@@ -1977,7 +1760,6 @@
         let moved = false;
         for(let i=1; i<=6; i++) {
             if(!DB.config.w[i-1]) continue; 
-            
             const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
             const isFull = waitSlots.every(s => boardState[s] !== null);
             
@@ -1995,17 +1777,20 @@
                     waitSlots.forEach((ws, idx) => {
                         boardState[courtSlots[idx]] = boardState[ws];
                         boardState[ws] = null;
+                        
+                        // 자동 배치 시 음성 알림 전송
+                        const memberId = boardState[courtSlots[idx]];
+                        if(memberId) {
+                            const m = DB.members.find(x => x.id === memberId);
+                            if(m) sendGlobalNotify(`${m.name}님 코트 ${targetCourt}에 배정되었습니다.`);
+                        }
                     });
                     moved = true;
                 }
             }
         }
         
-        if(moved) {
-            lhy_renderBoardFromState();
-            lhy_dominoShiftSystem();
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        }
+        if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
     }
 
     function lhy_lockOrientation() {
@@ -2015,24 +1800,33 @@
     }
     
     window.addEventListener('load', () => { 
-        lhy_init(); 
-        lhy_lockOrientation(); 
-        initGroupDragEvents(); 
+        lhy_init(); lhy_lockOrientation(); initGroupDragEvents(); 
     });
 
-    document.addEventListener('touchstart', function() { 
-        lhy_lockOrientation(); 
-    }, { once: true });
+    document.addEventListener('touchstart', function() { lhy_lockOrientation(); }, { once: true });
 
     function lhy_toggleFullScreen() {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`전체화면 오류: ${err.message}`);
-            });
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
+            document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); });
+        } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+    }
+
+    // 알림 및 음성 출력 함수 (수정됨: 글로벌 호출 용)
+    function lhy_notify(message) {
+        // 1. 화면 팝업
+        const popup = document.createElement('div');
+        popup.style.cssText = "position:fixed; top:20%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#FFD700; padding:20px; border-radius:10px; z-index:99999; font-size:1.3rem; font-weight:bold; box-shadow:0 0 10px rgba(0,0,0,0.5); border:1px solid #b8860b;";
+        popup.innerText = message;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 3000);
+
+        // 2. 음성 출력 (TTS) - 한글 지원, 로그인을 통한 최초 클릭 후부터 작동 보장
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
         }
     }
 </script>
