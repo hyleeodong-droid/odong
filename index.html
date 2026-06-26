@@ -634,13 +634,9 @@ function lhy_triggerAlertEvent(memberIds) {
     // ==========================================
     // 💡 [핵심] 3. 글로벌 음성/팝업 알림 (Firebase 연동)
     // ==========================================
-// 기존 sendGlobalNotify 함수를 찾아서 아래와 같이 수정/대체하세요
-function sendGlobalNotify(msg) {
-    // 메시지 창을 띄우지 않도록 기존 로직을 비워둡니다.
-    // 기존에 있던 alert(msg) 또는 toast 관련 코드를 모두 지우거나 주석 처리하세요.
-    console.log("알림 발송 시도됨 (차단됨):", msg); // 확인용으로 콘솔에만 남깁니다.
-    return;
-}
+    function sendGlobalNotify(msg) {
+        database.ref('logs').push({ msg: msg, time: firebase.database.ServerValue.TIMESTAMP });
+    }
 
     function initGlobalNotifications() {
         let isFirstLoad = true;
@@ -1967,11 +1963,11 @@ function lhy_autoEntrySystem() {
     // 알림 및 음성 출력 함수 (수정됨: 글로벌 호출 용)
     function lhy_notify(message) {
         // 1. 화면 팝업
-        const popup = document.createElement('div');
-        popup.style.cssText = "position:fixed; top:20%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#FFD700; padding:20px; border-radius:10px; z-index:99999; font-size:1.3rem; font-weight:bold; box-shadow:0 0 10px rgba(0,0,0,0.5); border:1px solid #b8860b;";
-        popup.innerText = message;
-        document.body.appendChild(popup);
-        setTimeout(() => popup.remove(), 3000);
+ ///       const popup = document.createElement('div');
+ ///       popup.style.cssText = "position:fixed; top:20%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#FFD700; padding:20px; border-radius:10px; z-index:99999; font-size:1.3rem; font-weight:bold; box-shadow:0 0 10px  /// rgba(0,0,0,0.5); border:1px solid #b8860b;";
+///        popup.innerText = message;
+///        document.body.appendChild(popup);
+///        setTimeout(() => popup.remove(), 3000);
 
         // 2. 음성 출력 (TTS) - 한글 지원, 로그인을 통한 최초 클릭 후부터 작동 보장
         if ('speechSynthesis' in window) {
