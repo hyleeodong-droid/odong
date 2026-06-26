@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260626-1</title>
+    <title>화목모임_260626-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -392,7 +392,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260626-1</div>
+    <div class="lhy-footer-filename">화목모임_260626-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -956,7 +956,7 @@
         boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id; boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
         
         // 배정 글로벌 알림
-        selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix)}에 배정되었습니다.`); });
+selected.forEach(m => { sendGlobalNotify(`${m.name}님 ${getAreaName(boardPrefix)}에 배정되었습니다.`); });
         
         lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id); lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
         
@@ -1136,44 +1136,59 @@
         lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
-    function lhy_dominoShiftSystem() {
-        if (isManualMode) {
-            let emptyCourtSlots = [];
-            for (let i = 1; i <= 6; i++) {
-                if (DB.config.c[i-1]) {
-                    let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
-                    if (isCourtEmpty) emptyCourtSlots.push(`c${i}`);
-                }
+function lhy_dominoShiftSystem() {
+    // _260626-1
+    if (isManualMode) {
+        let emptyCourtSlots = [];
+        for (let i = 1; i <= 6; i++) {
+            if (DB.config.c[i-1]) {
+                let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
+                if (isCourtEmpty) emptyCourtSlots.push(`c${i}`);
             }
-            
-            let fullWaitTeams = [];
-            for (let w = 1; w <= 6; w++) {
-                if (DB.config.w[w-1]) {
-                    let isWaitFull = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
-                    if (isWaitFull) fullWaitTeams.push(`w${w}`);
-                }
-            }
-            
-            let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
-            for(let i=0; i<moves; i++) {
-                let tCourt = emptyCourtSlots[i]; let sWait = fullWaitTeams[i];
-                posOrder.forEach(p => {
-                    const memberId = boardState[`${sWait}-${p}`];
-                    boardState[`${tCourt}-${p}`] = memberId;
-                    boardState[`${sWait}-${p}`] = null;
-                    if (memberId) {
-                        const m = DB.members.find(x => x.id === memberId);
-                        if (m) sendGlobalNotify(`${m.name}님 코트 ${tCourt.replace('c','')}에 배정되었습니다.`);
-                    }
-                });
-            }
-            lhy_compactWaitSlots(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
-            lhy_syncToFirebase();
-            return;
         }
+        
+        let fullWaitTeams = [];
+        for (let w = 1; w <= 6; w++) {
+            if (DB.config.w[w-1]) {
+                let isWaitFull = posOrder.every(p => boardState[`w${w}-${p}`] !== null);
+                if (isWaitFull) fullWaitTeams.push(`w${w}`);
+            }
+        }
+        
+        let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
+        for(let i=0; i<moves; i++) {
+            let tCourt = emptyCourtSlots[i]; let sWait = fullWaitTeams[i];
+            let assignedBatch = []; //[cite: 2]
 
-        lhy_compactWaitSlots(); lhy_rotationalMatchEngine();
+            posOrder.forEach(p => {
+                const memberId = boardState[`${sWait}-${p}`];
+                boardState[`${tCourt}-${p}`] = memberId;
+                boardState[`${sWait}-${p}`] = null;
+                if (memberId) {
+                    const m = DB.members.find(x => x.id === memberId);
+                    if (m) {
+                        // 이름 정리 후 배치 배열에 추가[cite: 2]
+                        assignedBatch.push(m.name.replace(/\(여\)/g, '').replace(/\(남\)/g, ''));
+                    }
+                }
+            });
+
+            // 코트별로 한 번에 전송[cite: 2]
+            if (assignedBatch.length > 0) {
+                sendGlobalNotify(`${assignedBatch.join(', ')}님들이 코트 ${tCourt.replace('c','')}에 배정되었습니다.`);
+            }
+        }
+        
+        lhy_compactWaitSlots(); 
+        lhy_renderBoardFromState(); 
+        lhy_updateResetButtonUI(); 
+        lhy_applyOrientationLogic();
+        lhy_syncToFirebase();
+        return;
     }
+
+    lhy_compactWaitSlots(); lhy_rotationalMatchEngine();
+}
 
     function lhy_getPureName(fullName) {
         if(!fullName) return "";
