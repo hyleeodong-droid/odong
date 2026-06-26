@@ -631,6 +631,9 @@ function lhy_triggerAlertEvent(memberIds) {
         });
     }
 
+    // ==========================================
+    // 💡 [핵심] 3. 글로벌 음성/팝업 알림 (Firebase 연동)
+    // ==========================================
 // 기존 sendGlobalNotify 함수를 찾아서 아래와 같이 수정/대체하세요
 function sendGlobalNotify(msg) {
     // 메시지 창을 띄우지 않도록 기존 로직을 비워둡니다.
@@ -638,6 +641,18 @@ function sendGlobalNotify(msg) {
     console.log("알림 발송 시도됨 (차단됨):", msg); // 확인용으로 콘솔에만 남깁니다.
     return;
 }
+
+    function initGlobalNotifications() {
+        let isFirstLoad = true;
+        database.ref('logs').limitToLast(1).on('child_added', (snapshot) => {
+            if (isFirstLoad) return; 
+            const log = snapshot.val();
+            if (log && log.msg && (Date.now() - log.time < 10000)) { 
+                lhy_notify(log.msg);
+            }
+        });
+        setTimeout(() => { isFirstLoad = false; }, 2000);
+    }
 
     function getAreaName(areaId) {
         if (areaId.startsWith('c')) return `코트 ${areaId.replace('c','')}`;
