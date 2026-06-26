@@ -1258,9 +1258,8 @@ function lhy_triggerNeonEffect(memberId) {
     }
 }
 
-// [수정된 메인 함수]
 function lhy_dominoShiftSystem() {
-    // _260626-2
+    // _260626-4
     if (isManualMode) {
         let emptyCourtSlots = [];
         for (let i = 1; i <= 6; i++) {
@@ -1279,7 +1278,7 @@ function lhy_dominoShiftSystem() {
         }
         
         let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
-        let movedMemberIds = []; // 알림을 위해 이동한 회원 ID 수집
+        let allMovedMemberIds = []; 
 
         for(let i=0; i<moves; i++) {
             let tCourt = emptyCourtSlots[i]; 
@@ -1291,18 +1290,17 @@ function lhy_dominoShiftSystem() {
                 boardState[`${sWait}-${p}`] = null;
                 
                 if (memberId) {
-                    movedMemberIds.push(memberId);
+                    allMovedMemberIds.push(memberId);
                 }
             });
         }
 
-        // 알림 기능 실행 (이동이 발생했을 경우)
-        if (movedMemberIds.length > 0) {
-            // 1. 소리 재생
-            lhy_playDingDongSound();
-            // 2. 각 회원 카드 네온사인 효과 적용
-            movedMemberIds.forEach(id => lhy_triggerNeonEffect(id));
+        // --- 알림 로직: 메시지 없이 소리와 효과만 ---
+        if (allMovedMemberIds.length > 0) {
+            lhy_playDingDongSound(); // 소리는 그대로 유지
+            allMovedMemberIds.forEach(id => lhy_triggerNeonEffect(id)); // 효과만 적용
         }
+        // ------------------------------------------
         
         lhy_compactWaitSlots(); 
         lhy_renderBoardFromState(); 
