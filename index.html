@@ -1259,7 +1259,7 @@ function lhy_triggerNeonEffect(memberId) {
 }
 
 function lhy_dominoShiftSystem() {
-    // _260626-4
+    // _260626-5
     if (isManualMode) {
         let emptyCourtSlots = [];
         for (let i = 1; i <= 6; i++) {
@@ -1295,10 +1295,10 @@ function lhy_dominoShiftSystem() {
             });
         }
 
-        // --- 알림 로직: 메시지 없이 소리와 효과만 ---
+        // --- 알림 메시지 호출부를 완전히 삭제함 ---
         if (allMovedMemberIds.length > 0) {
-            lhy_playDingDongSound(); // 소리는 그대로 유지
-            allMovedMemberIds.forEach(id => lhy_triggerNeonEffect(id)); // 효과만 적용
+            lhy_playDingDongSound(); // 소리 재생
+            allMovedMemberIds.forEach(id => lhy_triggerNeonEffect(id)); // 네온 효과 재생
         }
         // ------------------------------------------
         
@@ -1310,7 +1310,8 @@ function lhy_dominoShiftSystem() {
         return;
     }
 
-    lhy_compactWaitSlots(); lhy_rotationalMatchEngine();
+    lhy_compactWaitSlots(); 
+    lhy_rotationalMatchEngine();
 }
 
     function lhy_getPureName(fullName) {
