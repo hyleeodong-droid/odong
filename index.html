@@ -861,11 +861,9 @@
             // 배정 시 알림 트리거
             const m = DB.members.find(x => x.id === memberId);
             if (m && to.id.includes('-')) {
-// 1. 배정된 멤버들의 이름 배열 만들기 (예: targetMembers는 현재 배정된 멤버들의 배열)
-const assignedNames = targetMembers.map(m => m.name).join(', ');
-
-// 2. 알림 메시지 발송
-sendGlobalNotify(`${assignedNames}님 배정되었습니다.`);
+                const areaId = to.id.split('-')[0];
+                sendGlobalNotify(`${m.name}님 ${getAreaName(areaId)}에 배정되었습니다.`);
+            }
 
             lhy_syncBoardDOMToState();
         },
