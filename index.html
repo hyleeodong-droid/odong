@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260629-1</title>
+    <title>화목모임_260629-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -345,7 +345,7 @@
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
     background-size: cover; background-position: center; background-repeat: no-repeat;">
     
-    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목모임 입니다</div>
+    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목 모임</div>
     
     <input type="password" id="pw-input" placeholder="비밀번호 입력" 
            onkeydown="if(event.keyCode===13) checkPassword()" 
@@ -356,6 +356,7 @@
 
 <script>
 let isLimitedMode = false;
+let isAppClosed = false; // [오류해결 1] 전체 게임 종료 후 백그라운드 작동을 멈추기 위한 플래그
 
     // 딩동 소리 단 1회 재생
     let globalAudioCtx = null;
@@ -467,7 +468,7 @@ function checkPassword() {
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260629-1</div>
+    <div class="lhy-footer-filename">화목모임_260629-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -564,7 +565,7 @@ function checkPassword() {
         let safeBoardState = {};
         const posOrder = ['L1', 'L2', 'R1', 'R2'];
         
-        // [요청 4 해결] 보드판에 있는 인원은 강제로 'isAtt=true' 상태 처리
+        // [오류해결 4] 보드판에 있는 인원은 강제로 'isAtt=true' (출석) 상태 처리
         for(let i=1; i<=6; i++) {
             posOrder.forEach(p => {
                 let memberCId = boardState[`c${i}-${p}`] || null;
@@ -731,7 +732,7 @@ function checkPassword() {
                         
                         sendGlobalAction([...selectedPopIds]);
 
-                        lhy_syncToFirebase(); // Firebase 동기화 전에 처리됨
+                        lhy_syncToFirebase();
 
                         selectedPopIds = [];
                         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -867,6 +868,7 @@ function checkPassword() {
         const file = event.target.files[0];
         if (!file) return;
         if (!confirm("불러오기를 진행하면 현재 명단이 교체됩니다. 계속하시겠습니까?")) { event.target.value = ''; return; }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
@@ -878,9 +880,12 @@ function checkPassword() {
                     const cols = rows[i].split(',');
                     if (cols.length < 5) continue;
                     const name = cols[0].replace(/"/g, '').trim();
-                    const sex = cols[1].trim(); const age = cols[2].trim(); const grade = cols[3].trim(); const joinDate = cols[4].trim();
+                    const sex = cols[1].trim(); 
+                    const age = cols[2].trim(); 
+                    const grade = cols[3].trim(); 
+                    const joinDate = cols[4].trim();
                     newMembers.push({
-                        id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5),
+                        id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5) + i,
                         name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
                         sex: sex, age: age, grade: grade, joinDate: joinDate, isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
                     });
@@ -899,7 +904,7 @@ function checkPassword() {
             }
             event.target.value = '';
         };
-        reader.readAsText(file, 'EUC-KR'); // 한글 깨짐 방지
+        reader.readAsText(file, 'EUC-KR'); // 한국어 엑셀 CSV 깨짐 방지
     }
 
     const dragOpt = { 
@@ -953,6 +958,7 @@ function checkPassword() {
                 statEl.innerText = "회원관리"; 
                 statEl.classList.add('admin-active');
                 lhy_openMasterPop(); 
+                applyAccessControl(); // 접근 제어 다시 반영
             } else { if (pw !== null) alert("비밀번호가 일치하지 않습니다."); }
         } else {
             isAdminMode = false;
@@ -961,6 +967,7 @@ function checkPassword() {
             statEl.classList.remove('admin-active');
             statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`;
             lhy_applyOrientationLogic();
+            applyAccessControl(); // 접근 제어 다시 반영
         }
     }
 
@@ -1268,7 +1275,7 @@ function checkPassword() {
         const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
 
-        // [요청 1] 새로운 날짜 첫 로그인 시: GitHub CSV 동기화 및 자동 귀가/초기화
+        // [요청 1 해결] 새로운 날짜 첫 로그인 시: GitHub CSV 동기화 및 자동 초기화
         database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
             const lastDate = snapshot.val();
             if (lastDate !== todayStr) {
@@ -1277,27 +1284,47 @@ function checkPassword() {
                 // ★★★여기에 본인의 깃허브 Raw CSV 주소를 입력하세요★★★
                 // 예: https://raw.githubusercontent.com/아이디/저장소/main/members.csv
                 const GITHUB_CSV_URL = "https://raw.githubusercontent.com/사용자계정/저장소/main/members.csv"; 
+                
+                if (!GITHUB_CSV_URL || GITHUB_CSV_URL.includes("사용자계정")) {
+                    console.warn("GitHub CSV 주소가 입력되지 않았습니다. 기존 데이터로 초기화를 진행합니다.");
+                    fallbackReset(todayStr);
+                    return;
+                }
 
-                fetch(GITHUB_CSV_URL)
+                // 캐시 우회를 위해 URL 뒤에 타임스탬프 파라미터 추가
+                fetch(GITHUB_CSV_URL + '?t=' + new Date().getTime())
                     .then(res => {
-                        if(!res.ok) throw new Error("GitHub CSV 로드 실패");
-                        return res.text();
+                        if(!res.ok) throw new Error("GitHub CSV 로드 실패: " + res.status);
+                        // 한글(EUC-KR) 디코딩을 위해 Text 대신 ArrayBuffer로 받아옴
+                        return res.arrayBuffer();
                     })
-                    .then(text => {
+                    .then(buffer => {
+                        // 기본적으로 EUC-KR 해독 시도
+                        let decoder = new TextDecoder('euc-kr');
+                        let text = decoder.decode(buffer);
+                        
+                        // 만약 원본이 utf-8이라 글자가 깨진다면 (보통  문자가 포함됨) UTF-8로 재해독
+                        if (text.indexOf('') > -1) {
+                            decoder = new TextDecoder('utf-8');
+                            text = decoder.decode(buffer);
+                        }
+
                         const rows = text.split('\n');
                         let newMembers = [];
+                        // 첫 줄(헤더) 건너뛰고 시작
                         for (let i = 1; i < rows.length; i++) {
                             if (!rows[i].trim()) continue;
                             const cols = rows[i].split(',');
                             if (cols.length < 5) continue;
+                            
                             const name = cols[0].replace(/"/g, '').trim();
-                            const sex = cols[1].trim(); 
-                            const age = cols[2].trim(); 
-                            const grade = cols[3].trim(); 
-                            const joinDate = cols[4].trim();
+                            const sex = cols[1] ? cols[1].trim() : '남'; 
+                            const age = cols[2] ? cols[2].trim() : ''; 
+                            const grade = cols[3] ? cols[3].trim() : ''; 
+                            const joinDate = cols[4] ? cols[4].trim() : '';
 
                             newMembers.push({
-                                id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5),
+                                id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5) + i,
                                 name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
                                 sex: sex, age: age, grade: grade, joinDate: joinDate, 
                                 isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
@@ -1308,24 +1335,29 @@ function checkPassword() {
                             DB.members = newMembers;
                         }
 
+                        // 보드판의 모든 회원을 비움
                         Object.keys(boardState).forEach(key => boardState[key] = null);
                         lhy_syncToFirebase();
                         database.ref('meta/lastAccessDate').set(todayStr);
-                        alert("새로운 날짜입니다. 깃허브에서 명단을 갱신하고 보드판을 초기화했습니다.");
+                        alert("새로운 날짜입니다. 깃허브에서 최신 명단을 갱신하고 보드판을 초기화했습니다.");
                     })
                     .catch(err => {
                         console.error("CSV 파싱 실패:", err);
-                        // 실패하더라도 보드판 초기화 및 출석 상태 리셋은 보장
-                        DB.members.forEach(m => { m.isAtt = false; delete m.attTime; });
-                        Object.keys(boardState).forEach(key => boardState[key] = null);
-                        lhy_syncToFirebase();
-                        database.ref('meta/lastAccessDate').set(todayStr);
-                        alert("새로운 날짜입니다. (깃허브 연동 실패) 기존 명단을 사용하며 보드판을 초기화했습니다.");
+                        fallbackReset(todayStr);
                     });
             }
         });
         
+        function fallbackReset(dateString) {
+            DB.members.forEach(m => { m.isAtt = false; delete m.attTime; });
+            Object.keys(boardState).forEach(key => boardState[key] = null);
+            lhy_syncToFirebase();
+            database.ref('meta/lastAccessDate').set(dateString);
+            alert("새로운 날짜입니다. 기존 명단을 유지하며 코트/대기 보드판을 초기화했습니다.");
+        }
+
         database.ref('appData').on('value', (snapshot) => {
+            if(isAppClosed) return; // [오류해결 1] 앱 마감 상태일 경우 렌더링 중지 (충돌 방지)
             if(isSyncing) return; 
             const data = snapshot.val();
             if (data) {
@@ -1449,7 +1481,7 @@ function checkPassword() {
 
         let cCols = (actC <= 2) ? 1 : 2; let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
         
-        // [요청 3] 모바일 이름 최적화를 위한 3단계 클래스 부여 (1개: single-row, 2~3개: few-rows, 4개이상: 기본)
+        // [요청 3 해결] 모바일 이름 크기 최적화를 위한 클래스 부여 세분화 (1개: single-row, 2~3개: few-rows, 4개이상: 기본)
         let fewC = (actC >= 2 && actC <= 3) ? 'few-rows' : '';
         let singleC = (actC === 1) ? 'single-row' : '';
         cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`; cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
@@ -1846,9 +1878,12 @@ function checkPassword() {
         lhy_updateGroupDragBtnPosition(); lhy_syncToFirebase();
     }
 
+    // [오류해결 1] 전체 게임 마감(나가기) 시 리스너 충돌 해결
     function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
-        if(confirm("오늘 모임을 마감하시겠습니까?")) {
+        if(confirm("오늘 모임을 마감하시겠습니까? (출석 기록 및 보드판이 모두 초기화됩니다.)")) {
+            isAppClosed = true; // 앱을 닫힌 상태로 전환해 배경 렌더링 중지
+
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; });
             DB.members = DB.members.filter(m => !m.isG);
@@ -1857,9 +1892,9 @@ function checkPassword() {
             
             lhy_syncToFirebase();
 
-            lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
-            if (document.fullscreenElement) { document.exitFullscreen(); }
+            if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
             
+            // 화면 완전 정리
             setTimeout(() => {
                 document.body.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
@@ -1937,10 +1972,13 @@ function checkPassword() {
         } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
     }
     
+    // [UI 접근 제어] 관리자와 제한 모드 버튼 숨김 처리 분리
     function applyAccessControl() {
         if (!isLimitedMode) {
             const el = document.getElementById('btn-personal-exit');
             if (el) el.classList.add('limited-hide');
+            const el2 = document.getElementById('btn-exit-app');
+            if (el2) el2.classList.remove('limited-hide'); // 나가기(전체종료) 보이기
             return;
         }
         
@@ -1953,6 +1991,9 @@ function checkPassword() {
             const el = document.getElementById(id);
             if (el) el.classList.add('limited-hide');
         });
+        
+        const pExit = document.getElementById('btn-personal-exit');
+        if(pExit) pExit.classList.remove('limited-hide');
     }
 </script>
 
