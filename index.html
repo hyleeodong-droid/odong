@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260626-8</title>
+    <title>화목모임_260626-9</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -74,7 +74,8 @@
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        /* 버튼 개수 증가 (10개) 반영 */
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         
         /* 통합된 버튼 스타일 */
         .lhy-menu-grid button { 
@@ -274,7 +275,8 @@
         .real-landscape .lhy-main { flex-direction: row; }
         .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #333; box-shadow: 4px 0 10px rgba(0,0,0,0.3) inset; }
         .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; box-shadow: none; }
-        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
+        /* 버튼 개수 증가 (10개) 반영 */
+        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
@@ -283,10 +285,15 @@
 
         @media (max-width: 450px) {
             #login-modal { background-size: cover; background-position: center; background-repeat: no-repeat; }
-            .p-name { font-size: 13px !important; }
-            .single-row .p-name { font-size: 30px !important; }
+            
+            /* 모바일 환경에서 코트 수에 따른 이름 크기 적당히 조절 */
+            .grid-wrapper .p-name { font-size: 11px !important; }
+            .grid-wrapper.few-rows .p-name { font-size: 16px !important; }
+            .grid-wrapper.single-row .p-name { font-size: 24px !important; }
+            .lhy-player-list .p-name { font-size: 13px !important; }
+
             .stats div, .p-cnt div { font-size: 8px !important; }
-            .single-row .stats div, .single-row .p-cnt div { font-size: 12px !important; }
+            .single-row .stats div, .single-row .p-cnt div { font-size: 11px !important; }
             .container { padding: 5px !important; }
             .lhy-menu-grid button { height: 26px; font-size: 0.65rem; }
         }
@@ -325,24 +332,15 @@
         /* 게임 중인 선수 식별 스타일 */
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
 
-        /* [수정 _260626-5] 텍스트 및 그림자 색상 반전 (5회 반복 애니메이션) */
-        .color-swap-active.m-sex .p-name { animation: swap-m-anim 0.5s 5 !important; }
-        .color-swap-active.f-sex .p-name { animation: swap-f-anim 0.5s 5 !important; }
-        .color-swap-active.g-sex .p-name { animation: swap-g-anim 0.5s 5 !important; }
+        /* [수정 _260626-9] 텍스트 보였다 안보였다 5초간 깜빡임 (10회 반복 애니메이션) */
+        .color-swap-active .p-name { animation: blink-anim 0.5s 10 !important; }
 
-        @keyframes swap-m-anim {
-            0%, 100% { color: #000 !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
-            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #000, 2.5px -2.5px 0 #000, -2.5px 2.5px 0 #000, 2.5px 2.5px 0 #000, -2.5px 0 0 #000, 2.5px 0 0 #000, 0 -2.5px 0 #000, 0 2.5px 0 #000, 0px 3px 5px rgba(0,0,0,0.9) !important; }
+        @keyframes blink-anim {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
-        @keyframes swap-f-anim {
-            0%, 100% { color: #d63384 !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
-            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #d63384, 2.5px -2.5px 0 #d63384, -2.5px 2.5px 0 #d63384, 2.5px 2.5px 0 #d63384, -2.5px 0 0 #d63384, 2.5px 0 0 #d63384, 0 -2.5px 0 #d63384, 0 2.5px 0 #d63384, 0px 3px 5px rgba(0,0,0,0.9) !important; }
-        }
-        @keyframes swap-g-anim {
-            0%, 100% { color: #00f !important; text-shadow: -2.5px -2.5px 0 #fff, 2.5px -2.5px 0 #fff, -2.5px 2.5px 0 #fff, 2.5px 2.5px 0 #fff, -2.5px 0 0 #fff, 2.5px 0 0 #fff, 0 -2.5px 0 #fff, 0 2.5px 0 #fff, 0px 3px 5px rgba(0,0,0,0.9) !important; }
-            50% { color: #fff !important; text-shadow: -2.5px -2.5px 0 #00f, 2.5px -2.5px 0 #00f, -2.5px 2.5px 0 #00f, 2.5px 2.5px 0 #00f, -2.5px 0 0 #00f, 2.5px 0 0 #00f, 0 -2.5px 0 #00f, 0 2.5px 0 #00f, 0px 3px 5px rgba(0,0,0,0.9) !important; }
-        }
-.limited-hide { display: none !important; }
+
+        .limited-hide { display: none !important; }
     </style>
 </head>
 <body>
@@ -363,8 +361,9 @@
 </div>
 
 <script>
-let isLimitedMode = false; // [추가 _260626-8]
-    // [수정 _260626-5] 딩동 소리 단 1회 재생
+let isLimitedMode = false;
+
+    // 딩동 소리 단 1회 재생
     let globalAudioCtx = null;
     function lhy_playDingDongSound() {
         if (!globalAudioCtx) {
@@ -396,13 +395,12 @@ let isLimitedMode = false; // [추가 _260626-8]
         playTone(659, 0.3, 0.4);     // 동
     }
 
-    // [수정 _260626-5] 특정 멤버 이름/그림자 색상 반전 애니메이션 활성화
+    // 5초 깜빡임 애니메이션 활성화
     function lhy_triggerColorSwapEffect(memberId) {
         const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
         targetEls.forEach(el => {
             el.classList.add('color-swap-active');
-            // 0.5초 * 5회 = 2.5초 (여유롭게 2.6초 뒤에 클래스 제거)
-            setTimeout(() => el.classList.remove('color-swap-active'), 2600); 
+            setTimeout(() => el.classList.remove('color-swap-active'), 5000); 
         });
     }
 
@@ -413,13 +411,13 @@ function checkPassword() {
     // 관리자 모드
     if (input === "12") {
         isLimitedMode = false;
-        // 기존 로그인 처리
         if (!globalAudioCtx) {
             globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
             globalAudioCtx.resume();
         }
         document.getElementById('auth-gate').style.display = 'none';
         lhy_safeLockOrientation();
+        applyAccessControl(); // 접근 제어 적용
     }
     // 제한 모드 (비번 없음)
     else if (input === "") {
@@ -430,9 +428,7 @@ function checkPassword() {
         }
         document.getElementById('auth-gate').style.display = 'none';
         lhy_safeLockOrientation();
-        
-        // 제한 모드 적용 (버튼 숨기기)
-        applyAccessControl();
+        applyAccessControl(); // 접근 제어 적용 (버튼 숨기기)
     }
     else {
         alert("비밀번호가 틀렸습니다.");
@@ -471,15 +467,16 @@ function checkPassword() {
                 <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#fff;" onclick="lhy_topBtnCancelGame()">게임취소</button>
                 <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
                 
-<button id="btn-add-new" style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
-<button id="btn-add-guest" style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
-<button id="btn-exit-app" style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
+                <button id="btn-add-new" style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
+                <button id="btn-add-guest" style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
+                <button id="btn-exit-app" style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
+                <button id="btn-personal-exit" style="background:linear-gradient(180deg, #64748b, #475569);" onclick="lhy_personalExit()">나가기</button>
             </div>
             <div class="lhy-player-list" id="ui-list"></div>
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260626-8</div>
+    <div class="lhy-footer-filename">화목모임_260626-9</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -605,9 +602,7 @@ function checkPassword() {
     function lhy_syncToFirebase() {
         isSyncing = true;
         
-        // 1. 보드판의 undefined 방지 (빈칸은 반드시 null로 안전하게 치환)
         let safeBoardState = {};
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         for(let i=1; i<=6; i++) {
             posOrder.forEach(p => {
                 safeBoardState[`c${i}-${p}`] = boardState[`c${i}-${p}`] || null;
@@ -642,10 +637,8 @@ function checkPassword() {
         database.ref('logs').limitToLast(1).on('child_added', (snapshot) => {
             if (isFirstLoad) return; 
             const log = snapshot.val();
-            // 시간차가 10초 이내인 액션만 실행 (이전 기록 무시)
             if (log && log.ids && Array.isArray(log.ids) && (Date.now() - log.time < 10000)) { 
                 lhy_playDingDongSound();
-                // [수정 _260626-5] 함수명 변경 반영
                 log.ids.forEach(id => lhy_triggerColorSwapEffect(id));
             }
         });
@@ -945,7 +938,6 @@ function checkPassword() {
             const item = evt.item; const to = evt.to; const from = evt.from; 
             const memberId = item.getAttribute('data-id');
 
-            // 리스트 영역으로 드래그 된 경우 (경기 취소 및 복귀)
             if (to.id === 'ui-list') {
                 if(item) item.remove(); 
                 sendGlobalAction([memberId]); 
@@ -959,7 +951,6 @@ function checkPassword() {
             const isDuplicate = Object.keys(boardState).some(slotKey => { return boardState[slotKey] === memberId && slotKey !== to.id; });
             if (isDuplicate) { alert("이미 다른 곳에 배정된 회원입니다!"); from.appendChild(item); return; }
             
-            // 보드판 수동 배정 시 글로벌 알림
             sendGlobalAction([memberId]);
 
             lhy_syncBoardDOMToState();
@@ -1295,13 +1286,41 @@ function checkPassword() {
         return 'm-sex';
     }
 
-    // ==========================================
+// ==========================================
     // 💡 2. 양방향 데이터 리스너 & 초기 세팅
     // ==========================================
     function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
+
+        // [추가] 날짜가 변경되었는지 확인하고 자동 초기화
+        database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
+            const lastDate = snapshot.val();
+            if (lastDate !== todayStr) {
+                console.log("날짜 변경 감지: 자동 귀가 처리 시작");
+                
+                // 1. 모든 회원 귀가 및 데이터 초기화
+                DB.members.forEach(m => {
+                    m.isAtt = false;
+                    m.cnt = 0;
+                    m.win = 0;
+                    m.lose = 0;
+                    delete m.attTime;
+                });
+
+                // 2. 보드판의 모든 위치 null로 초기화
+                Object.keys(boardState).forEach(key => boardState[key] = null);
+
+                // 3. 변경된 상태 즉시 Firebase에 저장
+                lhy_syncToFirebase();
+
+                // 4. 날짜 갱신
+                database.ref('meta/lastAccessDate').set(todayStr);
+                alert("새로운 날짜가 확인되어 어제 남아있던 회원을 모두 귀가 처리했습니다.");
+            }
+        });
         
         database.ref('appData').on('value', (snapshot) => {
             if(isSyncing) return; 
@@ -1327,7 +1346,6 @@ function checkPassword() {
             }
         });
 
-        // 글로벌 알림 이벤트 수신기 초기화
         initGlobalNotifications();
         
         let clickTimer = null; 
@@ -1354,7 +1372,6 @@ function checkPassword() {
                     if (!m) return;
 
                     if (clickTimer) {
-                        // 2-클릭 (귀가 처리)
                         clearTimeout(clickTimer);
                         clickTimer = null;
                         
@@ -1372,7 +1389,6 @@ function checkPassword() {
                             lhy_syncToFirebase();
                         }
                     } else {
-                        // 1-클릭 (출석 처리)
                         clickTimer = setTimeout(() => {
                             clickTimer = null;
                             if (!m.isAtt) {
@@ -1508,17 +1524,7 @@ function checkPassword() {
         const nameDiv = document.createElement('div');
         nameDiv.className = "p-name p-name_260626-1"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName;
 
-        const infoDiv = document.createElement('div');
-        infoDiv.className = "p-info_260626-1"; infoDiv.style.display = 'flex'; infoDiv.style.flexDirection = 'row'; infoDiv.style.gap = '4px'; infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; infoDiv.style.fontWeight = '900'; infoDiv.style.lineHeight = '1'; infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)'; infoDiv.style.pointerEvents = 'none';
-
-        const ageStr = memberObj.age ? `<span style="color:#FFD700">${memberObj.age}</span>` : '';
-        const gradeStr = memberObj.grade ? `<span style="color:#0FF">${memberObj.grade}</span>` : '';
-        infoDiv.innerHTML = `${ageStr}${gradeStr}`;
-
-        if (memberObj.age || memberObj.grade) { nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important'); }
-
         nameWrapper.appendChild(nameDiv);
-        if (memberObj.age || memberObj.grade) { nameWrapper.appendChild(infoDiv); }
 
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
 
@@ -1857,6 +1863,14 @@ function checkPassword() {
         }
     }
 
+    // 본인만 사이트에서 나가는 버튼 로직
+    function lhy_personalExit() {
+        if(confirm("현재 화면을 닫고 나가시겠습니까? (본인 화면만 종료됩니다)")) {
+            window.close();
+            window.location.href = "about:blank"; // 창이 안 닫힐 때를 대비해 빈 화면으로 이동
+        }
+    }
+
     function lhy_autoEntrySystem() {
         let moved = false;
         let assignedIds = []; 
@@ -1915,29 +1929,32 @@ function checkPassword() {
             document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); });
         } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
     }
-// [UI 제어 함수]
-function applyAccessControl() {
-    if (!isLimitedMode) return;
     
-    // 숨기고 싶은 모든 버튼의 ID 목록
-    const buttonsToHide = [
-        'btn-admin-toggle',    // 관리자 버튼
-        'btn-manual-toggle',   // 자동배정
-        'btn-orient-toggle',   // 가로/세로전환
-        'btn-reset-enter',     // 입장/초기화
-        'btn-undo',            // 실행취소
+    // [UI 제어 함수]
+    function applyAccessControl() {
+        if (!isLimitedMode) {
+            // 관리자 모드인 경우: 본인만 나가기 버튼 숨김
+            const el = document.getElementById('btn-personal-exit');
+            if (el) el.classList.add('limited-hide');
+            return;
+        }
         
-        // 새로 추가한 버튼 ID들
-        'btn-add-new',         // 신입
-        'btn-add-guest',       // 손님
-        'btn-exit-app'         // 나가기
-    ];
-    
-    buttonsToHide.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('limited-hide');
-    });
-}
+        // 제한 모드인 경우 숨길 버튼 목록 ('btn-orient-toggle'는 유지)
+        const buttonsToHide = [
+            'btn-admin-toggle',    // 관리자 버튼
+            'btn-manual-toggle',   // 자동배정
+            'btn-reset-enter',     // 입장/초기화
+            'btn-undo',            // 실행취소
+            'btn-add-new',         // 신입
+            'btn-add-guest',       // 손님
+            'btn-exit-app'         // 나가기 (전체초기화 마감)
+        ];
+        
+        buttonsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('limited-hide');
+        });
+    }
 </script>
 
 <button class="btn-fullscreen-toggle" onclick="lhy_toggleFullScreen()">⛶ 전체/축소</button>
