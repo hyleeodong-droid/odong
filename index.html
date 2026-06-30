@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260630-4</title>
+    <title>화목모임_260630-5</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -391,7 +391,7 @@
             lhy_safeLockOrientation();
             applyAccessControl(); 
         }
-        else if (input === "") {
+        else if (input === "1") {
             isLimitedMode = true;
             if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); globalAudioCtx.resume(); }
             document.getElementById('auth-gate').style.display = 'none';
@@ -440,7 +440,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260630-4</div>
+    <div class="lhy-footer-filename">화목모임_260630-5</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -872,23 +872,56 @@
         }    
     };
 
-    function lhy_fnToggleAdminMode() {
-        const statEl = document.getElementById('ui-stat'); const adminBtn = document.getElementById('btn-admin-toggle');
-        if (!isAdminMode) {
-            const pw = prompt("관리자 비밀번호를 입력하세요:");
-            if (pw === "12") {
-                isAdminMode = true; isLimitedMode = false;
-                adminBtn.classList.add('admin-mode'); adminBtn.innerText = "닫기";
-                statEl.innerText = "회원관리"; statEl.classList.add('admin-active');
-                lhy_openMasterPop(); applyAccessControl();
-            } else if (pw !== null) { alert("비밀번호가 일치하지 않습니다."); }
-        } else {
-            isAdminMode = false; isLimitedMode = true;
-            adminBtn.classList.remove('admin-mode'); adminBtn.innerText = "관리자";
-            statEl.classList.remove('admin-active'); statEl.innerText = `${DB.members.filter(m => m.isAtt).length}/${DB.members.length}`;
-            lhy_closeMasterPop(); lhy_applyOrientationLogic(); applyAccessControl();
+function lhy_fnToggleAdminMode() {
+    const statEl = document.getElementById('ui-stat'); 
+    const adminBtn = document.getElementById('btn-admin-toggle');
+
+    // 1. 현재 '잠겨있는 상태(제한 모드)'라면 로그인을 시도
+    if (isLimitedMode) {
+        const pw = prompt("비밀번호를 입력하세요:");
+        
+        if (pw === "12") {
+            // [관리자 모드 진입]
+            isAdminMode = true; 
+            isLimitedMode = false;
+            adminBtn.classList.add('admin-mode'); 
+            adminBtn.innerText = "로그아웃"; // 관리자일 때 버튼 이름
+            statEl.innerText = "회원관리"; 
+            statEl.classList.add('admin-active');
+            lhy_openMasterPop(); 
+            applyAccessControl(); // 9개 버튼 노출
+        } 
+        else if (pw === "1") {
+            // [일반 사용자 모드 진입]
+            isAdminMode = false; 
+            isLimitedMode = false; // 제한 해제
+            adminBtn.classList.add('admin-mode'); 
+            adminBtn.innerText = "로그아웃"; // 일반 사용자도 나가기 버튼 필요
+            statEl.innerText = "일반모드"; 
+            statEl.classList.remove('admin-active');
+            applyAccessControl(); // 9개 버튼 노출
+        } 
+        else if (pw !== null) {
+            alert("비밀번호가 일치하지 않습니다.");
         }
+    } 
+    // 2. 이미 로그인되어 있다면 '로그아웃(잠금)' 처리
+    else {
+        isAdminMode = false; 
+        isLimitedMode = true; // 다시 잠금
+        adminBtn.classList.remove('admin-mode'); 
+        adminBtn.innerText = "관리자"; // 또는 "로그인"
+        statEl.classList.remove('admin-active');
+        // 일반 인원수 표시로 되돌림
+        statEl.innerText = `${DB.members.filter(m => m.isAtt).length}/${DB.members.length}`;
+        
+        // 만약 관리자 팝업이 열려있었다면 닫기
+        document.getElementById('lhy-pop-master').style.display = 'none';
+        
+        lhy_applyOrientationLogic(); 
+        applyAccessControl(); // 다시 4개 버튼으로 축소
     }
+}
 
     function lhy_checkAdminPermission() { if (!isAdminMode) { alert("🔒 접근 권한이 없습니다."); return false; } return true; }
 
