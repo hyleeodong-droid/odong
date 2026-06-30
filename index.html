@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260619-2</title>
+    <title>화목모임_260630-2</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
     // Firebase 설정
     const firebaseConfig = {
@@ -71,9 +73,8 @@
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         
-        /* 통합된 버튼 스타일 */
         .lhy-menu-grid button { 
             height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; 
             cursor: pointer; letter-spacing: -0.5px; border-radius: 4px; 
@@ -101,7 +102,6 @@
         
         .lhy-label { position: absolute; top: 3px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #111; background: linear-gradient(180deg, #ffffff, #e0e0e0); padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 20; border: 1px solid #aaa; display: none !important; }
 
-        /* 터치 지연 방지 */
         .player, .A-btn, .B-btn { touch-action: manipulation; user-select: none; }
 
         .lhy-team { flex: 1; display: grid; grid-template-rows: 1fr 1fr; height: 100%; min-height: 0; overflow: hidden; box-shadow: inset 2px 2px 8px rgba(255,255,255,0.1), inset -2px -2px 8px rgba(0,0,0,0.4); }
@@ -272,17 +272,17 @@
         .real-landscape .lhy-main { flex-direction: row; }
         .real-landscape .lhy-game-area { flex: 0 0 50%; height: 100%; border-right: 2px solid #333; box-shadow: 4px 0 10px rgba(0,0,0,0.3) inset; }
         .real-landscape .lhy-side-area { flex: 0 0 50%; height: 100%; border-top: none; display: flex; flex-direction: column; box-shadow: none; }
-        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
+        .real-landscape .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); width: 100%; height: 38px; flex-shrink: 0; border-bottom: 2px solid #000; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; padding: 4px; }
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
-        .few-rows .lhy-slot { font-size: clamp(14px, 40cqh, 30px) !important; }
-        .single-row .lhy-slot { font-size: clamp(20px, 60cqh, 50px) !important; }
-
         @media (max-width: 450px) {
             #login-modal { background-size: cover; background-position: center; background-repeat: no-repeat; }
-            .p-name { font-size: 13px !important; }
-            .single-row .p-name { font-size: 30px !important; }
+            .grid-wrapper .p-name { font-size: 11px !important; }
+            .grid-wrapper.few-rows .p-name { font-size: 15px !important; }
+            .grid-wrapper.single-row .p-name { font-size: 22px !important; }
+            .lhy-player-list .p-name { font-size: 13px !important; }
+
             .stats div, .p-cnt div { font-size: 8px !important; }
             .single-row .stats div, .single-row .p-cnt div { font-size: 12px !important; }
             .container { padding: 5px !important; }
@@ -306,7 +306,6 @@
         .slot-many { font-size: 14px; text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); }
         .slot-single { font-size: 20px; text-shadow: 2px 2px 4px rgba(255, 255, 255, 1.0); }
 
-        /* 동적 드래그 버튼 스타일 추가 */
         .dynamic-drag-btn {
             position: absolute; width: 60px; height: 60px;
             background: rgba(255, 255, 255, 0.8);
@@ -319,12 +318,18 @@
             transition: transform 0.1s;
         }
         .dynamic-drag-btn.active { transform: translate(-50%, -50%) scale(1.1); background: #FFD700; opacity: 0.8; }
-
-        /* 게임 중인 선수 식별 스타일 */
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
+        .color-swap-active .p-name { animation: blink-anim 0.5s 10 !important; }
+
+        @keyframes blink-anim {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .limited-hide { display: none !important; }
     </style>
 </head>
-<body onload="lhy_init()" onresize="lhy_applyOrientationLogic()">
+<body>
 
 <div id="auth-gate" style="
     position:fixed; top:0; left:0; width:100%; height:100%; 
@@ -332,7 +337,7 @@
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
     background-size: cover; background-position: center; background-repeat: no-repeat;">
     
-    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">환영합니다</div>
+    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목 모임</div>
     
     <input type="password" id="pw-input" placeholder="비밀번호 입력" 
            onkeydown="if(event.keyCode===13) checkPassword()" 
@@ -342,22 +347,62 @@
 </div>
 
 <script>
+    let isLimitedMode = false;
+    let isAppClosed = false;
+    let isSyncing = false;
+    let globalAudioCtx = null;
+
+    function lhy_playDingDongSound() {
+        if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        if (globalAudioCtx.state === 'suspended') { globalAudioCtx.resume(); }
+        const playTone = (freq, duration, timeOffset) => {
+            const osc = globalAudioCtx.createOscillator(); const gain = globalAudioCtx.createGain();
+            osc.connect(gain); gain.connect(globalAudioCtx.destination);
+            osc.type = 'sine';
+            const startTime = globalAudioCtx.currentTime + timeOffset;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.start(startTime); osc.stop(startTime + duration);
+        };
+        playTone(880, 0.3, 0);   // 딩
+        playTone(659, 0.3, 0.4); // 동
+    }
+
+    function lhy_triggerColorSwapEffect(memberId) {
+        const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
+        targetEls.forEach(el => {
+            el.classList.add('color-swap-active');
+            setTimeout(() => el.classList.remove('color-swap-active'), 5000); 
+        });
+    }
+
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-function checkPassword() {
+    function checkPassword() {
         const input = document.getElementById('pw-input').value;
-        if (input === "12") { 
+        if (input === "12") {
+            isLimitedMode = false;
+            if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); globalAudioCtx.resume(); }
             document.getElementById('auth-gate').style.display = 'none';
-            lhy_safeLockOrientation(); // 가로모드 고정만 유지하고 전체화면 강제 실행은 제거
-        } else { alert("비밀번호가 틀렸습니다."); }
+            lhy_safeLockOrientation();
+            applyAccessControl(); 
+        }
+        else if (input === "") {
+            isLimitedMode = true;
+            if (!globalAudioCtx) { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); globalAudioCtx.resume(); }
+            document.getElementById('auth-gate').style.display = 'none';
+            lhy_safeLockOrientation();
+            applyAccessControl(); 
+        }
+        else {
+            alert("비밀번호가 틀렸습니다.");
+        }
     }
     
     function lhy_safeLockOrientation() {
-        try {
-            if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                screen.orientation.lock('landscape').catch(() => {});
-            }
-        } catch (e) {}
+        try { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } } catch (e) {}
     }
 </script>
 
@@ -384,15 +429,16 @@ function checkPassword() {
                 <button style="background:linear-gradient(180deg, #eab308, #ca8a04); color:#fff;" onclick="lhy_topBtnCancelGame()">게임취소</button>
                 <button style="background:linear-gradient(180deg, #ef4444, #b91c1c);" onclick="lhy_topBtnGoHome()">귀가</button>
                 
-                <button style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
-                <button style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
-                <button style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
+                <button id="btn-add-new" style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
+                <button id="btn-add-guest" style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
+                <button id="btn-exit-app" style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">나가기</button>
+                <button id="btn-personal-exit" style="background:linear-gradient(180deg, #64748b, #475569);" onclick="lhy_personalExit()">나가기</button>
             </div>
             <div class="lhy-player-list" id="ui-list"></div>
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260619-2</div>
+    <div class="lhy-footer-filename">화목모임_260630-2</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -413,24 +459,11 @@ function checkPassword() {
                         <button class="rule-btn" data-rule="grade" onclick="lhy_setMatchRule('grade')" style="padding: 6px 14px; border: 1px solid #000; font-weight: 900; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.1s;">등급별 우선</button>
                     </div>
                 </div>
-                <div style="font-size: 0.75rem; color: #475569; font-weight: bold; background: #fff; padding: 8px; border-radius: 6px; border: 1px dashed #94a3b8;">
-                    ※ 기본 우선순위: 1. 빨리 출석한 순 ➔ 2. 게임누적횟수 적은 순<br>
-                    ※ 절대 중복 방지: 파트너를 찾을 때 매칭 이력이 0번인 회원을 모든 등급에서 최우선 탐색합니다.
-                </div>
             </div>
             
             <div class="master-table-wrapper">
                 <table class="master-table">
-                    <thead>
-                        <tr>
-                            <th style="width:20%">이름</th>
-                            <th style="width:15%">성별</th>
-                            <th style="width:18%">나이</th>
-                            <th style="width:18%">등급</th>
-                            <th style="width:19%">입회날짜</th>
-                            <th style="width:10%">관리</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="width:20%">이름</th><th style="width:15%">성별</th><th style="width:18%">나이</th><th style="width:18%">등급</th><th style="width:19%">입회날짜</th><th style="width:10%">관리</th></tr></thead>
                     <tbody id="ui-master-tbody"></tbody>
                 </table>
             </div>
@@ -460,23 +493,10 @@ function checkPassword() {
     <div class="lhy-modal-overlay" id="lhy-pop-add-member" onclick="document.getElementById('lhy-pop-add-member').style.display='none'">
         <div class="lhy-modal-content" style="height:auto; max-width:320px; padding:20px; display:flex; flex-direction:column; gap:12px; background:linear-gradient(180deg, #fff, #f8fafc); border-radius:12px;" onclick="event.stopPropagation()">
             <div class="lhy-modal-header" id="add-member-title" style="margin-bottom:5px; border-radius:6px; font-weight:bold; background:linear-gradient(90deg, #1a237e, #283593); color:#fff; padding:12px; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">신입/손님 추가</div>
-            <input type="text" id="add-m-name" placeholder="이름 (예: 홍길동)" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
-            <select id="add-m-sex" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
-                <option value="남">남</option><option value="여">여</option>
-            </select>
-            <select id="add-m-age" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
-                <option value="">나이 선택</option>
-                <option value="20">20세</option><option value="25">25세</option><option value="30">30세</option><option value="35">35세</option>
-                <option value="40">40세</option><option value="45">45세</option><option value="50">50세</option><option value="55">55세</option>
-                <option value="60">60세</option><option value="65">65세</option><option value="70">70세</option><option value="75">75세</option>
-            </select>
-            <select id="add-m-grade" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.05);">
-                <option value="">등급 선택 (선택 안함)</option>
-                <option value="A1">A1</option><option value="A2">A2</option>
-                <option value="B1">B1</option><option value="B2">B2</option>
-                <option value="C1">C1</option><option value="C2">C2</option>
-                <option value="D1">D1</option><option value="D2">D2</option>
-            </select>
+            <input type="text" id="add-m-name" placeholder="이름 (예: 홍길동)" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;">
+            <select id="add-m-sex" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;"><option value="남">남</option><option value="여">여</option></select>
+            <select id="add-m-age" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;"><option value="">나이 선택</option><option value="20">20세</option><option value="25">25세</option><option value="30">30세</option><option value="35">35세</option><option value="40">40세</option><option value="45">45세</option><option value="50">50세</option><option value="55">55세</option><option value="60">60세</option><option value="65">65세</option><option value="70">70세</option><option value="75">75세</option></select>
+            <select id="add-m-grade" style="padding:12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;"><option value="">등급 선택 (선택 안함)</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="D1">D1</option><option value="D2">D2</option></select>
             <div style="display:flex; gap:10px; margin-top:5px;">
                 <button class="lhy-modal-btn" onclick="lhy_confirmAddMember()" style="flex:1; background:linear-gradient(180deg, #1a237e, #0d1240); color:#fff; padding:12px; border:1px solid #000; border-radius:6px; font-weight:bold; cursor:pointer;">추가하기</button>
                 <button class="lhy-modal-btn lhy-btn-cancel" onclick="document.getElementById('lhy-pop-add-member').style.display='none'" style="flex:1; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;">취소</button>
@@ -484,8 +504,7 @@ function checkPassword() {
         </div>
     </div>
 
-    <script>
-    // --- 글로벌 변수 및 초기화 ---
+<script>
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: ["우측 명단의 회원을 클릭하여 출석/미출석 상태를 변경합니다.", "모드 변경, 가로/세로 전환 등의 버튼으로 환경을 제어할 수 있습니다."] },
         2: { title: "2. 회원관리 인라인 제어 규칙", steps: ["관리자 모드 접속 시 (비번: 12) 회원 정보를 직접 수정할 수 있습니다.", "성별, 나이, 등급을 변경한 후 '저장 및 닫기'를 누르면 즉시 반영됩니다."] },
@@ -497,22 +516,72 @@ function checkPassword() {
     };
 
     const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김방수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이운영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
+    const posOrder = ['L1', 'L2', 'R1', 'R2'];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
+    let boardState = {};
     let longClickTimer = null; let isLongClicked = false; 
     let selectedPopIds = []; 
     let rotationState = 'auto'; let undoStack = []; let isAdminMode = false;
     let isListDragging = false; 
-
-    // 모드 제어용 상태 변수
     let isManualMode = false;
     let isLandscape = true;
-    let boardState = {};
 
-    function safeExecute(fn) {
-        try { return fn(); } catch(e) { console.error("오류 발생:", e); }
+    function safeExecute(fn) { try { return fn(); } catch(e) { console.error("오류 발생:", e); } }
+
+    function lhy_syncToFirebase() {
+        isSyncing = true;
+        let safeBoardState = {};
+        
+        for(let i=1; i<=6; i++) {
+            posOrder.forEach(p => {
+                let memberCId = boardState[`c${i}-${p}`] || null;
+                safeBoardState[`c${i}-${p}`] = memberCId;
+                if (memberCId) {
+                    let m = DB.members.find(x => x.id === memberCId);
+                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); }
+                }
+                
+                let memberWId = boardState[`w${i}-${p}`] || null;
+                safeBoardState[`w${i}-${p}`] = memberWId;
+                if (memberWId) {
+                    let m = DB.members.find(x => x.id === memberWId);
+                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); }
+                }
+            });
+        }
+
+        const safeDB = JSON.parse(JSON.stringify(DB));
+
+        database.ref('appData').set({
+            DB: safeDB,
+            boardState: safeBoardState
+        }).then(() => {
+            isSyncing = false;
+        }).catch(error => {
+            console.error("Firebase 저장 에러:", error);
+            isSyncing = false;
+        });
     }
 
-    // --- 동적 드래그 버튼 위치 업데이트 ---
+    function sendGlobalAction(memberIds) {
+        if (!memberIds || memberIds.length === 0) return;
+        if (!Array.isArray(memberIds)) memberIds = [memberIds];
+        database.ref('logs').push({ ids: memberIds, time: firebase.database.ServerValue.TIMESTAMP });
+    }
+
+    function initGlobalNotifications() {
+        let isFirstLoad = true;
+        database.ref('logs').limitToLast(1).on('child_added', (snapshot) => {
+            if (isFirstLoad) return; 
+            const log = snapshot.val();
+            if (log && log.ids && Array.isArray(log.ids) && (Date.now() - log.time < 10000)) { 
+                lhy_playDingDongSound();
+                log.ids.forEach(id => lhy_triggerColorSwapEffect(id));
+            }
+        });
+        setTimeout(() => { isFirstLoad = false; }, 2000);
+    }
+
     function lhy_updateGroupDragBtnPosition() {
         const selectedEls = document.querySelectorAll('.player.is-sel');
         let btn = document.getElementById('dynamic-drag-btn');
@@ -542,7 +611,6 @@ function checkPassword() {
         btn.style.transform = 'translate(-50%, -50%)';
     }
 
-    // --- 이벤트 위임 기반 드래그 앤 드롭 함수 ---
     function initGroupDragEvents() {
         let isDragging = false;
         let btn = null;
@@ -561,13 +629,11 @@ function checkPassword() {
             initialX = touch.clientX;
             initialY = touch.clientY;
             
-            // 드래그 시 자연스럽게 잡히도록 마우스 좌표와 버튼 좌상단 간의 차이 저장
             const rect = btn.getBoundingClientRect();
             offsetX = touch.clientX - rect.left - (rect.width / 2); 
             offsetY = touch.clientY - rect.top - (rect.height / 2);
 
             btn.classList.add('active');
-            console.log("그룹 드래그 시작!");
         };
 
         const handleMove = (e) => {
@@ -586,8 +652,6 @@ function checkPassword() {
             
             if (btn) {
                 btn.classList.remove('active');
-                
-                // 버튼을 잠시 숨겨서 하단 요소 탐색
                 btn.style.display = 'none';
                 
                 const touch = e.changedTouches ? e.changedTouches[0] : e;
@@ -608,29 +672,19 @@ function checkPassword() {
                     if (emptySlots.length >= selectedPopIds.length) {
                         lhy_saveUndoState();
 
-                        // 기존 위치 잔상 제거
                         Object.keys(boardState).forEach(key => {
-                            if (selectedPopIds.includes(boardState[key])) {
-                                boardState[key] = null;
-                            }
+                            if (selectedPopIds.includes(boardState[key])) { boardState[key] = null; }
                         });
 
-                        // 새 위치 배치
-                        selectedPopIds.forEach((id, index) => {
-                            boardState[emptySlots[index]] = id;
-                        });
+                        selectedPopIds.forEach((id, index) => { boardState[emptySlots[index]] = id; });
 
-                        // 출석 동기화
                         selectedPopIds.forEach(id => {
                             const member = DB.members.find(m => m.id === id);
-                            if (member) {
-                                member.isAtt = true;
-                                if (!member.attTime) member.attTime = Date.now();
-                            }
+                            if (member) { member.isAtt = true; if (!member.attTime) member.attTime = Date.now(); }
                         });
-
-                        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-                        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+                        
+                        sendGlobalAction([...selectedPopIds]);
+                        lhy_syncToFirebase();
 
                         selectedPopIds = [];
                         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
@@ -641,22 +695,16 @@ function checkPassword() {
                         if(typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                         
                         btn.remove();
-                        console.log("이동 및 상태 갱신 완료");
-                    } else {
-                        alert("배치할 빈 자리가 부족합니다.");
-                    }
+                    } else { alert("배치할 빈 자리가 부족합니다."); }
                 }
                 lhy_updateGroupDragBtnPosition();
-                console.log("그룹 드래그 종료!");
             }
         };
 
         document.addEventListener('mousedown', handleStart);
         document.addEventListener('touchstart', handleStart, { passive: false });
-        
         document.addEventListener('mousemove', handleMove, { passive: false });
         document.addEventListener('touchmove', handleMove, { passive: false });
-        
         document.addEventListener('mouseup', handleEnd);
         document.addEventListener('touchend', handleEnd);
     }
@@ -665,18 +713,14 @@ function checkPassword() {
         const btnManual = document.getElementById('btn-manual-toggle');
         if (btnManual) {
             btnManual.innerText = isManualMode ? "수동배정" : "자동배정";
-            btnManual.style.background = isManualMode ? 
-                "linear-gradient(180deg, #d946ef, #a21caf)" : 
-                "linear-gradient(180deg, #3b82f6, #1d4ed8)";
+            btnManual.style.background = isManualMode ? "linear-gradient(180deg, #d946ef, #a21caf)" : "linear-gradient(180deg, #3b82f6, #1d4ed8)";
             btnManual.style.color = "#fff";
         }
 
         const btnOrient = document.getElementById('btn-orient-toggle');
         if (btnOrient) {
             btnOrient.innerText = isLandscape ? "가로" : "세로";
-            btnOrient.style.background = isLandscape ? 
-                "linear-gradient(180deg, #5c0099, #4b0082)" : 
-                "linear-gradient(180deg, #99005c, #82004b)";
+            btnOrient.style.background = isLandscape ? "linear-gradient(180deg, #5c0099, #4b0082)" : "linear-gradient(180deg, #99005c, #82004b)";
             btnOrient.style.color = "#fff";
         }
     }
@@ -692,35 +736,22 @@ function checkPassword() {
             let currentWaitCount = 0;
             for (let i = 1; i <= 4; i++) { 
                 const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
-                if (slots.some(s => boardState[s] !== null)) {
-                    currentWaitCount++;
-                }
+                if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; }
             }
-
             const targetWaitCount = Math.max(1, currentWaitCount);
             DB.config.w = [false, false, false, false, false, false];
-            for (let i = 0; i < targetWaitCount; i++) {
-                DB.config.w[i] = true;
-            }
-
+            for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
             alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`);
             lhy_dominoShiftSystem();
         }
 
-        lhy_refreshMenuUI();
-        lhy_drawBoard(); 
-        lhy_renderBoardFromState();
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+        lhy_refreshMenuUI(); lhy_drawBoard(); lhy_renderBoardFromState(); lhy_syncToFirebase();
     }
 
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
-        if (rotationState === 'auto') {
-            rotationState = isPhysicallyLandscape ? 'force-portrait' : 'force-landscape';
-        } 
-        else {
-            rotationState = 'auto'; 
-        }
+        if (rotationState === 'auto') { rotationState = isPhysicallyLandscape ? 'force-portrait' : 'force-landscape'; } 
+        else { rotationState = 'auto'; }
         lhy_applyOrientationLogic();
     }
     
@@ -740,9 +771,7 @@ function checkPassword() {
     function lhy_setMatchRule(rule) {
         if (!DB.config) DB.config = {};
         DB.config.matchRule = rule;
-        lhy_renderRuleButtons();
-        lhy_saveUndoState();
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
+        lhy_renderRuleButtons(); lhy_saveUndoState(); lhy_syncToFirebase();
     }
 
     function lhy_renderRuleButtons() {
@@ -766,134 +795,103 @@ function checkPassword() {
             csvContent += row + "\n";
         });
         const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob); const link = document.createElement("a");
         const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
-        link.setAttribute("href", url);
-        link.setAttribute("download", `${dateStr}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        link.setAttribute("href", url); link.setAttribute("download", `${dateStr}.csv`);
+        link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     function lhy_importMembers(event) {
         const file = event.target.files[0];
         if (!file) return;
         if (!confirm("불러오기를 진행하면 현재 명단이 교체됩니다. 계속하시겠습니까?")) { event.target.value = ''; return; }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            const text = e.target.result;
-            const rows = text.split('\n');
-            let newMembers = [];
-            for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                const cols = rows[i].split(',');
-                if (cols.length < 5) continue;
-                const name = cols[0].replace(/"/g, '');
-                const sex = cols[1]; const age = cols[2]; const grade = cols[3]; const joinDate = cols[4];
-                newMembers.push({
-                    id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5),
-                    name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
-                    sex: sex, age: age, grade: grade, joinDate: joinDate, isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
-                });
-            }
-            DB.members = newMembers;
-            lhy_renderMasterTable();
-            alert("명단을 성공적으로 불러왔습니다.");
+            try {
+                const text = e.target.result; const rows = text.split('\n'); let newMembers = [];
+                for (let i = 1; i < rows.length; i++) {
+                    if (!rows[i].trim()) continue;
+                    const cols = rows[i].split(','); if (cols.length < 5) continue;
+                    const name = cols[0].replace(/"/g, '').trim();
+                    const sex = cols[1].trim(); const age = cols[2].trim(); const grade = cols[3].trim(); const joinDate = cols[4].trim();
+                    newMembers.push({
+                        id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5) + i,
+                        name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
+                        sex: sex, age: age, grade: grade, joinDate: joinDate, isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
+                    });
+                }
+                if(newMembers.length > 0) {
+                    DB.members = newMembers; lhy_renderMasterTable(); lhy_syncToFirebase();
+                    alert("명단을 성공적으로 불러왔습니다.");
+                } else { alert("가져올 회원 데이터가 없습니다."); }
+            } catch (err) { console.error("CSV 파싱 오류:", err); alert("파일 읽기 오류. 형식을 확인하세요."); }
             event.target.value = '';
         };
-        reader.readAsText(file, 'utf-8');
+        reader.readAsText(file, 'EUC-KR'); 
     }
 
     const dragOpt = { 
         group: { name: 'sh', pull: true, put: true }, 
-        animation: 150, 
-        delay: 150, 
-        delayOnTouchOnly: true, 
-        fallbackTolerance: 5,
-        multiDrag: true, 
-        selectedClass: 'is-sel', 
+        animation: 150, delay: 150, delayOnTouchOnly: true, fallbackTolerance: 5,
         
         onStart: function() { 
             isListDragging = true; 
             if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } 
             lhy_saveUndoState(); 
         },
-
         onAdd: function(evt) {
-            const item = evt.item; 
-            const to = evt.to;     
-            const from = evt.from; 
+            const item = evt.item; const to = evt.to; const from = evt.from; 
             const memberId = item.getAttribute('data-id');
 
-            if (to.children.length > 1) {
-                alert("이 칸에는 이미 다른 사람이 있습니다.");
-                from.appendChild(item);
+            if (to.id === 'ui-list') {
+                if(item) item.remove(); 
+                sendGlobalAction([memberId]); 
+                lhy_syncBoardDOMToState();
+                if (!isManualMode) lhy_dominoShiftSystem();
+                lhy_syncToFirebase();
                 return;
             }
 
-            const isDuplicate = Object.keys(boardState).some(slotKey => {
-                return boardState[slotKey] === memberId && slotKey !== to.id;
-            });
-
-            if (isDuplicate) {
-                alert("이미 다른 곳에 배정된 회원입니다!");
-                from.appendChild(item); 
-                return;
-            }
-
+            if (to.children.length > 1) { alert("이 칸에는 이미 다른 사람이 있습니다."); from.appendChild(item); return; }
+            const isDuplicate = Object.keys(boardState).some(slotKey => { return boardState[slotKey] === memberId && slotKey !== to.id; });
+            if (isDuplicate) { alert("이미 다른 곳에 배정된 회원입니다!"); from.appendChild(item); return; }
+            
+            sendGlobalAction([memberId]);
             lhy_syncBoardDOMToState();
         },
-
         onEnd: function(evt) {
             setTimeout(() => { isListDragging = false; }, 50);
-            document.querySelectorAll('.player').forEach(p => {
-                p.classList.remove('is-sel'); 
-                p.classList.remove('is-selected-target');
-            });
-            selectedPopIds = [];
-            
-            // 1. 보드 상태 동기화
-            lhy_syncBoardDOMToState();
-            
-            // 2. 배정된 사람을 명단에서 제거하는 로직 실행
-            if (typeof lhy_renderListOnly === 'function') {
-                lhy_renderListOnly(document.body.classList.contains('real-landscape'));
-            }
+            document.querySelectorAll('.player').forEach(p => { p.classList.remove('is-sel'); p.classList.remove('is-selected-target'); });
+            selectedPopIds = []; lhy_syncBoardDOMToState();
+            if (typeof lhy_renderListOnly === 'function') { lhy_renderListOnly(document.body.classList.contains('real-landscape')); }
+            lhy_syncToFirebase();
         }    
     };
 
     function lhy_fnToggleAdminMode() {
-        const statEl = document.getElementById('ui-stat');
+        const statEl = document.getElementById('ui-stat'); const adminBtn = document.getElementById('btn-admin-toggle');
         if (!isAdminMode) {
             const pw = prompt("관리자 비밀번호를 입력하세요:");
             if (pw === "12") {
-                isAdminMode = true;
-                document.getElementById('btn-admin-toggle').classList.add('admin-mode');
-                document.getElementById('btn-admin-toggle').innerText = "닫기";
-                statEl.innerText = "회원관리"; 
-                statEl.classList.add('admin-active');
-                lhy_openMasterPop(); 
-            } else { 
-                if (pw !== null) alert("비밀번호가 일치하지 않습니다."); 
-            }
+                isAdminMode = true; isLimitedMode = false;
+                adminBtn.classList.add('admin-mode'); adminBtn.innerText = "닫기";
+                statEl.innerText = "회원관리"; statEl.classList.add('admin-active');
+                lhy_openMasterPop(); applyAccessControl();
+            } else if (pw !== null) { alert("비밀번호가 일치하지 않습니다."); }
         } else {
-            isAdminMode = false;
-            document.getElementById('btn-admin-toggle').classList.remove('admin-mode');
-            document.getElementById('btn-admin-toggle').innerText = "관리자";
-            statEl.classList.remove('admin-active');
-            statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`;
-            lhy_applyOrientationLogic();
+            isAdminMode = false; isLimitedMode = true;
+            adminBtn.classList.remove('admin-mode'); adminBtn.innerText = "관리자";
+            statEl.classList.remove('admin-active'); statEl.innerText = `${DB.members.filter(m => m.isAtt).length}/${DB.members.length}`;
+            lhy_closeMasterPop(); lhy_applyOrientationLogic(); applyAccessControl();
         }
     }
 
-    function lhy_checkAdminPermission() {
-        if (!isAdminMode) { alert("🔒 접근 권한이 없습니다."); return false; } return true;
-    }
+    function lhy_checkAdminPermission() { if (!isAdminMode) { alert("🔒 접근 권한이 없습니다."); return false; } return true; }
 
     function lhy_saveUndoState() {
         const stateCopy = JSON.stringify({ DB: DB, boardState: boardState });
-        undoStack.push(stateCopy);
-        if (undoStack.length > 20) { undoStack.shift(); }
+        undoStack.push(stateCopy); if (undoStack.length > 20) { undoStack.shift(); }
     }
 
     function lhy_fnUndoAction() {
@@ -901,7 +899,7 @@ function checkPassword() {
         if (undoStack.length === 0) { alert("더 이상 되돌릴 작업이 없습니다."); return; }
         const previousState = JSON.parse(undoStack.pop());
         DB = previousState.DB; boardState = previousState.boardState;
-        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
         alert("직전 작업 상태로 복구되었습니다.");
     }
 
@@ -910,17 +908,13 @@ function checkPassword() {
         let hasPlayers = Object.values(boardState).some(id => id !== null);
         
         if (!hasPlayers) {
-            if(isManualMode) { 
-                alert("수동 배정 모드 상태입니다. 회원을 명단에서 보드판 대기조로 직접 드래그해서 배치해주세요."); 
-                return; 
-            }
-            lhy_saveUndoState();
-            lhy_rotationalMatchEngine();
+            if(isManualMode) { alert("수동 배정 모드 상태입니다. 회원을 명단에서 보드판 대기조로 직접 드래그해서 배치해주세요."); return; }
+            lhy_saveUndoState(); lhy_rotationalMatchEngine();
         } else {
             if (confirm("정말로 보드판의 모든 선수를 명단으로 물리겠습니까?")) {
                 lhy_saveUndoState();
                 Object.keys(boardState).forEach(key => { boardState[key] = null; });
-                lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
+                lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
             }
         }
     }
@@ -928,59 +922,28 @@ function checkPassword() {
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
         if (pool.length < 4) return false;
-        
-        function getGVal(g) {
-            if(!g) return 0;
-            let c = g.charAt(0).toUpperCase();
-            return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0;
-        }
+        function getGVal(g) { if(!g) return 0; let c = g.charAt(0).toUpperCase(); return {'A':4, 'B':3, 'C':2, 'D':1}[c] || 0; }
 
-        let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3];
-        let selected = [p1, p2, p3, p4];
-
-        let cases = [
-            { t1: [p1, p2], t2: [p3, p4] },
-            { t1: [p1, p3], t2: [p2, p4] },
-            { t1: [p1, p4], t2: [p2, p3] }
-        ];
-
-        let bestCase = null;
-        let minPenalty = Infinity;
+        let p1 = pool[0], p2 = pool[1], p3 = pool[2], p4 = pool[3]; let selected = [p1, p2, p3, p4];
+        let cases = [ { t1: [p1, p2], t2: [p3, p4] }, { t1: [p1, p3], t2: [p2, p4] }, { t1: [p1, p4], t2: [p2, p3] } ];
+        let bestCase = null; let minPenalty = Infinity;
 
         cases.forEach(c => {
             let historyPenalty = lhy_getMatchScore(c.t1[0].id, c.t1[1].id) + lhy_getMatchScore(c.t2[0].id, c.t2[1].id);
-
-            let t1Score = getGVal(c.t1[0].grade) + getGVal(c.t1[1].grade);
-            let t2Score = getGVal(c.t2[0].grade) + getGVal(c.t2[1].grade);
+            let t1Score = getGVal(c.t1[0].grade) + getGVal(c.t1[1].grade); let t2Score = getGVal(c.t2[0].grade) + getGVal(c.t2[1].grade);
             let balancePenalty = Math.abs(t1Score - t2Score);
-
-            let totalPenalty = 0;
-            if (rule === 'grade') {
-                totalPenalty = (balancePenalty * 100) + historyPenalty;
-            } else {
-                totalPenalty = (historyPenalty * 100) + balancePenalty;
-            }
-
-            if (totalPenalty < minPenalty) {
-                minPenalty = totalPenalty;
-                bestCase = c;
-            }
+            let totalPenalty = (rule === 'grade') ? (balancePenalty * 100) + historyPenalty : (historyPenalty * 100) + balancePenalty;
+            if (totalPenalty < minPenalty) { minPenalty = totalPenalty; bestCase = c; }
         });
 
-        boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id;
-        boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
-        boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id;
-        boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
+        boardState[`${boardPrefix}-L1`] = bestCase.t1[0].id; boardState[`${boardPrefix}-L2`] = bestCase.t1[1].id;
+        boardState[`${boardPrefix}-R1`] = bestCase.t2[0].id; boardState[`${boardPrefix}-R2`] = bestCase.t2[1].id;
         
-        lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id);
-        lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
+        let selectedIds = selected.map(p => p.id); sendGlobalAction(selectedIds); 
         
-        let selectedIds = selected.map(p => p.id);
-        for (let i = pool.length - 1; i >= 0; i--) {
-            if (selectedIds.includes(pool[i].id)) {
-                pool.splice(i, 1);
-            }
-        }
+        lhy_addMatchHistory(bestCase.t1[0].id, bestCase.t1[1].id); lhy_addMatchHistory(bestCase.t2[0].id, bestCase.t2[1].id);
+        
+        for (let i = pool.length - 1; i >= 0; i--) { if (selectedIds.includes(pool[i].id)) { pool.splice(i, 1); } }
         return true;
     }
 
@@ -996,40 +959,23 @@ function checkPassword() {
     }
 
     function lhy_extractFirstFromWaitlist() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         for (let w = 1; w <= 6; w++) {
             if (DB.config.w[w-1]) {
-                for (let p of posOrder) {
-                    let id = boardState[`w${w}-${p}`];
-                    if (id) {
-                        boardState[`w${w}-${p}`] = null; 
-                        return id;
-                    }
-                }
+                for (let p of posOrder) { let id = boardState[`w${w}-${p}`]; if (id) { boardState[`w${w}-${p}`] = null; return id; } }
             }
         }
         return null;
     }
 
     function lhy_rebuildTeam(idsArr, boardPrefix) {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         posOrder.forEach(p => boardState[`${boardPrefix}-${p}`] = null);
-        
-        if(idsArr.length < 4) {
-            idsArr.forEach((id, idx) => { boardState[`${boardPrefix}-${posOrder[idx]}`] = id; });
-            return;
-        }
-
+        if(idsArr.length < 4) { idsArr.forEach((id, idx) => { boardState[`${boardPrefix}-${posOrder[idx]}`] = id; }); return; }
         let poolObjects = idsArr.map(id => DB.members.find(m => m.id === id)).filter(m => m !== undefined);
-        if(poolObjects.length === 4) {
-            lhy_pickAndPlace4(poolObjects, boardPrefix);
-        }
+        if(poolObjects.length === 4) { lhy_pickAndPlace4(poolObjects, boardPrefix); }
     }
 
     function lhy_rotationalMatchEngine() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let shiftedAny = false;
-        
         for (let i = 1; i <= 6; i++) {
             if (DB.config.c[i-1]) {
                 let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -1038,12 +984,13 @@ function checkPassword() {
                         if (DB.config.w[w-1]) {
                             let waitCount = posOrder.filter(p => boardState[`w${w}-${p}`] !== null).length;
                             if (waitCount === 4) { 
+                                let movedIds = [];
                                 posOrder.forEach(p => {
-                                    boardState[`c${i}-${p}`] = boardState[`w${w}-${p}`];
-                                    boardState[`w${w}-${p}`] = null;
+                                    const memberId = boardState[`w${w}-${p}`]; boardState[`c${i}-${p}`] = memberId; boardState[`w${w}-${p}`] = null;
+                                    if (memberId) movedIds.push(memberId);
                                 });
-                                shiftedAny = true;
-                                break;
+                                if(movedIds.length > 0) sendGlobalAction(movedIds); 
+                                shiftedAny = true; break;
                             }
                         }
                     }
@@ -1060,12 +1007,8 @@ function checkPassword() {
                     let needed = 4 - cIds.length;
                     for(let k=0; k<needed; k++) {
                         let waitId = lhy_extractFirstFromWaitlist();
-                        if(waitId) {
-                            cIds.push(waitId);
-                        } else {
-                            let pool = lhy_getSortedPool();
-                            if(pool.length > 0) cIds.push(pool.shift().id);
-                        }
+                        if(waitId) { cIds.push(waitId); } 
+                        else { let pool = lhy_getSortedPool(); if(pool.length > 0) cIds.push(pool.shift().id); }
                     }
                     lhy_rebuildTeam(cIds, `c${i}`);
                 }
@@ -1080,8 +1023,7 @@ function checkPassword() {
                 if (wIds.length > 0 && wIds.length < 4) {
                     let needed = 4 - wIds.length;
                     for(let k=0; k<needed; k++) {
-                        let pool = lhy_getSortedPool();
-                        if(pool.length > 0) wIds.push(pool.shift().id);
+                        let pool = lhy_getSortedPool(); if(pool.length > 0) wIds.push(pool.shift().id);
                     }
                     lhy_rebuildTeam(wIds, `w${w}`);
                 }
@@ -1097,29 +1039,19 @@ function checkPassword() {
         allAreas.forEach(area => {
             if (area.active) {
                 let isEmpty = posOrder.every(p => boardState[`${area.id}-${p}`] === null);
-                if (isEmpty && pool.length >= 4) {
-                    lhy_pickAndPlace4(pool, area.id);
-                }
+                if (isEmpty && pool.length >= 4) { lhy_pickAndPlace4(pool, area.id); }
             }
         });
         
-        lhy_renderBoardFromState();
-        lhy_updateResetButtonUI();
-        lhy_applyOrientationLogic();
+        lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
     }
 
     function lhy_fnGameEnd(type, idx, winner) {
         if (type !== 'c') return;
         lhy_saveUndoState();
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         
-        let pL1 = boardState[`c${idx}-L1`];
-        let pL2 = boardState[`c${idx}-L2`];
-        let pR1 = boardState[`c${idx}-R1`];
-        let pR2 = boardState[`c${idx}-R2`];
-
-        let aTeam = [pL1, pL2].filter(id => id);
-        let bTeam = [pR1, pR2].filter(id => id);
+        let pL1 = boardState[`c${idx}-L1`]; let pL2 = boardState[`c${idx}-L2`]; let pR1 = boardState[`c${idx}-R1`]; let pR2 = boardState[`c${idx}-R2`];
+        let aTeam = [pL1, pL2].filter(id => id); let bTeam = [pR1, pR2].filter(id => id);
 
         if (winner === 'A') {
             aTeam.forEach(id => { let m = DB.members.find(x => x.id === id); if(m) { m.win = (m.win||0)+1; m.cnt = (m.cnt||0)+1; m.attTime = Date.now(); } });
@@ -1134,7 +1066,6 @@ function checkPassword() {
     }
 
     function lhy_compactWaitSlots() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         let activeWaitTeams = [];
         for (let i = 1; i <= 6; i++) {
             if (DB.config.w[i - 1]) {
@@ -1146,67 +1077,34 @@ function checkPassword() {
         let slotIdx = 1;
         activeWaitTeams.forEach(team => {
             while (slotIdx <= 6 && !DB.config.w[slotIdx - 1]) { slotIdx++; }
-            if (slotIdx <= 6) {
-                posOrder.forEach((p, idx) => { boardState[`w${slotIdx}-${p}`] = team[idx]; });
-                slotIdx++;
-            }
+            if (slotIdx <= 6) { posOrder.forEach((p, idx) => { boardState[`w${slotIdx}-${p}`] = team[idx]; }); slotIdx++; }
         });
     }
 
     function lhy_syncBoardDOMToState() {
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
         const seenIds = new Set(); 
-
         for (let i = 1; i <= 6; i++) {
             posOrder.forEach(p => {
                 ['c', 'w'].forEach(t => {
                     const slot = document.getElementById(`${t}${i}-${p}`);
                     if (slot && slot.children.length > 0) { 
                         const pid = slot.children[0].dataset.id;
-                        
-                        if (seenIds.has(pid)) {
-                            slot.innerHTML = ''; 
-                            boardState[`${t}${i}-${p}`] = null; 
-                        } else {
-                            seenIds.add(pid); 
-                            boardState[`${t}${i}-${p}`] = pid; 
-                        }
-                    } 
-                    else { boardState[`${t}${i}-${p}`] = null; }
+                        if (seenIds.has(pid)) { slot.innerHTML = ''; boardState[`${t}${i}-${p}`] = null; } 
+                        else { seenIds.add(pid); boardState[`${t}${i}-${p}`] = pid; }
+                    } else { boardState[`${t}${i}-${p}`] = null; }
                 });
             });
         }
-        
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-
-        // 1. 보드 화면 갱신
         lhy_renderBoardFromState();
-        
-        // 2. 배정된 인원을 명단에서 사라지게 하기 위한 필터링 및 갱신
         const assignedIds = Object.values(boardState).filter(id => id !== null);
         const playerList = document.getElementById('player-list');
-        
-        if (playerList) {
-            Array.from(playerList.children).forEach(el => {
-                const pid = el.dataset.id;
-                if (assignedIds.includes(pid)) {
-                    el.style.display = 'none'; 
-                } else {
-                    el.style.display = '';     
-                }
-            });
-        }
-
-        lhy_updateResetButtonUI();
-        lhy_applyOrientationLogic();
+        if (playerList) { Array.from(playerList.children).forEach(el => { const pid = el.dataset.id; el.style.display = assignedIds.includes(pid) ? 'none' : ''; }); }
+        lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
     function lhy_dominoShiftSystem() {
         if (isManualMode) {
-            const posOrder = ['L1', 'L2', 'R1', 'R2'];
             let emptyCourtSlots = [];
-            
             for (let i = 1; i <= 6; i++) {
                 if (DB.config.c[i-1]) {
                     let isCourtEmpty = posOrder.every(p => boardState[`c${i}-${p}`] === null);
@@ -1223,144 +1121,140 @@ function checkPassword() {
             }
             
             let moves = Math.min(emptyCourtSlots.length, fullWaitTeams.length);
+            let allMovedMemberIds = []; 
+
             for(let i=0; i<moves; i++) {
-                let tCourt = emptyCourtSlots[i];
-                let sWait = fullWaitTeams[i];
-                
+                let tCourt = emptyCourtSlots[i]; let sWait = fullWaitTeams[i];
                 posOrder.forEach(p => {
-                    boardState[`${tCourt}-${p}`] = boardState[`${sWait}-${p}`];
-                    boardState[`${sWait}-${p}`] = null;
+                    const memberId = boardState[`${sWait}-${p}`]; boardState[`${tCourt}-${p}`] = memberId; boardState[`${sWait}-${p}`] = null;
+                    if (memberId) { allMovedMemberIds.push(memberId); }
                 });
             }
+
+            if (allMovedMemberIds.length > 0) { sendGlobalAction(allMovedMemberIds); }
             
-            lhy_compactWaitSlots();
-            lhy_renderBoardFromState();
-            lhy_updateResetButtonUI();
-            lhy_applyOrientationLogic();
+            lhy_compactWaitSlots(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
             return;
         }
 
-        lhy_compactWaitSlots();
-        lhy_rotationalMatchEngine();
+        lhy_compactWaitSlots(); lhy_rotationalMatchEngine();
     }
 
     function lhy_getPureName(fullName) {
-        if(!fullName) return "";
-        let pure = fullName.split(',')[0]; 
-        pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); 
-        return pure.trim();
+        if(!fullName) return ""; let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim();
     }
 
     function lhy_getSexClass(memberObj) {
         if (memberObj.isG) return 'g-sex'; 
         const nameData = memberObj.name || ""; const sexData = memberObj.sex || "";
-        if (sexData === '여' || nameData.includes('여')) return 'f-sex';
-        return 'm-sex';
+        if (sexData === '여' || nameData.includes('여')) return 'f-sex'; return 'm-sex';
     }
 
-    function lhy_handleFirstTouchFullscreen() {
-        if (!document.fullscreenElement) { document.documentElement.requestFullscreen().then(() => { document.body.removeAttribute('onclick'); }).catch(() => {}); }
-    }
-
+    // ==========================================
+    // 💡 2. 양방향 데이터 리스너 & 초기 세팅 _260630-2
+    // ==========================================
     function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
         document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
-        
-        const saved = localStorage.getItem('lhy_v260520_storage');
 
-        if(saved) {
-            try {
-                DB = JSON.parse(saved);
-                if(!DB.members || !DB.members.length) { lhy_loadDefaultDB(); }
-                if(!DB.config || !DB.config.c || DB.config.c.length < 6) { 
-                    DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; 
+        database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
+            const lastDate = snapshot.val();
+            if (lastDate !== todayStr) {
+                console.log("날짜 변경 감지: 깃허브 명단 동기화 및 초기화 진행");
+                const GITHUB_CSV_URL = "https://raw.githubusercontent.com/사용자계정/저장소/main/members.csv"; 
+                
+                if (!GITHUB_CSV_URL || GITHUB_CSV_URL.includes("사용자계정")) {
+                    console.warn("GitHub CSV 주소가 입력되지 않았습니다. 기존 데이터로 초기화를 진행합니다.");
+                    fallbackReset(todayStr); return;
                 }
-                DB.members.filter(m => !m.isG).forEach(m => { 
-                    if(!m.joinDate) m.joinDate = "260101"; 
-                    if(m.win === undefined) m.win = 0;
-                    if(m.lose === undefined) m.lose = 0;
-                });
-                if(!DB.matchHistory) DB.matchHistory = {};
-                if(!DB.config.matchRule) DB.config.matchRule = 'grade';
-            } catch(e) { lhy_loadDefaultDB(); }
-        } else { lhy_loadDefaultDB(); }
-        
-        const posOrder = ['L1', 'L2', 'R1', 'R2'];
-        const savedBoard = localStorage.getItem('lhy_v260520_boardState');
-        if(savedBoard) {
-            try { boardState = JSON.parse(savedBoard); } catch(e) {
-                for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
+
+                fetch(GITHUB_CSV_URL + '?t=' + new Date().getTime())
+                    .then(res => { if(!res.ok) throw new Error("GitHub CSV 로드 실패: " + res.status); return res.arrayBuffer(); })
+                    .then(buffer => {
+                        let decoder = new TextDecoder('euc-kr'); let text = decoder.decode(buffer);
+                        if (text.indexOf('') > -1) { decoder = new TextDecoder('utf-8'); text = decoder.decode(buffer); }
+
+                        const rows = text.split('\n'); let newMembers = [];
+                        for (let i = 1; i < rows.length; i++) {
+                            if (!rows[i].trim()) continue;
+                            const cols = rows[i].split(','); if (cols.length < 5) continue;
+                            const name = cols[0].replace(/"/g, '').trim(); const sex = cols[1] ? cols[1].trim() : '남'; 
+                            const age = cols[2] ? cols[2].trim() : ''; const grade = cols[3] ? cols[3].trim() : ''; const joinDate = cols[4] ? cols[4].trim() : '';
+                            newMembers.push({
+                                id: 'p' + Date.now() + Math.random().toString(36).substr(2, 5) + i,
+                                name: (sex === '여' && !name.includes('여')) ? `${name}(여)` : name,
+                                sex: sex, age: age, grade: grade, joinDate: joinDate, 
+                                isAtt: false, cnt: 0, win: 0, lose: 0, isG: false
+                            });
+                        }
+                        if(newMembers.length > 0) { DB.members = newMembers; }
+                        Object.keys(boardState).forEach(key => boardState[key] = null);
+                        lhy_syncToFirebase(); database.ref('meta/lastAccessDate').set(todayStr);
+                        alert("새로운 날짜입니다. 깃허브에서 최신 명단을 갱신하고 보드판을 초기화했습니다.");
+                    })
+                    .catch(err => { console.error("CSV 파싱 실패:", err); fallbackReset(todayStr); });
             }
-        } else {
-            for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
+        });
+        
+        function fallbackReset(dateString) {
+            DB.members.forEach(m => { m.isAtt = false; delete m.attTime; });
+            Object.keys(boardState).forEach(key => boardState[key] = null);
+            lhy_syncToFirebase(); database.ref('meta/lastAccessDate').set(dateString);
+            alert("새로운 날짜입니다. 기존 명단을 유지하며 코트/대기 보드판을 초기화했습니다.");
         }
 
-        let isNewSession = !sessionStorage.getItem('hwamok_session_v19');
-        if (isNewSession) {
-            DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; });
-            DB.members = DB.members.filter(m => !m.isG);
-            DB.config.c = [true, true, false, false, false, false];
-            DB.config.w = [true, false, false, false, false, false];
-            DB.config.matchRule = 'grade';
-            Object.keys(boardState).forEach(key => { boardState[key] = null; });
-            DB.matchHistory = {};
-            sessionStorage.setItem('hwamok_session_v19', 'true');
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        }
-
-        const validIds = new Set(DB.members.map(m => m.id));
-        Object.keys(boardState).forEach(key => {
-            if (boardState[key] && !validIds.has(boardState[key])) { boardState[key] = null; }
+        database.ref('appData').on('value', (snapshot) => {
+            if(isAppClosed) return; 
+            if(isSyncing) return; 
+            const data = snapshot.val();
+            if (data) {
+                if (data.DB) DB = data.DB;
+                boardState = data.boardState || {};
+                for (let i = 1; i <= 6; i++) {
+                    ['L1', 'L2', 'R1', 'R2'].forEach(p => {
+                        if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null;
+                        if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null;
+                    });
+                }
+                lhy_renderBoardFromState(); try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){}
+                lhy_updateResetButtonUI();
+            } else {
+                lhy_loadDefaultDB();
+                for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); }
+                lhy_syncToFirebase();
+            }
         });
 
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        });
+        initGlobalNotifications();
 
-        // =====================================================================
-        // 이벤트 위임 최종판
-        // =====================================================================
+        // 💡 260630-2 핵심 복구 부분: 20260619-2.html 의 이벤트 위임 방식 완전 적용 (지연 타이머 제거)
         document.addEventListener('click', function(e) {
             if (typeof isLongClicked !== 'undefined' && isLongClicked) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation(); 
-                
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); 
                 setTimeout(() => { isLongClicked = false; }, 100); 
                 return; 
             }
 
             const playerCard = e.target.closest('.player');
-            
             if (playerCard) {
                 if (typeof isListDragging !== 'undefined' && isListDragging) return;
                 
                 if (playerCard.classList.contains('is-sel')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    
+                    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
                     playerCard.classList.remove('is-sel');
                     const memberId = playerCard.dataset.id;
                     selectedPopIds = selectedPopIds.filter(id => id !== memberId);
-                    
-                    if (typeof lhy_updateGroupDragBtnPosition === 'function') {
-                        lhy_updateGroupDragBtnPosition();
-                    }
+                    if (typeof lhy_updateGroupDragBtnPosition === 'function') lhy_updateGroupDragBtnPosition();
                     return;
                 }
 
                 if (playerCard.closest('#ui-list')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
+                    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
 
                     if (typeof isAdminMode !== 'undefined' && isAdminMode) { 
-                        alert("관리자 모드 중에는 작동하지 않습니다."); 
-                        return; 
+                        alert("관리자 모드 중에는 작동하지 않습니다."); return; 
                     }
 
                     const memberId = playerCard.dataset.id;
@@ -1379,30 +1273,27 @@ function checkPassword() {
                                 if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
                             }
                             
+                            sendGlobalAction([m.id]);
                             if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem();
                             if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic(); 
+                            lhy_syncToFirebase();
                         }
                     }
                 }
             }
-        }, true); 
-        // =====================================================================
+        }, true);
 
         new Sortable(document.getElementById('ui-list'), { 
-            ...dragOpt, 
-            sort: true, 
-            filter: ".is-not, .is-playing", 
+            ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
             onAdd: (evt) => { 
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState();
-                if (!isManualMode) lhy_dominoShiftSystem(); 
+                if (!isManualMode) lhy_dominoShiftSystem();
+                lhy_syncToFirebase();
             } 
         });
         
-        lhy_drawBoard(); 
-        lhy_renderBoardFromState(); 
-        lhy_updateResetButtonUI(); 
-        lhy_applyOrientationLogic();
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
 
     function lhy_loadDefaultDB() {
@@ -1414,17 +1305,12 @@ function checkPassword() {
     }
 
     function toggleUnit(t, i) { 
-        lhy_saveUndoState(); 
-        DB.config[t][i-1] = !DB.config[t][i-1]; 
-        
-        if(!DB.config[t][i-1]) { 
-            ['L1', 'L2', 'R1', 'R2'].forEach(p => { 
-                boardState[`${t}${i}-${p}`] = null; 
-            }); 
-        }
-        lhy_drawBoard(); lhy_dominoShiftSystem(); 
+        lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; 
+        if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); }
+        lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase();
     }
 
+    // 3. 모바일 화면 최적화 (단일/복수 코트 감지) 
     function lhy_drawBoard() {
         const cG = document.getElementById('ui-court-grid'), wG = document.getElementById('ui-wait-grid');
         const cC = document.getElementById('ctrl-c'), wW = document.getElementById('ctrl-w');
@@ -1433,24 +1319,20 @@ function checkPassword() {
         let actC = 0, actW = 0;
         for(let i=1; i<=6; i++) { if(DB.config.c[i-1]) actC++; if(DB.config.w[i-1]) actW++; }
 
-        let cCols = (actC <= 2) ? 1 : 2;
-        let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
-        cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`;
-        cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
-        cG.className = `grid-wrapper layout-c${cCols}-r${cRows} ${actC <= 2 ? 'few-rows' : ''} ${actC === 1 ? 'single-row' : ''}`;
+        let cCols = (actC <= 2) ? 1 : 2; let cRows = (actC <= 2) ? Math.max(1, actC) : Math.ceil(actC / 2);
+        let fewC = (actC >= 2 && actC <= 3) ? 'few-rows' : ''; let singleC = (actC === 1) ? 'single-row' : '';
+        cG.style.gridTemplateColumns = `repeat(${cCols}, 1fr)`; cG.style.gridTemplateRows = `repeat(${cRows}, 1fr)`;
+        cG.className = `grid-wrapper layout-c${cCols}-r${cRows} ${fewC} ${singleC}`;
 
-        let wCols = (actW <= 2) ? 1 : 2;
-        let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
-        wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`;
-        wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
-        wG.className = `grid-wrapper layout-c${wCols}-r${wRows} ${actW <= 2 ? 'few-rows' : ''} ${actW === 1 ? 'single-row' : ''}`;
+        let wCols = (actW <= 2) ? 1 : 2; let wRows = (actW <= 2) ? Math.max(1, actW) : Math.ceil(actW / 2);
+        let fewW = (actW >= 2 && actW <= 3) ? 'few-rows' : ''; let singleW = (actW === 1) ? 'single-row' : '';
+        wG.style.gridTemplateColumns = `repeat(${wCols}, 1fr)`; wG.style.gridTemplateRows = `repeat(${wRows}, 1fr)`;
+        wG.className = `grid-wrapper layout-c${wCols}-r${wRows} ${fewW} ${singleW}`;
 
         for(let i=1; i<=6; i++) {
             ['c','w'].forEach(t => {
                 const isAct = DB.config[t][i-1];
-                const b = document.createElement('button');
-                b.className = `btn-ctrl ${isAct ? 'active' : ''}`;
-                b.onclick = () => toggleUnit(t, i);
+                const b = document.createElement('button'); b.className = `btn-ctrl ${isAct ? 'active' : ''}`; b.onclick = () => toggleUnit(t, i);
                 (t === 'c' ? cC : wW).appendChild(b);
 
                 if (isAct) {
@@ -1459,10 +1341,7 @@ function checkPassword() {
                     if(t === 'c') {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
                                         <div class="lhy-team A-team"><div class="lhy-slot" id="${t}${i}-L1"></div><div class="lhy-slot" id="${t}${i}-L2"></div></div>
-                                        <div class="lhy-mid-btn-space">
-                                            <button class="lhy-btn-act-end A-btn" onclick="lhy_fnGameEnd('${t}',${i},'A')">승</button>
-                                            <button class="lhy-btn-act-end B-btn" onclick="lhy_fnGameEnd('${t}',${i},'B')">승</button>
-                                        </div>
+                                        <div class="lhy-mid-btn-space"><button class="lhy-btn-act-end A-btn" onclick="lhy_fnGameEnd('${t}',${i},'A')">승</button><button class="lhy-btn-act-end B-btn" onclick="lhy_fnGameEnd('${t}',${i},'B')">승</button></div>
                                         <div class="lhy-team B-team"><div class="lhy-slot" id="${t}${i}-R1"></div><div class="lhy-slot" id="${t}${i}-R2"></div></div>`;
                     } else {
                         d.innerHTML = `<div class="lhy-label">${t.toUpperCase()}${i}</div>
@@ -1480,111 +1359,48 @@ function checkPassword() {
                 ...dragOpt, 
                 onAdd: function(evt) { 
                     let items = evt.items && evt.items.length > 0 ? Array.from(evt.items) : [evt.item];
-                    let toSlot = evt.to;
-                    let fromList = evt.from;
-
+                    let toSlot = evt.to; let fromList = evt.from;
                     if (toSlot.children.length > items.length) { 
                         let originalItems = Array.from(toSlot.children).filter(child => !items.includes(child));
                         originalItems.forEach(orig => fromList.appendChild(orig));
                     }
-                    
                     items.forEach(el => {
-                        const pid = el.dataset.id;
-                        const m = DB.members.find(x => x.id === pid);
-                        if (m) {
-                            m.isAtt = true;
-                            if (!m.attTime) m.attTime = Date.now();
-                        }
+                        const pid = el.dataset.id; const m = DB.members.find(x => x.id === pid);
+                        if (m) { m.isAtt = true; if (!m.attTime) m.attTime = Date.now(); }
                         el.classList.remove('is-sel');
                     });
-                    
-                    selectedPopIds = [];
-                    lhy_syncBoardDOMToState();
+                    selectedPopIds = []; lhy_syncBoardDOMToState();
                     try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){}
-
                     if (!isManualMode) lhy_autoEntrySystem();
                 } 
             });
         });
     }
 
+    // 2. 나이와 등급 표시 완전 삭제 및 중앙 정렬 
     function lhy_insertPlayerToSlot(slot, memberObj) {
         if (slot.children.length > 0) return;
-
-        const sexClass = lhy_getSexClass(memberObj);
-        const pureName = lhy_getPureName(memberObj.name);
-        const isLeft = slot.id.includes('-L');
-        const winCount = Number(memberObj.win || 0);
-        const loseCount = Number(memberObj.lose || 0);
+        const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name);
+        const isLeft = slot.id.includes('-L'); const winCount = Number(memberObj.win || 0); const loseCount = Number(memberObj.lose || 0);
 
         const p = document.createElement('div');
-        p.className = `player in-game ${sexClass}`;
-        p.dataset.id = memberObj.id;
-
-        Object.assign(p.style, {
-            display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%',
-            overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20
-        });
+        p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id;
+        Object.assign(p.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20 });
 
         const stats = document.createElement('div');
-        Object.assign(stats.style, {
-            display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end',
-            flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px',
-            fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal'
-        });
+        Object.assign(stats.style, { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end', flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px', fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal' });
+        stats.innerHTML = `<span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span><span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>`;
 
-        stats.innerHTML = `
-            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span>
-            <span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>
-        `;
+        const nameWrapper = document.createElement('div');
+        nameWrapper.className = "name-wrapper_260630-1";
+        nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
 
-// 1. 이름과 (나이/등급)을 위아래로 묶을 컨테이너 생성
-const nameWrapper = document.createElement('div');
-nameWrapper.className = "name-wrapper_260305-1";
-nameWrapper.style.display = 'flex';
-nameWrapper.style.flexDirection = 'column'; 
-nameWrapper.style.alignItems = 'center';    
-nameWrapper.style.justifyContent = 'center';
-nameWrapper.style.flex = '1';
-nameWrapper.style.minWidth = '0';
-nameWrapper.style.height = '70%'; // 컨테이너 높이 꽉 채우기
+        const nameDiv = document.createElement('div');
+        nameDiv.className = "p-name p-name_260630-1"; 
+        nameDiv.style.flex = 'none'; nameDiv.textContent = pureName;
+        nameWrapper.appendChild(nameDiv);
 
-// 2. 기존 이름 엘리먼트
-const nameDiv = document.createElement('div');
-nameDiv.className = "p-name p-name_260305-1";
-nameDiv.style.flex = 'none';
-nameDiv.textContent = pureName;
-
-// 3. 하단 작은 글씨 (나이대 / 등급) 엘리먼트 생성
-const infoDiv = document.createElement('div');
-infoDiv.className = "p-info_260305-1";
-infoDiv.style.display = 'flex';
-infoDiv.style.flexDirection = 'row'; 
-infoDiv.style.gap = '4px';           
-infoDiv.style.fontSize = 'clamp(8px, 12cqh, 11px)'; 
-infoDiv.style.fontWeight = '900';
-infoDiv.style.lineHeight = '1';
-infoDiv.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
-
-const ageStr = memberObj.age ? `<span style="color:#FFD700">${memberObj.age}</span>` : '';
-const gradeStr = memberObj.grade ? `<span style="color:#0FF">${memberObj.grade}</span>` : '';
-infoDiv.innerHTML = `${ageStr}${gradeStr}`;
-
-// ★ 핵심 해결: 나이/등급이 있을 경우 이름 폰트 크기를 살짝 줄이고 간격을 벌림
-if (memberObj.age || memberObj.grade) {
-    // 기존 50cqh(박스 높이의 50%) -> 50cqh 정도로 강제 축소해서 공간 확보
-    nameDiv.style.setProperty('font-size', 'clamp(30px, 50cqh, 50px)', 'important');
- ////   infoDiv.style.marginTop = '0.1px'; // 말씀하신 위아래 간격 띄우기 적용
-}
-
-// 4. 조립
-nameWrapper.appendChild(nameDiv);
-if (memberObj.age || memberObj.grade) {
-    nameWrapper.appendChild(infoDiv);
-}
-
-// 5. 부모에 삽입
-if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
+        if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
 
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => {
@@ -1594,38 +1410,23 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
             
             if (longClickTimer) clearTimeout(longClickTimer);
             longClickTimer = setTimeout(() => {
-                isLongClicked = true;
-                p.classList.toggle('is-sel'); 
-                if (p.classList.contains('is-sel')) {
-                    if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id);
-                } else {
-                    selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id);
-                }
+                isLongClicked = true; p.classList.toggle('is-sel'); 
+                if (p.classList.contains('is-sel')) { if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id); } 
+                else { selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id); }
                 lhy_updateGroupDragBtnPosition(); 
             }, 400); 
         };
         const moveHandler = (e) => {
             const touch = e.touches ? e.touches[0] : null;
-            if (touch) {
-                if (Math.abs(touch.clientX - touchStartX) > 6 || Math.abs(touch.clientY - touchStartY) > 6) {
-                    if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
-                }
-            }
+            if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } }
         };
         const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
 
         p.addEventListener('mousedown', startHandler); p.addEventListener('touchstart', startHandler, { passive: true });
         p.addEventListener('touchmove', moveHandler, { passive: false }); p.addEventListener('mouseup', endHandler); p.addEventListener('touchend', endHandler);
-        
         p.onclick = (e) => {
             if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
             if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; }
-            if (p.classList.contains('is-sel')) {
-                p.classList.remove('is-sel');
-                selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id);
-                lhy_updateGroupDragBtnPosition(); 
-                return;
-            }
         };
 
         slot.appendChild(p);
@@ -1642,26 +1443,14 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         Object.keys(boardState).forEach(key => {
             const slot = document.getElementById(key);
             if (slot) {
-                slot.innerHTML = '';
-                const pid = boardState[key];
-                
+                slot.innerHTML = ''; const pid = boardState[key];
                 if (pid) {
                     const m = DB.members.find(x => x.id === pid);
-                    
                     if (m) {
                         lhy_insertPlayerToSlot(slot, m);
-                        
-                        if (!m.isAtt) {
-                            slot.classList.add('is-not-att');
-                        } else {
-                            slot.classList.remove('is-not-att');
-                        }
-                        
-                        const container = key.split('-')[0];
-                        const count = occupancy[container] || 0;
-                        
-                        slot.classList.remove('slot-many', 'slot-single');
-                        slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
+                        if (!m.isAtt) { slot.classList.add('is-not-att'); } else { slot.classList.remove('is-not-att'); }
+                        const container = key.split('-')[0]; const count = occupancy[container] || 0;
+                        slot.classList.remove('slot-many', 'slot-single'); slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
                     } 
                 }
             }
@@ -1670,34 +1459,21 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
 
     function lhy_applyOrientationLogic() {
         const b = document.body; const w = window.innerWidth; const h = window.innerHeight;
-        
         b.style.width = "100%"; b.style.height = "100%"; b.style.transform = "none"; b.classList.remove('real-landscape');
         
         let targetLandscape = false;
-        
-        if (rotationState === 'auto') { 
-            if (w > h) targetLandscape = true; 
-        } 
+        if (rotationState === 'auto') { if (w > h) targetLandscape = true; } 
         else if (rotationState === 'force-landscape') {
             targetLandscape = true;
-            if (w < h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; 
-            }
-        } 
-        else if (rotationState === 'force-portrait') {
+            if (w < h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(90deg) translate(0, -" + w + "px)"; }
+        } else if (rotationState === 'force-portrait') {
             targetLandscape = false;
-            if (w > h) { 
-                b.style.width = h + "px"; b.style.height = w + "px"; 
-                b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; 
-            }
+            if (w > h) { b.style.width = h + "px"; b.style.height = w + "px"; b.style.transform = "rotate(-90deg) translate(-" + h + "px, 0)"; }
         }
         
         if (targetLandscape) b.classList.add('real-landscape');
-        
         const btn = document.getElementById('btn-orient-toggle');
         if (btn) { btn.innerText = targetLandscape ? "가로" : "세로"; }
-        
         requestAnimationFrame(() => { lhy_renderListOnly(targetLandscape); });
     }
 
@@ -1709,29 +1485,20 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
 
         const rows = Math.ceil(count / cols);
         list.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; list.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-        
         const playing = Object.values(boardState).filter(id => id !== null);
         list.innerHTML = '';
         
         [...DB.members].sort((a,b) => {
             if (a.isAtt && !b.isAtt) return -1;
             if (!a.isAtt && b.isAtt) return 1;
-            if (a.isAtt && b.isAtt) {
-                if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0);
-            }
+            if (a.isAtt && b.isAtt) { if ((a.attTime || 0) !== (b.attTime || 0)) return (a.attTime || 0) - (b.attTime || 0); }
             if (a.isG !== b.isG) return b.isG - a.isG;
             return a.name.localeCompare(b.name, 'ko');
         }).forEach(m => {
-            const isP = playing.includes(m.id);
-
-            if (isP) return;
+            const isP = playing.includes(m.id); if (isP) return;
 
             const sexClass = lhy_getSexClass(m); const pureName = lhy_getPureName(m.name);
-            const d = document.createElement('div'); 
-            
-            d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass} ${isP ? 'is-playing' : ''}`;
-            d.dataset.id = m.id;
-            
+            const d = document.createElement('div'); d.className = `player ${m.isAtt ? 'is-att' : 'is-not'} ${sexClass} ${isP ? 'is-playing' : ''}`; d.dataset.id = m.id;
             d.innerHTML = `
                 <div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;">
                     <span style="font-weight: 999; font-size: 1.1em; color: inherit;">${pureName}</span>
@@ -1750,62 +1517,43 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
                 isLongClicked = false; const touch = e.touches ? e.touches[0] : e;
                 touchStartX = touch.clientX; touchStartY = touch.clientY;
                 if (longClickTimer) clearTimeout(longClickTimer);
-                
                 longClickTimer = setTimeout(() => {
-                    isLongClicked = true;
-                    d.classList.toggle('is-sel'); 
-                    if (d.classList.contains('is-sel')) {
-                        if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id);
-                    } else {
-                        selectedPopIds = selectedPopIds.filter(id => id !== m.id);
-                    }
+                    isLongClicked = true; d.classList.toggle('is-sel'); 
+                    if (d.classList.contains('is-sel')) { if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id); } 
+                    else { selectedPopIds = selectedPopIds.filter(id => id !== m.id); }
                     lhy_updateGroupDragBtnPosition(); 
                 }, 400); 
             };
             const moveHandler = (e) => {
                 const touch = e.touches ? e.touches[0] : null;
-                if (touch) {
-                    if (Math.abs(touch.clientX - touchStartX) > 6 || Math.abs(touch.clientY - touchStartY) > 6) {
-                        if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; }
-                    }
-                }
+                if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } }
             };
             const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
 
             d.addEventListener('mousedown', startHandler); d.addEventListener('touchstart', startHandler, { passive: true });
             d.addEventListener('touchmove', moveHandler, { passive: false }); d.addEventListener('mouseup', endHandler); d.addEventListener('touchend', endHandler);
 
+            // 💡 260630-2 추가 복구: d.onclick 내부에서도 동일한 방식으로 Fallback 처리
             d.onclick = (e) => {
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; }
                 if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                if (d.classList.contains('is-sel')) {
-                    d.classList.remove('is-sel');
-                    selectedPopIds = selectedPopIds.filter(id => id !== m.id);
-                    lhy_updateGroupDragBtnPosition(); 
-                    return;
-                }
-
-                if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); return; }
-                lhy_saveUndoState(); m.isAtt = !m.isAtt;
+                if (d.classList.contains('is-sel')) { d.classList.remove('is-sel'); selectedPopIds = selectedPopIds.filter(id => id !== m.id); lhy_updateGroupDragBtnPosition(); e.stopPropagation(); return; }
+                if (isAdminMode) { alert("관리자 모드 중에는 작동하지 않습니다."); e.stopPropagation(); return; }
                 
-                if (m.isAtt) {
-                    m.attTime = Date.now();
-                } else {
-                    delete m.attTime;
-                    Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
+                lhy_saveUndoState(); 
+                m.isAtt = !m.isAtt;
+                if (m.isAtt) { m.attTime = Date.now(); } else {
+                    delete m.attTime; Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; });
                     if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } 
                 }
-                
-                lhy_dominoShiftSystem();
-                lhy_applyOrientationLogic(); 
+                sendGlobalAction([m.id]);
+                lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
             };
             list.appendChild(d);
         });
         const statEl = document.getElementById('ui-stat');
         if(statEl && !isAdminMode) { statEl.innerText = `${DB.members.filter(m=>m.isAtt).length}/${DB.members.length}`; }
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
     }
 
     function lhy_updateResetButtonUI() {
@@ -1817,29 +1565,19 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
 
     function lhy_openHelpPop() { 
         document.getElementById('lhy-pop-help').style.display = 'flex'; 
-        const firstBtn = document.querySelector('.help-menu-btn');
-        if (firstBtn) lhy_switchHelpTab(1, firstBtn);
+        const firstBtn = document.querySelector('.help-menu-btn'); if (firstBtn) lhy_switchHelpTab(1, firstBtn);
     }
-    
     function lhy_closeHelpPop() { document.getElementById('lhy-pop-help').style.display = 'none'; }
-    
     function lhy_openMasterPop() { 
         if(!lhy_checkAdminPermission()) return; 
-        lhy_renderMasterTable(); 
-        lhy_renderRuleButtons(); 
-        document.getElementById('lhy-pop-master').style.display = 'flex'; 
+        lhy_renderMasterTable(); lhy_renderRuleButtons(); document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
     function lhy_closeMasterPop() {
         if(confirm("변경된 내용을 저장하시겠습니까?")) {
-            lhy_saveUndoState(); 
-            lhy_syncInlineInputsToState();
-            document.getElementById('lhy-pop-master').style.display = 'none'; 
-            lhy_dominoShiftSystem();
-        } else { 
-            document.getElementById('lhy-pop-master').style.display = 'none'; 
-        }
-
+            lhy_saveUndoState(); lhy_syncInlineInputsToState(); document.getElementById('lhy-pop-master').style.display = 'none'; 
+            lhy_dominoShiftSystem(); lhy_syncToFirebase();
+        } else { document.getElementById('lhy-pop-master').style.display = 'none'; }
         if (isAdminMode) { lhy_fnToggleAdminMode(); }
     }
 
@@ -1882,7 +1620,6 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
 
     let tempAddType = '';
     function lhy_addMasterDirect(type) {
-        if (typeof lhy_checkAdminLock === 'function' && lhy_checkAdminLock()) return;
         tempAddType = type;
         document.getElementById('add-member-title').innerText = type + " 추가";
         const isG = (type === '손님');
@@ -1909,16 +1646,14 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
         });
         
         document.getElementById('lhy-pop-add-member').style.display = 'none';
-        lhy_dominoShiftSystem();
-        lhy_applyOrientationLogic();
+        lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
         alert(`[${nameVal}] 님이 명단에 추가되었습니다.`);
     }
 
     function lhy_kickMasterInline(id) {
         const m = DB.members.find(x => x.id === id);
         if(m && confirm(`정말로 [${lhy_getPureName(m.name)}] 회원을 탈퇴 처리하시겠습니까?`)) {
-            DB.members = DB.members.filter(x => x.id !== id);
-            lhy_renderMasterTable();
+            DB.members = DB.members.filter(x => x.id !== id); lhy_renderMasterTable();
         }
     }
 
@@ -1937,82 +1672,72 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
 
     function lhy_topBtnCancelGame() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
-        
         lhy_saveUndoState();
+        let actionIds = [...selectedPopIds]; 
         selectedPopIds.forEach(selId => {
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
-            const m = DB.members.find(x => x.id === selId);
-            if (m) { m.isAtt = true; } 
+            const m = DB.members.find(x => x.id === selId); if (m) { m.isAtt = true; } 
         });
-        
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        
+        sendGlobalAction(actionIds); 
         selectedPopIds = []; isLongClicked = false; 
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
-        
         lhy_renderBoardFromState(); lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
-        
-        lhy_updateGroupDragBtnPosition(); 
+        lhy_updateGroupDragBtnPosition(); lhy_syncToFirebase();
     }
 
     function lhy_topBtnGoHome() {
         if (selectedPopIds.length === 0) { alert("선수를 먼저 롱클릭으로 선택해주세요."); return; }
-        
         lhy_saveUndoState();
+        let actionIds = [...selectedPopIds]; 
         selectedPopIds.forEach(selId => {
             const m = DB.members.find(x => x.id === selId);
             Object.keys(boardState).forEach(key => { if (boardState[key] === selId) boardState[key] = null; });
-            
             if (m) {
                 if (m.isG) { DB.members = DB.members.filter(x => x.id !== selId); } 
                 else { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }
             }
         });
-        
-        localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-        
-        selectedPopIds = [];
+        sendGlobalAction(actionIds); 
+        selectedPopIds = []; isLongClicked = false;
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
-        lhy_syncBoardDOMToState(); lhy_dominoShiftSystem();
+        lhy_renderBoardFromState(); lhy_dominoShiftSystem();
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
-        
-        lhy_updateGroupDragBtnPosition(); 
+        lhy_updateGroupDragBtnPosition(); lhy_syncToFirebase();
     }
 
     function lhy_fnExit(event) {
         if(event) event.stopPropagation(); 
-        if(confirm("오늘 모임을 마감하시겠습니까?")) {
+        if(confirm("오늘 모임을 마감하시겠습니까? (출석 기록 및 보드판이 모두 초기화됩니다.)")) {
+            isAppClosed = true; 
             Object.keys(boardState).forEach(key => { boardState[key] = null; });
             DB.members.filter(m => !m.isG).forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; });
             DB.members = DB.members.filter(m => !m.isG);
             DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' };
             DB.matchHistory = {};
-            localStorage.setItem('lhy_v260520_storage', JSON.stringify(DB));
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-            sessionStorage.removeItem('hwamok_session_v19'); 
-            lhy_applyOrientationLogic(); lhy_drawBoard(); lhy_renderBoardFromState();
-            if (document.fullscreenElement) { document.exitFullscreen(); }
-            
-            window.close();
+            lhy_syncToFirebase();
+            if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
             setTimeout(() => {
                 document.body.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;">
                         <div style="font-size:1.6rem; font-weight:950; color:#2ecc71; margin-bottom:12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓ 오늘 모임 마감 완료</div>
-                        <div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
+                        <div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 초기화 및 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div>
                     </div>
                 `;
             }, 100);
         }
     }
 
+    function lhy_personalExit() {
+        if(confirm("현재 화면을 닫고 나가시겠습니까? (본인 화면만 종료됩니다)")) {
+            window.close(); window.location.href = "about:blank"; 
+        }
+    }
+
     function lhy_autoEntrySystem() {
-        let moved = false;
+        let moved = false; let assignedIds = []; 
         for(let i=1; i<=6; i++) {
             if(!DB.config.w[i-1]) continue; 
-            
             const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`];
             const isFull = waitSlots.every(s => boardState[s] !== null);
             
@@ -2028,46 +1753,41 @@ if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats
                 if(targetCourt !== null) {
                     const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`];
                     waitSlots.forEach((ws, idx) => {
-                        boardState[courtSlots[idx]] = boardState[ws];
-                        boardState[ws] = null;
+                        boardState[courtSlots[idx]] = boardState[ws]; boardState[ws] = null;
+                        const memberId = boardState[courtSlots[idx]]; if(memberId) assignedIds.push(memberId);
                     });
                     moved = true;
                 }
             }
         }
-        
-        if(moved) {
-            lhy_renderBoardFromState();
-            lhy_dominoShiftSystem();
-            localStorage.setItem('lhy_v260520_boardState', JSON.stringify(boardState));
-        }
+        if(assignedIds.length > 0) { sendGlobalAction(assignedIds); }
+        if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
     }
 
     function lhy_lockOrientation() {
-        if (screen.orientation && typeof screen.orientation.lock === 'function') {
-            screen.orientation.lock('landscape').catch(() => {});
-        }
+        if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); }
     }
     
     window.addEventListener('load', () => { 
-        lhy_init(); 
-        lhy_lockOrientation(); 
-        initGroupDragEvents(); 
+        lhy_init(); lhy_lockOrientation(); initGroupDragEvents(); 
     });
 
-    document.addEventListener('touchstart', function() { 
-        lhy_lockOrientation(); 
-    }, { once: true });
+    document.addEventListener('touchstart', function() { lhy_lockOrientation(); }, { once: true });
 
     function lhy_toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`전체화면 오류: ${err.message}`);
-            });
+        if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } 
+        else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+    }
+    
+    // [UI 접근 제어] 관리자와 제한 모드 버튼 숨김 처리 _260630-1
+    function applyAccessControl() {
+        const adminButtons = ['btn-admin-toggle', 'btn-manual-toggle', 'btn-reset-enter', 'btn-undo', 'btn-add-new', 'btn-add-guest', 'btn-exit-app'];
+        if (!isLimitedMode) {
+            adminButtons.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('limited-hide'); });
+            const pExit = document.getElementById('btn-personal-exit'); if (pExit) pExit.classList.add('limited-hide');
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
+            adminButtons.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('limited-hide'); });
+            const pExit = document.getElementById('btn-personal-exit'); if (pExit) pExit.classList.remove('limited-hide');
         }
     }
 </script>
