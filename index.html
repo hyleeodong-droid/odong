@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260630-3</title>
+    <title>화목모임_260630-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -440,7 +440,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260630-3</div>
+    <div class="lhy-footer-filename">화목모임_260630-4</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -469,7 +469,8 @@
                     <tbody id="ui-master-tbody"></tbody>
                 </table>
             </div>
-            <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeMasterPop()" style="border-radius:0; margin:0; padding:15px 0; font-size:1.05rem; border-top: 1px solid #000;">저장 및 닫기</button>
+
+<button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_saveAndExitAdmin()" style="...">저장 및 닫기</button>
         </div>
     </div>
 
@@ -920,6 +921,39 @@
             }
         }
     }
+// [저장 및 관리자 모드 종료 후 일반 모드로 복귀]
+function lhy_saveAndExitAdmin() {
+    // 1. 데이터 저장 및 동기화
+    lhy_saveUndoState(); 
+    lhy_syncInlineInputsToState(); 
+    lhy_dominoShiftSystem(); 
+    lhy_syncToFirebase();
+    
+    // 2. 팝업 창 닫기
+    document.getElementById('lhy-pop-master').style.display = 'none';
+    
+    // 3. 관리자 모드 종료 및 일반 모드(9개 버튼) 설정
+    isAdminMode = false;
+    isLimitedMode = false; // <--- 핵심: 여기서 false로 바꿔야 9개 버튼이 다 보입니다.
+    
+    // 4. UI 원상복구
+    const adminBtn = document.getElementById('btn-admin-toggle');
+    const statEl = document.getElementById('ui-stat');
+    
+    if (adminBtn) {
+        adminBtn.classList.remove('admin-mode');
+        adminBtn.innerText = "관리자";
+    }
+    if (statEl) {
+        statEl.classList.remove('admin-active');
+        statEl.innerText = `${DB.members.filter(m => m.isAtt).length}/${DB.members.length}`;
+    }
+    
+    // 5. 버튼 레이아웃 갱신
+    applyAccessControl(); // 이제 isLimitedMode가 false이므로 9개 버튼이 모두 보입니다.
+    
+    alert("저장 후 관리자 모드를 종료했습니다.");
+}
 
     function lhy_pickAndPlace4(pool, boardPrefix) {
         let rule = (DB.config && DB.config.matchRule) ? DB.config.matchRule : 'grade';
@@ -1575,14 +1609,38 @@
         lhy_renderMasterTable(); lhy_renderRuleButtons(); document.getElementById('lhy-pop-master').style.display = 'flex'; 
     }
     
-    function lhy_closeMasterPop() {
-        if(confirm("변경된 내용을 저장하시겠습니까?")) {
-            lhy_saveUndoState(); lhy_syncInlineInputsToState(); document.getElementById('lhy-pop-master').style.display = 'none'; 
-            lhy_dominoShiftSystem(); lhy_syncToFirebase();
-        } else { document.getElementById('lhy-pop-master').style.display = 'none'; }
-        if (isAdminMode) { lhy_fnToggleAdminMode(); }
-    }
-
+function lhy_closeMasterPop() {
+    // 1. 저장 여부 확인 및 데이터 동기화
+    if(confirm("변경된 내용을 저장하시겠습니까?")) {
+        lhy_saveUndoState(); 
+        lhy_syncInlineInputsToState(); 
+        lhy_dominoShiftSystem(); 
+        lhy_syncToFirebase(); // 서버에 데이터 전송
+    } 
+    
+    // 2. 팝업 창 닫기
+    document.getElementById('lhy-pop-master').style.display = 'none'; 
+    
+    // 3. [핵심] 팝업을 닫은 직후 UI를 강제로 관리자 모드로 갱신
+    // (이렇게 해야 저장이 끝난 후 화면이 제한 모드로 바뀌지 않고 유지됩니다)
+    applyAccessControl();
+}
+// [통합] 저장 후 바로 닫기 함수
+function lhy_saveAndCloseAdmin() {
+    // 1. 데이터 저장 및 동기화 (기존 저장 로직)
+    lhy_saveUndoState(); 
+    lhy_syncInlineInputsToState(); 
+    lhy_dominoShiftSystem(); 
+    lhy_syncToFirebase();
+    
+    // 2. 팝업 창 즉시 닫기
+    document.getElementById('lhy-pop-master').style.display = 'none';
+    
+    // 3. UI 갱신 (중요: 닫힌 후에도 관리자 버튼이 사라지지 않게 보호)
+    applyAccessControl();
+    
+    // (선택사항) alert("저장하고 닫았습니다.");
+}
     function lhy_syncInlineInputsToState() {
         const tbody = document.getElementById('ui-master-tbody'); if(!tbody) return;
         const rows = tbody.querySelectorAll('tr');
@@ -1782,9 +1840,19 @@ window.addEventListener('load', () => {
         else { if (document.exitFullscreen) { document.exitFullscreen(); } }
     }
     
-    // [UI 접근 제어] 관리자와 제한 모드 버튼 숨김 처리 _260630-1
-    function applyAccessControl() {
-        const adminButtons = ['btn-admin-toggle', 'btn-manual-toggle', 'btn-reset-enter', 'btn-undo', 'btn-add-new', 'btn-add-guest', 'btn-exit-app'];
+// [UI 접근 제어] 관리자 권한을 최우선으로 하는 코드
+function applyAccessControl() {
+    const adminButtons = ['btn-admin-toggle', 'btn-manual-toggle', 'btn-reset-enter', 'btn-undo', 'btn-add-new', 'btn-add-guest', 'btn-exit-app'];
+    
+    // 1. 관리자 모드인지 확실히 체크 (isAdminMode가 true면 고민 없이 관리자 화면 표시)
+    const isUserAdmin = (typeof isAdminMode !== 'undefined' && isAdminMode === true);
+
+    if (isUserAdmin) {
+        // 관리자라면: 제한 모드와 상관없이 버튼 무조건 보임
+        adminButtons.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('limited-hide'); });
+        const pExit = document.getElementById('btn-personal-exit'); if (pExit) pExit.classList.add('limited-hide');
+    } else {
+        // 일반 유저라면: 기존처럼 제한 모드 상태에 따라 처리
         if (!isLimitedMode) {
             adminButtons.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('limited-hide'); });
             const pExit = document.getElementById('btn-personal-exit'); if (pExit) pExit.classList.add('limited-hide');
@@ -1793,6 +1861,7 @@ window.addEventListener('load', () => {
             const pExit = document.getElementById('btn-personal-exit'); if (pExit) pExit.classList.remove('limited-hide');
         }
     }
+}
 </script>
 
 <button class="btn-fullscreen-toggle" onclick="lhy_toggleFullScreen()">⛶ 전체/축소</button>
