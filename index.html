@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260630-2</title>
+    <title>화목모임_260630-3</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -73,7 +73,7 @@
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+  .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         
         .lhy-menu-grid button { 
             height: 34px; border: 1px solid rgba(0,0,0,0.6); color: #fff; font-weight: 950; font-size: 0.75rem; 
@@ -276,6 +276,8 @@
         .real-landscape .lhy-menu-grid button { height: 100%; }
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
+
+
         @media (max-width: 450px) {
             #login-modal { background-size: cover; background-position: center; background-repeat: no-repeat; }
             .grid-wrapper .p-name { font-size: 11px !important; }
@@ -337,7 +339,7 @@
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
     background-size: cover; background-position: center; background-repeat: no-repeat;">
     
-    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목 모임</div>
+    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목 모임 입니다~~오늘도 즐거운 운동 되세요~~</div>
     
     <input type="password" id="pw-input" placeholder="비밀번호 입력" 
            onkeydown="if(event.keyCode===13) checkPassword()" 
@@ -438,7 +440,7 @@
         </div>
     </div>
 
-    <div class="lhy-footer-filename">화목모임_260630-2</div>
+    <div class="lhy-footer-filename">화목모임_260630-3</div>
 
     <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop()">
         <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1768,11 +1770,12 @@
         if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); }
     }
     
-    window.addEventListener('load', () => { 
-        lhy_init(); lhy_lockOrientation(); initGroupDragEvents(); 
-    });
+// _260630-2: 고정 기능 제거
+window.addEventListener('load', () => { 
+    lhy_init(); initGroupDragEvents(); 
+});
 
-    document.addEventListener('touchstart', function() { lhy_lockOrientation(); }, { once: true });
+// document.addEventListener('touchstart', ... ) 호출부 전체 삭제
 
     function lhy_toggleFullScreen() {
         if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } 
