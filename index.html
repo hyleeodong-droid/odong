@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260630-8</title>
+    <title>화목모임_260630-7</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -320,29 +320,16 @@
 <div id="auth-gate" style="
     position:fixed; top:0; left:0; width:100%; height:100%; 
     z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;
-    background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8));">
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
+    background-size: cover; background-position: center; background-repeat: no-repeat;">
     
-    <div id="pw-layer" style="display:flex; flex-direction:column; align-items:center;">
-        <div style="font-size:1.6rem; font-weight:950; margin-bottom:20px;">오동 화목 모임입니다~<br>즐겁고 신나게 운동하세요~^^~</div>
-        <input type="password" id="pw-input" placeholder="비밀번호 입력" 
-               onkeydown="if(event.keyCode===13) checkPassword()"
-               style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:15px;">
-        <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; cursor:pointer;">확인</button>
-    </div>
-
-    <div id="list-layer" style="display:none; flex-direction:column; align-items:center; width:100%; height:100%; padding:20px;">
-        <div style="font-size:1.5rem; margin-bottom:20px; font-weight:bold;">성함을 클릭하세요!</div>
-        <div id="member-login-list" style="
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; 
-            width: 100%; 
-            max-width: 500px;
-            max-height: 70vh; 
-            overflow-y: auto; 
-            padding: 10px;">
-            </div>
-    </div>
+    <div style="font-size:1.6rem; font-weight:950; margin-bottom:25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">오동 화목 모임 입니다~~<br>오늘도 즐거운 운동 되세요~~^^~~</div>
+    
+    <input type="password" id="pw-input" placeholder="비밀번호 입력" 
+           onkeydown="if(event.keyCode===13) checkPassword()" 
+           style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:15px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3);">
+ 
+    <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 </div>
 
 <header class="lhy-header">
@@ -377,7 +364,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260630-8</div>
+<div class="lhy-footer-filename">화목모임_260630-7</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -447,7 +434,6 @@
 <button class="btn-fullscreen-toggle" onclick="lhy_toggleFullScreen()">⛶ 전체/축소</button>
 
 <script>
-
     // ----------------------------------------------------
     // [1] 전역 변수 선언 (딱 한 번만 선언)
     // ----------------------------------------------------
@@ -497,68 +483,36 @@
 
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-function checkPassword() {
-    const pwInput = document.getElementById('pw-input');
-    const input = pwInput.value;
+    // ----------------------------------------------------
+    // [3] 로그인 및 메뉴 제어 로직
+    // ----------------------------------------------------
+    function checkPassword() {
+        const pwInput = document.getElementById('pw-input');
+        const input = pwInput.value;
 
-    if (input === "12" || input === "34") {
-        userRole = (input === "12") ? 'GUEST' : 'SUPER';
-        isLimitedMode = false;
+        // "12"는 일반, "34"는 슈퍼유저 (56는 여기서 거부)
+        if (input === "12" || input === "34") {
+            isLimitedMode = false;
+            userRole = (input === "12") ? 'GUEST' : 'SUPER';
 
-        // [핵심] 여기서 비번창 숨기고 명단창을 보이게 합니다.
-        document.getElementById('pw-layer').style.display = 'none';
-        document.getElementById('list-layer').style.display = 'flex';
+            const gate = document.getElementById('auth-gate');
+            if (gate) gate.style.display = 'none';
 
-        // 명단 그리기
-        renderLoginButtons();
-    } else {
-        alert("비밀번호가 틀렸습니다.");
-        pwInput.value = "";
-    }
-}
-
-// ----------------------------------------------------
-// [2단계] 명단에서 본인 이름 클릭 시 최종 로그인
-// ----------------------------------------------------
-function renderLoginButtons() {
-    const container = document.getElementById('member-login-list');
-    container.innerHTML = '';
-    
-    // DB.members를 이름순 정렬
-    const sortedMembers = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
-
-    sortedMembers.forEach(m => {
-        const btn = document.createElement('button');
-        btn.innerText = m.name;
-        btn.style.cssText = "padding:15px; font-size:1.1rem; border-radius:8px; border:none; cursor:pointer; background:#fff; color:#333; font-weight:bold;";
-        
-        btn.onclick = () => {
-            // [최종 로그인 처리]
-            currentUser = m; 
-            m.isAtt = true;         // 클릭한 사람 자동 출석
-            m.attTime = Date.now();
-            
-            // 로그인창 완전 종료
-            document.getElementById('auth-gate').style.display = 'none';
-            
-            // 오디오 컨텍스트 활성화 (기존 로직)
             if (!globalAudioCtx) {
                 globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 globalAudioCtx.resume();
             }
             if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
 
-            // UI 및 권한 최종 적용
             document.getElementById('ui-stat').innerText = (userRole === 'GUEST') ? "일반모드" : "슈퍼모드";
             applyAccessControl(); 
-            
-            lhy_renderBoardFromState();
-            lhy_syncToFirebase();
-            console.log(m.name + "님 로그인 완료! 권한:", userRole);
-        };
-        container.appendChild(btn);
-    });
-}
+            console.log("로그인 성공! 권한:", userRole);
+
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            pwInput.value = "";
+        }
+    }
 
     function lhy_fnToggleAdminMode() {
         const statEl = document.getElementById('ui-stat'); 
@@ -951,52 +905,58 @@ function triggerBlink(elementId) {
     function lhy_getPureName(fullName) { if(!fullName) return ""; let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim(); }
     function lhy_getSexClass(memberObj) { if (memberObj.isG) return 'g-sex'; const nameData = memberObj.name || ""; const sexData = memberObj.sex || ""; if (sexData === '여' || nameData.includes('여')) return 'f-sex'; return 'm-sex'; }
 
-function lhy_init() {
-    const d = new Date(); const days = ['일','월','화','수','목','금','토'];
-    const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
-    const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
-    document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
+    function lhy_init() {
+        const d = new Date(); const days = ['일','월','화','수','목','금','토'];
+        const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
+        document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
 
-    database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
-        const lastDate = snapshot.val();
-        if (lastDate !== todayStr) {
-            console.log("새로운 날짜, 로컬 초기화"); 
-            fallbackReset(todayStr); 
-            return;
-        }
-    });
-    // lhy_init에서는 renderLoginButtons()를 호출하지 않습니다.
-}
-
-function fallbackReset(dateString) { 
-    DB.members.forEach(m => { m.isAtt = false; delete m.attTime; }); 
-    Object.keys(boardState).forEach(key => boardState[key] = null); 
-    lhy_syncToFirebase(); 
-    database.ref('meta/lastAccessDate').set(dateString); 
-}
-
-// [핵심 수정 부분] 데이터 로드 완료 직후에 버튼 생성 호출
-database.ref('appData').on('value', (snapshot) => {
-    if(isAppClosed) return; if(isSyncing) return; 
-    const data = snapshot.val();
-    if (data) {
-        if (data.DB) DB = data.DB; boardState = data.boardState || {};
-        for (let i = 1; i <= 6; i++) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; }); }
+        database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
+            const lastDate = snapshot.val();
+            if (lastDate !== todayStr) {
+                console.log("새로운 날짜, 로컬 초기화"); fallbackReset(todayStr); return;
+            }
+        });
         
-        // 데이터 로드 완료 후 화면 그리기
-        lhy_renderBoardFromState(); 
-        try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
-        lhy_updateResetButtonUI();
-        
-        // [추가] 로그인 버튼 생성 함수 호출 (여기서 호출해야 데이터가 있습니다)
-        renderLoginButtons(); 
-    } else { 
-        lhy_loadDefaultDB(); 
-        for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); } 
-        lhy_syncToFirebase(); 
-        renderLoginButtons(); // 데이터가 없을 때도 초기 생성
+        function fallbackReset(dateString) { DB.members.forEach(m => { m.isAtt = false; delete m.attTime; }); Object.keys(boardState).forEach(key => boardState[key] = null); lhy_syncToFirebase(); database.ref('meta/lastAccessDate').set(dateString); }
+
+        database.ref('appData').on('value', (snapshot) => {
+            if(isAppClosed) return; if(isSyncing) return; 
+            const data = snapshot.val();
+            if (data) {
+                if (data.DB) DB = data.DB; boardState = data.boardState || {};
+                for (let i = 1; i <= 6; i++) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; }); }
+                lhy_renderBoardFromState(); try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} lhy_updateResetButtonUI();
+            } else { lhy_loadDefaultDB(); for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); } lhy_syncToFirebase(); }
+        });
+
+        initGlobalNotifications();
+
+        document.addEventListener('click', function(e) {
+            if (typeof isLongClicked !== 'undefined' && isLongClicked) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); setTimeout(() => { isLongClicked = false; }, 100); return; }
+            const playerCard = e.target.closest('.player');
+            if (playerCard) {
+                if (typeof isListDragging !== 'undefined' && isListDragging) return;
+                if (playerCard.classList.contains('is-sel')) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); playerCard.classList.remove('is-sel'); const memberId = playerCard.dataset.id; selectedPopIds = selectedPopIds.filter(id => id !== memberId); if (typeof lhy_updateGroupDragBtnPosition === 'function') lhy_updateGroupDragBtnPosition(); return; }
+                if (playerCard.closest('#ui-list')) {
+                    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                    const memberId = playerCard.dataset.id;
+                    if (memberId) {
+                        const m = DB.members.find(x => x.id === memberId);
+                        if (m) {
+                            if (typeof lhy_saveUndoState === 'function') lhy_saveUndoState();
+                            m.isAtt = !m.isAtt;
+                            if (m.isAtt) { m.attTime = Date.now(); } else { delete m.attTime; Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; }); if (m.isG) { DB.members = DB.members.filter(x => x.id !== m.id); } }
+                            sendGlobalAction([m.id]); if (typeof lhy_dominoShiftSystem === 'function') lhy_dominoShiftSystem(); if (typeof lhy_applyOrientationLogic === 'function') lhy_applyOrientationLogic(); lhy_syncToFirebase();
+                        }
+                    }
+                }
+            }
+        }, true);
+
+        new Sortable(document.getElementById('ui-list'), { ...dragOpt, sort: true, filter: ".is-not, .is-playing", onAdd: (evt) => { if(evt.item) evt.item.remove(); lhy_syncBoardDOMToState(); if (!isManualMode) lhy_dominoShiftSystem(); lhy_syncToFirebase(); } });
+        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
     }
-});
 
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
@@ -1209,48 +1169,6 @@ function lhy_topBtnCancelGame() {
     window.addEventListener('load', () => { 
         lhy_init(); initGroupDragEvents(); 
     });
-function renderLoginButtons() {
-    const container = document.getElementById('member-login-list');
-    if (!container) return; // 로그인 창이 없으면 실행 안함
-    container.innerHTML = '';
-    
-    // DB.members를 이름순 정렬하여 버튼 생성
-    const sortedMembers = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
-
-    sortedMembers.forEach(m => {
-        const btn = document.createElement('button');
-        btn.innerText = m.name;
-        // 디자인 스타일 (원하시는 대로 수정 가능)
-        btn.style.cssText = "padding:15px; font-size:1.2rem; border-radius:10px; border:2px solid #fff; cursor:pointer; background:#fff; color:#333; font-weight:bold;";
-        
-        btn.onclick = () => {
-            // [로그인 로직]
-            // 1. 이름이 "관리자" 관련 단어를 포함하면 SUPER로, 아니면 GUEST로
-            //    (기존 34번 관리자 로직을 이 이름 기반 권한 체크로 대체)
-            if (m.name.includes("관리자")) {
-                userRole = 'SUPER';
-            } else {
-                userRole = 'GUEST';
-            }
-            
-            // 2. 출석 처리
-            m.isAtt = true;
-            m.attTime = Date.now();
-            
-            // 3. 로그인 창 닫기 및 모드 해제
-            document.getElementById('auth-gate').style.display = 'none';
-            isLimitedMode = false;
-            
-            // 4. 화면 및 권한 갱신
-            applyAccessControl(); // 여기서 관리자 버튼이 표시됨
-            lhy_renderBoardFromState();
-            lhy_syncToFirebase();
-            
-            alert(`${m.name}님, 로그인되었습니다.`);
-        };
-        container.appendChild(btn);
-    });
-}
 </script>
 
 </body>
