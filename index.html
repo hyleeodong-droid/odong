@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-17</title>
+    <title>화목모임_260702-1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -48,14 +48,12 @@
         
         .lhy-hd-btn { background: linear-gradient(180deg, #ffffff, #eff2f7); color: #000; border: 1px solid #aaa; font-weight: 950; font-size: 0.72rem; padding: 3px 10px; border-radius: 4px; cursor: pointer; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.3); transition: all 0.1s; }
         .lhy-hd-btn:active { transform: translateY(2px); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.2); }
-        .lhy-hd-btn.admin-mode { background: linear-gradient(180deg, #ff4d4d, #cc0000); color: #fff; border: 1px solid #990000; animation: blinker 1.5s linear infinite; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
-        @keyframes blinker { 50% { opacity: 0.7; } }
 
         .lhy-main { display: flex; flex: 1; overflow: hidden; background: #e2e8f0; min-height: 0; position: relative; flex-direction: column; }
         .lhy-game-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #1e293b; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3) inset; }
         .lhy-side-area { height: 50%; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-top: 2px solid #333; overflow: hidden; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); z-index: 10; }
         
-        .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
+        .lhy-menu-grid { display: grid; grid-template-columns: repeat(10, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         
         .lhy-menu-grid button { 
             height: 34px; 
@@ -210,24 +208,12 @@
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
         }
 
-        .A-btn::before {
-            content: ""; position: absolute; top: 0; bottom: 0; left: -15px; width: 15px;
-            transform: translateZ(0); background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%);
-            clip-path: polygon(100% 0%, 0% 50%, 100% 100%); z-index: -1;
-        }
-
         .B-btn {
             position: relative; z-index: 1; width: 100%; height: 40px; display: flex; align-items: center;
             background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%);
             box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3);
             color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7));
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
-        }
-
-        .B-btn::after {
-            content: ""; position: absolute; top: 0; bottom: 0; right: -15px; width: 15px;
-            transform: translateZ(0); background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%);
-            clip-path: polygon(0% 0%, 100% 50%, 0% 100%); z-index: -1;
         }
 
         .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(2px); }
@@ -242,20 +228,18 @@
         .master-title-text { font-size: 1rem; font-weight: 950; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
         .master-top-actions { display: flex; gap: 5px; }
         .master-top-actions button { padding: 5px 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; font-weight: 950; font-size: 0.72rem; cursor: pointer; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s; }
-        .master-top-actions button:active { transform: translateY(1px); }
         .master-table-wrapper { flex: 1; overflow: auto; background: #fff; padding: 5px; -webkit-overflow-scrolling: touch; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         .master-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 550px; }
         .master-table th, .master-table td { border: 1px solid #ccc; padding: 6px 4px; text-align: center; vertical-align: middle; }
         .master-table th { background: linear-gradient(180deg, #e8eaf6, #d7d9eb); font-weight: 950; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
         .master-table input[type="text"], .master-table select { width: 100%; height: 28px; border: 1px solid #aaa; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.05); }
         .btn-table-kick { background: linear-gradient(180deg, #ef4444, #dc2626); color: #fff; border: 1px solid #b91c1c; padding: 5px 10px; border-radius: 4px; font-weight: 950; cursor: pointer; font-size: 0.75rem; box-shadow: 0 2px 3px rgba(0,0,0,0.2); }
-        .btn-table-kick:active { transform: translateY(1px); box-shadow: none; }
 
         .help-large { max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column; }
         .help-split-container { display: flex; flex: 1; overflow: hidden; background: #eee; }
         .help-left-menu { width: 38%; background: #1e293b; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; padding: 2px; box-shadow: inset -2px 0 5px rgba(0,0,0,0.3); }
         .help-menu-btn { padding: 14px 8px; text-align: left; background: linear-gradient(135deg, #334155, #1e293b); color: #e2e8f0; font-size: 0.75rem; font-weight: 900; border: none; cursor: pointer; line-height: 1.3; border-bottom: 1px solid #0f172a; transition: background 0.1s; }
-        .help-menu-btn.active { background: linear-gradient(135deg, #FFD700, #f59e0b); color: #000; box-shadow: inset 2px 0 0 #fff; text-shadow: 1px 1px 0 rgba(255,255,255,0.4); border-left: 4px solid #fff; }
+        .help-menu-btn.active { background: linear-gradient(135deg, #FFD700, #f59e0b); color: #000; border-left: 4px solid #fff; }
         .help-right-viewer { width: 62%; background: #fff; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; box-shadow: inset 2px 0 5px rgba(0,0,0,0.05); }
         .viewer-title { font-size: 0.95rem; font-weight: 950; color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 6px; margin-bottom: 12px; }
         .viewer-step-list { display: flex; flex-direction: column; gap: 12px; }
@@ -271,7 +255,6 @@
         .real-landscape .lhy-player-list { flex: 1; height: auto; overflow-y: auto; }
 
         @media (max-width: 450px) {
-            #login-modal { background-size: cover; background-position: center; background-repeat: no-repeat; }
             .grid-wrapper .p-name { font-size: 11px !important; }
             .grid-wrapper.few-rows .p-name { font-size: 15px !important; }
             .grid-wrapper.single-row .p-name { font-size: 22px !important; }
@@ -314,29 +297,60 @@
         .dynamic-drag-btn.active { transform: translate(-50%, -50%) scale(1.1); background: #FFD700; opacity: 0.8; }
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
         
-        /* [수정] 깜빡임 애니메이션 개선 (글씨 색상 변화 1초 간격 5번) */
-        .color-swap-active .p-name { 
-            animation: text-color-blink 1s 5 !important; 
-        }
+        .color-swap-active .p-name { animation: text-color-blink 1s 5 !important; }
         @keyframes text-color-blink {
             0%, 100% { color: inherit; } 
             50% { color: #ffffff !important; text-shadow: 0px 0px 8px #ffffff, 0px 0px 12px #ffffff !important; }
         }
 
         .limited-hide { display: none !important; }
-        /* 기존 깜빡임 호환용 */
         @keyframes blink-fade { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .blink-animation { animation: blink-fade 1s infinite; }
 
-/* #ui-menu-grid.observer-mode를 직접 타겟팅하여 우선순위 극대화 */
-    #ui-menu-grid.observer-mode button {
-        display: none !important;
-    }
-    
-    #ui-menu-grid.observer-mode #btn-personal-exit {
-        display: block !important;
-        width: 100%;
-    }
+        /* [관람모드 단일 메뉴 강제 중앙정렬] */
+        #ui-menu-grid.observer-mode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #ui-menu-grid.observer-mode button {
+            display: none !important;
+        }
+        #ui-menu-grid.observer-mode #btn-personal-exit {
+            display: block !important;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* [요구사항 1] 관람모드 원천 차단 (포인터 이벤트 및 디스플레이 제한) */
+        body.mode-observer .player,
+        body.mode-observer .lhy-header .lhy-hd-btn,
+        body.mode-observer .lhy-box-stat,
+        body.mode-observer .btn-fullscreen-toggle {
+            pointer-events: none !important;
+        }
+        body.mode-observer .btn-ctrl,
+        body.mode-observer .A-btn,
+        body.mode-observer .B-btn,
+        body.mode-observer .lhy-btn-act-end,
+        body.mode-observer #btn-admin-toggle {
+            display: none !important;
+        }
+
+        /* [요구사항 2] 로그인 화면 배경 세로 모드 최적화 (회전 처리) */
+        .auth-bg {
+            position: absolute; top: 50%; left: 50%;
+            width: 100vw; height: 100vh;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif') center/cover no-repeat;
+            z-index: -1;
+        }
+        @media (orientation: portrait) {
+            .auth-bg {
+                width: 100vh; height: 100vw;
+                transform: translate(-50%, -50%) rotate(90deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -344,11 +358,11 @@
 <div id="auth-gate" style="
     position:fixed; top:0; left:0; width:100%; height:100%; 
     z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;
-    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
-    background-size: cover; background-position: center; background-repeat: no-repeat;">
+    overflow: hidden; background: #000;">
 
-    <form autocomplete="on" style="display: contents;" onsubmit="event.preventDefault(); checkPassword();">
-        
+    <div class="auth-bg"></div>
+
+    <form autocomplete="on" style="display: contents; position: relative; z-index: 10;" onsubmit="event.preventDefault(); checkPassword();">
         <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; text-align: center; position: relative;">
 
             <div style="font-size:1.6rem; font-weight:950; margin-bottom: 25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
@@ -367,7 +381,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-17</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-1</div>
         </div>
     </form>
 </div>
@@ -405,7 +419,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-17</div>
+<div class="lhy-footer-filename">화목모임_260702-1</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -476,19 +490,19 @@
 
 <script>
     // ----------------------------------------------------
-    // [1] 전역 변수 선언 (딱 한 번만 선언)
+    // [1] 전역 변수 선언
     // ----------------------------------------------------
     let loggedInUserId = null;
     let isCurrentUserAdmin = false;
-    let isObserverMode = false; // [추가] 관람모드 변수
+    let isObserverMode = false;
     let isAppClosed = false;
     let isSyncing = false;
     let globalAudioCtx = null;
 
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: ["우측 명단의 회원을 클릭하여 출석/미출석 상태를 변경합니다.", "모드 변경, 가로/세로 전환 등의 버튼으로 환경을 제어할 수 있습니다."] },
-        2: { title: "2. 회원관리 인라인 제어 규칙", 정답: ["관리자는 '회원관리' 버튼을 통해 회원 정보를 직접 수정할 수 있습니다.", "성별, 나이, 등급, 관리자 여부를 변경한 후 '저장 및 닫기'를 누르면 즉시 반영됩니다."] },
-        3: { title: "3. 실행취소 및 시스템 마감", steps: ["실행취소 버튼으로 직전 배정 상태로 되돌릴 수 있습니다.", "모임 종료 시 '오늘모임끝'을 통해 데이터를 초기화하고 마감합니다."] },
+        2: { title: "2. 회원관리 인라인 제어 규칙", steps: ["관리자는 '회원관리' 버튼을 통해 회원 정보를 직접 수정할 수 있습니다.", "성별, 나이, 등급, 관리자 여부를 변경한 후 '저장 및 닫기'를 누르면 즉시 반영됩니다."] },
+        3: { title: "3. 실행취소 및 시스템 마감", steps: ["실행취소 버튼으로 직전 배정 상태로 되돌릴 수 있습니다.", "모임 종료 시 '운동끝'을 통해 데이터를 초기화하고 마감합니다."] },
         4: { title: "4. [상황] 자동배정", steps: ["자동배정 모드에서는 빈 코트나 대기열이 생기면 출석 순서와 등급에 따라 자동으로 선수가 채워집니다."] },
         5: { title: "5. [상황] 수동배정", steps: ["수동배정 모드에서는 자동 이동이 멈추며, 관리자가 직접 선수를 드래그하여 배치해야 합니다."] },
         6: { title: "6. [상황] 경기중 무르기 및 조기귀가", steps: ["배정된 선수를 롱클릭 후 '게임취소'를 누르면 대기열로 돌아갑니다.", "일반 회원은 '본인만 나가기'를 통해 미출석 상태로 돌아갑니다."] },
@@ -525,89 +539,85 @@
 
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-function checkPassword() {
-    const pwInput = document.getElementById('pw-input').value;
-    const userSelect = document.getElementById('login-user-select').value;
+    function checkPassword() {
+        const pwInput = document.getElementById('pw-input').value;
+        const userSelect = document.getElementById('login-user-select').value;
 
-    // [1] 12번 관람모드 로그인 처리
-    if (pwInput === "12") {
-        loggedInUserId = "OBSERVER";
-        isCurrentUserAdmin = false;
-        isObserverMode = true; // 관람모드 활성화
-        
-        // UI 모드 변경
-        updateObserverUI(true); 
-        
-        document.getElementById('auth-gate').style.display = 'none';
-        
-        if (!globalAudioCtx) {
-            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            globalAudioCtx.resume();
-        }
-        if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+        // [요구사항 1] "12" 로그인 (이름 무관) 관람모드 처리
+        if (pwInput === "12") {
+            loggedInUserId = "OBSERVER";
+            isCurrentUserAdmin = false;
+            isObserverMode = true; 
+            
+            updateObserverUI(true); 
+            
+            document.getElementById('auth-gate').style.display = 'none';
+            
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                globalAudioCtx.resume();
+            }
+            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
 
-        const statEl = document.getElementById('ui-stat');
-        if (statEl) {
-            statEl.style.display = 'block';
-            statEl.innerText = "관람모드";
-        }
-        
-        applyAccessControl(); 
-        lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
-        console.log("관람모드 접속 성공");
-        return;
-    }
-
-    // [2] 정상 회원 및 관리자 로그인
-    if (pwInput === "34") {
-        if (!userSelect) {
-            alert("본인 이름을 선택해주세요.");
+            const statEl = document.getElementById('ui-stat');
+            if (statEl) {
+                statEl.style.display = 'block';
+                statEl.innerText = "관람모드";
+            }
+            
+            applyAccessControl(); 
+            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            console.log("관람모드 접속 성공");
             return;
         }
-        
-        // 정상 로그인 시 UI 모드 초기화
-        updateObserverUI(false);
 
-        // 로그인 정보 저장
-        localStorage.setItem('savedLoginUserId', userSelect);
+        // [2] 정상 회원 및 관리자 로그인
+        if (pwInput === "34") {
+            if (!userSelect) {
+                alert("본인 이름을 선택해주세요.");
+                return;
+            }
+            
+            updateObserverUI(false);
 
-        loggedInUserId = userSelect;
-        isObserverMode = false;
-        
-        const m = DB.members.find(x => x.id === loggedInUserId);
-        isCurrentUserAdmin = m ? !!m.isAdmin : false;
-        
-        const totalAdmins = DB.members.filter(x => x.isAdmin).length;
-        if (totalAdmins === 0) { isCurrentUserAdmin = true; }
+            localStorage.setItem('savedLoginUserId', userSelect);
 
-        // [핵심] 로그인 성공 후 자동 출석 처리 함수 호출
-        if (loggedInUserId) {
-            console.log("로그인 성공! 자동 출석 시도:", loggedInUserId);
-            lhy_runAutoAttendance(loggedInUserId);
+            loggedInUserId = userSelect;
+            isObserverMode = false;
+            
+            const m = DB.members.find(x => x.id === loggedInUserId);
+            isCurrentUserAdmin = m ? !!m.isAdmin : false;
+            
+            const totalAdmins = DB.members.filter(x => x.isAdmin).length;
+            if (totalAdmins === 0) { isCurrentUserAdmin = true; }
+
+            if (loggedInUserId) {
+                console.log("로그인 성공! 자동 출석 시도:", loggedInUserId);
+                lhy_runAutoAttendance(loggedInUserId);
+            }
+
+            document.getElementById('auth-gate').style.display = 'none';
+
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                globalAudioCtx.resume();
+            }
+            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+
+            const statEl = document.getElementById('ui-stat');
+            if (statEl) {
+                statEl.style.display = 'block';
+            }
+            
+            applyAccessControl(); 
+            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
+
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+            document.getElementById('pw-input').value = "";
         }
-
-        document.getElementById('auth-gate').style.display = 'none';
-
-        if (!globalAudioCtx) {
-            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            globalAudioCtx.resume();
-        }
-        if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
-
-        const statEl = document.getElementById('ui-stat');
-        if (statEl) {
-            statEl.style.display = 'block';
-        }
-        
-        applyAccessControl(); 
-        lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
-        console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
-
-    } else {
-        alert("비밀번호가 틀렸습니다.");
-        document.getElementById('pw-input').value = "";
     }
-}
 
     function lhy_fnToggleAdminMode() {
         if (isCurrentUserAdmin) {
@@ -625,34 +635,30 @@ function checkPassword() {
             return;
         }
 
-        // [수정] 관람모드일 경우 모든 메뉴버튼 숨김 (화면만 보임)
+        // [요구사항 3] 모든 모드에서 '나가기' 버튼 100% 보이게 유지
         if (isObserverMode) {
-            allButtons.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+            allButtons.forEach(id => { 
+                const el = document.getElementById(id); 
+                if (el) el.style.display = (id === 'btn-personal-exit') ? 'block' : 'none';
+            });
         } else if (isCurrentUserAdmin) {
             allButtons.forEach(id => { 
                 const el = document.getElementById(id); 
-                if (el) {
-                    if (id === 'btn-personal-exit') el.style.display = 'none';
-                    else el.style.display = '';
-                }
+                if (el) el.style.display = ''; // 관리자도 나가기 버튼 보임
             });
         } else {
             allButtons.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (id === 'btn-personal-exit') el.style.display = '';
-                    else el.style.display = 'none';
-                }
+                if (el) el.style.display = (id === 'btn-personal-exit') ? 'block' : 'none';
             });
         }
         lhy_enforceDragPermissions();
     }
 
     function lhy_enforceDragPermissions() {
-        // 관리자가 아니면(일반이거나 관람모드) 드래그 불가
         document.querySelectorAll('.lhy-slot, #ui-list').forEach(el => {
             if (Sortable && Sortable.get(el)) {
-                Sortable.get(el).option("disabled", !isCurrentUserAdmin);
+                Sortable.get(el).option("disabled", !isCurrentUserAdmin || isObserverMode);
             }
         });
     }
@@ -669,9 +675,6 @@ function checkPassword() {
         document.getElementById('lhy-pop-master').style.display = 'none'; 
     }
 
-    // ----------------------------------------------------
-    // [4] 핵심 시스템 함수들 (효과음, 데이터 저장 등)
-    // ----------------------------------------------------
     function safeExecute(fn) { try { return fn(); } catch(e) { console.error("오류 발생:", e); } }
 
     function lhy_playDingDongSound() {
@@ -699,36 +702,28 @@ function checkPassword() {
         }
     }
 
-    // [수정] 5번 색상 변환 깜빡임 효과 (CSS animation 활용)
     function lhy_triggerColorSwapEffect(memberId) {
         const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
         targetEls.forEach(el => {
             el.classList.add('color-swap-active');
-            setTimeout(() => el.classList.remove('color-swap-active'), 5000); // 정확히 5초간 5번 유지
+            setTimeout(() => el.classList.remove('color-swap-active'), 5000); 
         });
     }
 
     function lhy_syncToFirebase() {
         isSyncing = true;
-
         DB.members = DB.members.filter(m => !(m.isG && !m.isAtt));
 
         let safeBoardState = {};
         for(let i = 1; i <= 6; i++) {
             posOrder.forEach(p => {
                 let memberCId = boardState[`c${i}-${p}`] || null;
-                if (memberCId && !DB.members.find(x => x.id === memberCId)) {
-                    memberCId = null;
-                    boardState[`c${i}-${p}`] = null;
-                }
+                if (memberCId && !DB.members.find(x => x.id === memberCId)) { memberCId = null; boardState[`c${i}-${p}`] = null; }
                 safeBoardState[`c${i}-${p}`] = memberCId;
                 if (memberCId) { let m = DB.members.find(x => x.id === memberCId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
 
                 let memberWId = boardState[`w${i}-${p}`] || null;
-                if (memberWId && !DB.members.find(x => x.id === memberWId)) {
-                    memberWId = null;
-                    boardState[`w${i}-${p}`] = null;
-                }
+                if (memberWId && !DB.members.find(x => x.id === memberWId)) { memberWId = null; boardState[`w${i}-${p}`] = null; }
                 safeBoardState[`w${i}-${p}`] = memberWId;
                 if (memberWId) { let m = DB.members.find(x => x.id === memberWId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
             });
@@ -758,9 +753,6 @@ function checkPassword() {
         setTimeout(() => { isFirstLoad = false; }, 2000);
     }
 
-    // ----------------------------------------------------
-    // [5] UI 및 렌더링 함수
-    // ----------------------------------------------------
     function lhy_updateGroupDragBtnPosition() {
         const selectedEls = document.querySelectorAll('.player.is-sel');
         let btn = document.getElementById('dynamic-drag-btn');
@@ -776,7 +768,7 @@ function checkPassword() {
     function initGroupDragEvents() {
         let isDragging = false, btn = null, offsetX = 0, offsetY = 0;
         const handleStart = (e) => {
-            if (!isCurrentUserAdmin) return;
+            if (isObserverMode || !isCurrentUserAdmin) return;
             const target = e.target.closest('#dynamic-drag-btn'); if (!target) return;
             isDragging = true; isListDragging = true; btn = target;
             const touch = e.touches ? e.touches[0] : e;
@@ -829,23 +821,18 @@ function checkPassword() {
         isManualMode = !isManualMode;
         DB.config.isManualMode = isManualMode;
         lhy_syncBoardDOMToState(); 
-        
         if (isManualMode) {
             DB.config.w = [true, true, true, true, false, false]; 
             alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
         } else {
             let currentWaitCount = 0;
-            for (let i = 1; i <= 4; i++) { 
-                const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; 
-                if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } 
-            }
+            for (let i = 1; i <= 4; i++) { const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } }
             const targetWaitCount = Math.max(1, currentWaitCount); 
             DB.config.w = [false, false, false, false, false, false];
             for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
             alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`); 
             lhy_dominoShiftSystem();
         }
-        
         lhy_refreshMenuUI(); lhy_drawBoard(); lhy_renderBoardFromState(); lhy_syncToFirebase();
     }
 
@@ -954,6 +941,7 @@ function checkPassword() {
     }
 
     function lhy_fnGameEnd(type, idx, winner) {
+        if (isObserverMode) return;
         if (type !== 'c') return; lhy_saveUndoState();
         let pL1 = boardState[`c${idx}-L1`]; let pL2 = boardState[`c${idx}-L2`]; let pR1 = boardState[`c${idx}-R1`]; let pR2 = boardState[`c${idx}-R2`];
         let aTeam = [pL1, pL2].filter(id => id); let bTeam = [pR1, pR2].filter(id => id);
@@ -1038,7 +1026,6 @@ function checkPassword() {
                             select.appendChild(opt);
                         });
                         
-                        // [수정] localStorage 연동하여 기존 로그인 유저 자동 세팅
                         let targetVal = currentVal || localStorage.getItem('savedLoginUserId');
                         if(targetVal && sorted.find(x => x.id === targetVal)) select.value = targetVal;
                     }
@@ -1079,7 +1066,11 @@ function checkPassword() {
     }
 
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
-    function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
+    
+    function toggleUnit(t, i) { 
+        if (isObserverMode) return; 
+        lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); 
+    }
 
     function lhy_drawBoard() {
         const cG = document.getElementById('ui-court-grid'), wG = document.getElementById('ui-wait-grid'); const cC = document.getElementById('ctrl-c'), wW = document.getElementById('ctrl-w');
@@ -1107,8 +1098,8 @@ function checkPassword() {
         if (slot.children.length > 0) return; const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name); const isLeft = slot.id.includes('-L'); const winCount = Number(memberObj.win || 0); const loseCount = Number(memberObj.lose || 0);
         const p = document.createElement('div'); p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id; Object.assign(p.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20 });
         const stats = document.createElement('div'); Object.assign(stats.style, { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end', flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px', fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal' }); stats.innerHTML = `<span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span><span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>`;
-        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260630-1"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
-        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260630-1"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
+        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260702-18"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
+        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260702-18"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => { 
@@ -1172,7 +1163,7 @@ function checkPassword() {
             d.addEventListener('mousedown', startHandler); d.addEventListener('touchstart', startHandler, { passive: true }); d.addEventListener('touchmove', moveHandler, { passive: false }); d.addEventListener('mouseup', endHandler); d.addEventListener('touchend', endHandler);
             
             d.onclick = (e) => {
-                if (isObserverMode) { e.preventDefault(); e.stopPropagation(); return; } // [수정] 관람모드는 클릭 무효화
+                if (isObserverMode) { e.preventDefault(); e.stopPropagation(); return; }
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; } if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
                 if (!isCurrentUserAdmin && m.id !== loggedInUserId) {
@@ -1196,7 +1187,6 @@ function checkPassword() {
         if (statEl) {
             const attCount = DB.members.filter(m => m.isAtt).length;
             const totalCount = DB.members.length;
-            // [수정] 관람모드 텍스트 분기 처리
             const roleStr = isObserverMode ? "관람모드" : (isCurrentUserAdmin ? "관리자" : "일반");
             statEl.innerText = `${roleStr} [${attCount}/${totalCount}]`;
         }
@@ -1282,7 +1272,7 @@ function checkPassword() {
             triggerBlink('list-item-' + id);
         });
     }
-function lhy_topBtnGoHome() {
+    function lhy_topBtnGoHome() {
         if (selectedPopIds.length === 0) {
             alert("선수를 먼저 롱클릭으로 선택해주세요.");
             return;
@@ -1342,90 +1332,70 @@ function lhy_topBtnGoHome() {
             setTimeout(() => { document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;"><div style="font-size:1.6rem; font-weight:950; color:#2ecc71; margin-bottom:12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓ 오늘 모임 마감 완료</div><div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 초기화 및 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div></div>`; }, 100); 
         } 
     }
-    function lhy_personalExit() { 
-        if(confirm("귀가(미출석) 처리하고 화면을 닫으시겠습니까?")) { 
-            const m = DB.members.find(x => x.id === loggedInUserId);
-            if (m) {
-                m.isAtt = false;
-                delete m.attTime;
-                Object.keys(boardState).forEach(key => {
-                    if(boardState[key] === m.id) boardState[key] = null;
-                });
-                sendGlobalAction([m.id]);
-                lhy_dominoShiftSystem();
-                lhy_syncToFirebase();
-            }
-            setTimeout(() => {
-                window.close(); 
-                window.location.href = "about:blank"; 
-            }, 300);
-        } 
-    }
     function lhy_autoEntrySystem() { let moved = false; let assignedIds = []; for(let i=1; i<=6; i++) { if(!DB.config.w[i-1]) continue; const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; const isFull = waitSlots.every(s => boardState[s] !== null); if(isFull) { let targetCourt = null; for(let j=1; j<=6; j++) { if(!DB.config.c[j-1]) continue; const courtSlots = [`c${j}-L1`, `c${j}-L2`, `c${j}-R1`, `c${j}-R2`]; const isCourtEmpty = courtSlots.every(s => boardState[s] === null); if(isCourtEmpty) { targetCourt = j; break; } } if(targetCourt !== null) { const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`]; waitSlots.forEach((ws, idx) => { boardState[courtSlots[idx]] = boardState[ws]; boardState[ws] = null; const memberId = boardState[courtSlots[idx]]; if(memberId) assignedIds.push(memberId); }); moved = true; } } } if(assignedIds.length > 0) { sendGlobalAction(assignedIds); } if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); } }
     function lhy_lockOrientation() { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } }
     function lhy_toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
 
-window.addEventListener('load', () => {
-    // 1. 모든 초기화 함수는 한 번씩만 호출
-    lhy_init(); 
-    initGroupDragEvents(); 
-    if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
+    window.addEventListener('load', () => {
+        lhy_init(); 
+        initGroupDragEvents(); 
+        if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
 
-    // 2. 출석 기능 로직 (공통 함수 사용)
-    const loginSelect = document.getElementById('login-user-select');
-    if (loginSelect) {
-        loginSelect.addEventListener('change', function() {
-            lhy_runAutoAttendance(this.value);
-        });
-    }
-});
-// 출석 처리 공통 함수
-function lhy_runAutoAttendance(selectedId) {
-    if (!selectedId) return;
+        const loginSelect = document.getElementById('login-user-select');
+        if (loginSelect) {
+            loginSelect.addEventListener('change', function() {
+                lhy_runAutoAttendance(this.value);
+            });
+        }
+    });
 
-    if (DB && DB.members) {
-        const member = DB.members.find(m => m.id === selectedId);
-        if (member) {
-            console.log("출석 처리 실행:", member.name);
-            member.isAtt = true; 
-            
-            // Firebase 동기화 및 화면 갱신
-            lhy_syncToFirebase();
-            lhy_renderBoardFromState();
-        } else {
-            console.error("회원 정보를 찾을 수 없습니다:", selectedId);
+    function lhy_runAutoAttendance(selectedId) {
+        if (!selectedId) return;
+
+        if (DB && DB.members) {
+            const member = DB.members.find(m => m.id === selectedId);
+            if (member) {
+                console.log("출석 처리 실행:", member.name);
+                member.isAtt = true; 
+                lhy_syncToFirebase();
+                lhy_renderBoardFromState();
+            } else {
+                console.error("회원 정보를 찾을 수 없습니다:", selectedId);
+            }
         }
     }
-}
-function logoutOrExit() {
-    // 1. 전역 변수 초기화
-    loggedInUserId = null;
-    isCurrentUserAdmin = false;
-    isObserverMode = false;
-    
-    // --- [추가된 부분] 나갈 때 메뉴 UI 복구 ---
-    updateObserverUI(false); 
-    // ------------------------------------
-    
-    // 2. 인증 화면(로그인 창) 다시 표시
-    const authGate = document.getElementById('auth-gate');
-    if (authGate) {
-        authGate.style.display = 'flex'; 
+
+    // [요구사항 3] 모든 권한(일반, 관람, 관리자) 범용 '나가기' 버튼 로직 (세션 초기화 및 로그인 창 복귀)
+    function logoutOrExit() {
+        loggedInUserId = null;
+        isCurrentUserAdmin = false;
+        isObserverMode = false;
+        
+        updateObserverUI(false); 
+        
+        const authGate = document.getElementById('auth-gate');
+        if (authGate) {
+            authGate.style.display = 'flex'; 
+        }
+
+        const pwInput = document.getElementById('pw-input');
+        if (pwInput) pwInput.value = "";
+        
+        console.log("시스템 초기화: 로그인 화면으로 복귀");
     }
-    
-    console.log("시스템 초기화: 로그인 화면으로 복귀");
-}
-// --- 이 함수가 정의되어 있어야 에러가 나지 않습니다 ---
-function updateObserverUI(isObserver) {
-    const menuGrid = document.getElementById('ui-menu-grid');
-    if (!menuGrid) return;
-    
-    if (isObserver) {
-        menuGrid.classList.add('observer-mode');
-    } else {
-        menuGrid.classList.remove('observer-mode');
+
+    function updateObserverUI(isObserver) {
+        const menuGrid = document.getElementById('ui-menu-grid');
+        if (!menuGrid) return;
+        
+        if (isObserver) {
+            menuGrid.classList.add('observer-mode');
+            document.body.classList.add('mode-observer');
+        } else {
+            menuGrid.classList.remove('observer-mode');
+            document.body.classList.remove('mode-observer');
+        }
     }
-}
 </script>
 
 </body>
