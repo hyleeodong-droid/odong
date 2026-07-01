@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-3</title>
+    <title>화목모임_260701-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -388,7 +388,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-3</div>
+<div class="lhy-footer-filename">화목모임_260701-4</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -748,19 +748,39 @@
         if (btnOrient) { btnOrient.innerText = isLandscape ? "가로" : "세로"; btnOrient.style.background = isLandscape ? "linear-gradient(180deg, #5c0099, #4b0082)" : "linear-gradient(180deg, #99005c, #82004b)"; btnOrient.style.color = "#fff"; }
     }
 
-    function lhy_toggleManualMode() {
-        isManualMode = !isManualMode; lhy_syncBoardDOMToState(); 
-        if (isManualMode) {
-            DB.config.w = [true, true, true, true, false, false]; alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
-        } else {
-            let currentWaitCount = 0;
-            for (let i = 1; i <= 4; i++) { const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } }
-            const targetWaitCount = Math.max(1, currentWaitCount); DB.config.w = [false, false, false, false, false, false];
-            for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
-            alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`); lhy_dominoShiftSystem();
+function lhy_toggleManualMode() {
+    // 1. 모드 토글
+    isManualMode = !isManualMode;
+
+    // [수정] Firebase 동기화를 위해 DB 객체에도 현재 상태를 저장
+    DB.config.isManualMode = isManualMode;
+
+    lhy_syncBoardDOMToState(); 
+    
+    if (isManualMode) {
+        DB.config.w = [true, true, true, true, false, false]; 
+        alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
+    } else {
+        let currentWaitCount = 0;
+        for (let i = 1; i <= 4; i++) { 
+            const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; 
+            if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } 
         }
-        lhy_refreshMenuUI(); lhy_drawBoard(); lhy_renderBoardFromState(); lhy_syncToFirebase();
+        const targetWaitCount = Math.max(1, currentWaitCount); 
+        DB.config.w = [false, false, false, false, false, false];
+        for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
+        alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`); 
+        lhy_dominoShiftSystem();
     }
+    
+    lhy_refreshMenuUI(); 
+    lhy_drawBoard(); 
+    lhy_renderBoardFromState(); 
+    
+    // 이 함수 내부에서 DB 객체 전체가 서버로 전송되므로, 
+    // 위에서 설정한 DB.config.isManualMode도 함께 저장됩니다.
+    lhy_syncToFirebase();
+}
 
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
@@ -918,13 +938,19 @@
             }
         });
         
-        function fallbackReset(dateString) { DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }); Object.keys(boardState).forEach(key => boardState[key] = null); lhy_syncToFirebase(); database.ref('meta/lastAccessDate').set(dateString); }
-
-        database.ref('appData').on('value', (snapshot) => {
+database.ref('appData').on('value', (snapshot) => {
             if(isAppClosed) return; if(isSyncing) return; 
             const data = snapshot.val();
             if (data) {
-                if (data.DB) DB = data.DB; boardState = data.boardState || {};
+                if (data.DB) {
+                    DB = data.DB;
+                    // [수정] Firebase의 모드 설정을 로컬 변수에 동기화
+                    if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
+                        isManualMode = DB.config.isManualMode;
+                    }
+                }
+                
+                boardState = data.boardState || {};
                 for (let i = 1; i <= 6; i++) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; }); }
                 
                 // 인증 전이면 본인 이름 선택박스 업데이트
@@ -942,19 +968,19 @@
                     if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
                 }
 
-                lhy_renderBoardFromState(); try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} lhy_updateResetButtonUI();
-            } else { lhy_loadDefaultDB(); for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); } lhy_syncToFirebase(); }
+                lhy_renderBoardFromState(); 
+                try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
+                lhy_updateResetButtonUI();
+                
+                // [참고] 모드 변경 시 메뉴 UI도 갱신되도록 추가
+                if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
+                
+            } else { 
+                lhy_loadDefaultDB(); 
+                for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); } 
+                lhy_syncToFirebase(); 
+            }
         });
-
-        initGlobalNotifications();
-
-        document.addEventListener('click', function(e) {
-            if (typeof isLongClicked !== 'undefined' && isLongClicked) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); setTimeout(() => { isLongClicked = false; }, 100); return; }
-        }, true);
-
-        new Sortable(document.getElementById('ui-list'), { ...dragOpt, sort: true, filter: ".is-not, .is-playing", onAdd: (evt) => { if(evt.item) evt.item.remove(); lhy_syncBoardDOMToState(); if (!isManualMode) lhy_dominoShiftSystem(); lhy_syncToFirebase(); } });
-        lhy_drawBoard(); lhy_renderBoardFromState(); lhy_updateResetButtonUI(); lhy_applyOrientationLogic();
-    }
 
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
