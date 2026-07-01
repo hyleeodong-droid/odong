@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-5</title>
+    <title>화목모임_260701-7</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -388,7 +388,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-5</div>
+<div class="lhy-footer-filename">화목모임_260701-7</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1270,6 +1270,34 @@ function lhy_toggleManualMode() {
     window.addEventListener('load', () => { 
         lhy_init(); initGroupDragEvents(); 
     });
+// [자동 출석 기능 추가] 로그인 선택 시 자동 출석 및 동기화
+window.addEventListener('load', () => {
+    // 기존 초기화 함수들...
+    lhy_init(); lhy_lockOrientation(); initGroupDragEvents();
+
+    // 아래 코드를 추가하세요!
+    const loginSelect = document.getElementById('login-user-select');
+    if (loginSelect) {
+        loginSelect.addEventListener('change', function() {
+            const selectedId = this.value;
+            if (!selectedId) return;
+
+            // 회원 정보 찾아서 출석 처리
+            if (DB && DB.members) {
+                const member = DB.members.find(m => m.id === selectedId);
+                if (member) {
+                    member.isAtt = true; // 자동 출석
+                    console.log(member.name + "님 자동 출석 처리 완료");
+                    
+                    // Firebase에 즉시 동기화
+                    lhy_syncToFirebase();
+                    // 화면 갱신
+                    lhy_renderBoardFromState();
+                }
+            }
+        });
+    }
+});
 </script>
 
 </body>
