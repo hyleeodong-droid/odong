@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-4</title>
+    <title>화목모임_260701-5</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -388,7 +388,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-4</div>
+<div class="lhy-footer-filename">화목모임_260701-5</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -925,23 +925,25 @@ function lhy_toggleManualMode() {
     function lhy_getPureName(fullName) { if(!fullName) return ""; let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim(); }
     function lhy_getSexClass(memberObj) { if (memberObj.isG) return 'g-sex'; const nameData = memberObj.name || ""; const sexData = memberObj.sex || ""; if (sexData === '여' || nameData.includes('여')) return 'f-sex'; return 'm-sex'; }
 
-    function lhy_init() {
-        const d = new Date(); const days = ['일','월','화','수','목','금','토'];
-        const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
-        const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
-        document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
+   function lhy_init() {
+    // 1. 날짜 설정 및 초기화
+    const d = new Date(); const days = ['일','월','화','수','목','금','토'];
+    const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+    const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
+    document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
 
-        database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
-            const lastDate = snapshot.val();
-            if (lastDate !== todayStr) {
-                console.log("새로운 날짜, 로컬 초기화"); fallbackReset(todayStr); return;
-            }
-        });
-        
-database.ref('appData').on('value', (snapshot) => {
-        if (isAppClosed || isSyncing) return;
+    database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
+        const lastDate = snapshot.val();
+        if (lastDate !== todayStr) {
+            console.log("새로운 날짜, 로컬 초기화"); fallbackReset(todayStr); return;
+        }
+    });
+
+    // 2. Firebase 데이터 리스너 (데이터 변경 시 호출)
+    database.ref('appData').on('value', (snapshot) => {
+        if(isAppClosed) return; if(isSyncing) return; 
         const data = snapshot.val();
-
+        
         if (data) {
             if (data.DB) {
                 DB = data.DB;
@@ -950,57 +952,67 @@ database.ref('appData').on('value', (snapshot) => {
                     isManualMode = DB.config.isManualMode;
                 }
             }
-
+            
             boardState = data.boardState || {};
-            for (let i = 1; i <= 6; i++) {
-                ['L1', 'L2', 'R1', 'R2'].forEach(p => {
-                    if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null;
-                    if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null;
-                });
+            for (let i = 1; i <= 6; i++) { 
+                ['L1', 'L2', 'R1', 'R2'].forEach(p => { 
+                    if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; 
+                    if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; 
+                }); 
             }
-
-            // 인증 전이면 본인 이름 선택박스 업데이트 (안전장치 추가)
+            
+            // 로그인 박스 업데이트
             const select = document.getElementById('login-user-select');
             if (select && !loggedInUserId) {
                 const currentVal = select.value;
                 select.innerHTML = '<option value="">본인 이름 선택</option>';
-                
-                // [수정] DB와 DB.members가 유효할 때만 실행
                 if (DB && DB.members && Array.isArray(DB.members)) {
-                    let sorted = [...DB.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+                    let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
                     sorted.forEach(m => {
                         let opt = document.createElement('option');
                         opt.value = m.id;
                         opt.textContent = m.name;
                         select.appendChild(opt);
                     });
-                    if (currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
+                    if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
                 }
             }
 
-            lhy_renderBoardFromState();
-            try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { }
+            lhy_renderBoardFromState(); 
+            try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
             lhy_updateResetButtonUI();
-
             if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
-
-        } else {
-            // 데이터가 없을 경우 기본 DB 로드
-            lhy_loadDefaultDB();
-            for (let i = 1; i <= 6; i++) {
-                posOrder.forEach(p => {
-                    boardState[`c${i}-${p}`] = null;
-                    boardState[`w${i}-${p}`] = null;
-                });
-            }
-            lhy_syncToFirebase();
+            
+        } else { 
+            lhy_loadDefaultDB(); 
+            for(let i=1; i<=6; i++) { 
+                posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); 
+            } 
+            lhy_syncToFirebase(); 
         }
-    }); 
-    // <--- 이 지점이 데이터베이스 리스너가 끝나는 곳입니다.
+    });
 
-    // 중요: lhy_init 함수가 완전히 끝났다는 것을 명시하는 괄호입니다.
-    // 이 괄호가 빠져있으면 "Unexpected end of input" 에러가 납니다.
-}
+    // 3. UI 초기화 (최초 1회 실행)
+    initGlobalNotifications();
+
+    // 드래그 앤 드롭 초기화
+    new Sortable(document.getElementById('ui-list'), { 
+        ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
+        onAdd: (evt) => { 
+            if(evt.item) evt.item.remove(); 
+            lhy_syncBoardDOMToState(); 
+            if (!isManualMode) lhy_dominoShiftSystem(); 
+            lhy_syncToFirebase(); 
+        } 
+    });
+
+    // 4. 화면 그리기 및 설정 적용
+    lhy_drawBoard(); 
+    lhy_renderBoardFromState(); 
+    lhy_updateResetButtonUI(); 
+    lhy_applyOrientationLogic();
+
+} // <--- 이 닫는 괄호가 lhy_init의 끝입니다.
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
 
