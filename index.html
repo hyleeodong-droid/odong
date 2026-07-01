@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-13</title>
+    <title>화목모임_260701-16</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -327,6 +327,16 @@
         /* 기존 깜빡임 호환용 */
         @keyframes blink-fade { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .blink-animation { animation: blink-fade 1s infinite; }
+
+/* #ui-menu-grid.observer-mode를 직접 타겟팅하여 우선순위 극대화 */
+    #ui-menu-grid.observer-mode button {
+        display: none !important;
+    }
+    
+    #ui-menu-grid.observer-mode #btn-personal-exit {
+        display: block !important;
+        width: 100%;
+    }
     </style>
 </head>
 <body>
@@ -357,7 +367,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-13</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-16</div>
         </div>
     </form>
 </div>
@@ -388,13 +398,14 @@
             <button id="btn-add-new" style="background:linear-gradient(180deg, #ff8a33, #ef6c00);" onclick="lhy_addMasterDirect('신입')">신입</button>
             <button id="btn-add-guest" style="background:linear-gradient(180deg, #00acc1, #00838f);" onclick="lhy_addMasterDirect('손님')">손님</button>
             <button id="btn-exit-app" style="background:linear-gradient(180deg, #ef4444, #d32f2f);" onclick="lhy_fnExit(event)">운동끝</button>
-            <button id="btn-personal-exit" style="background:linear-gradient(180deg, #64748b, #475569);" onclick="lhy_personalExit()">나가기</button>
+            
+            <button id="btn-personal-exit" style="background:linear-gradient(180deg, #64748b, #475569);" onclick="logoutOrExit()">나가기</button>
         </div>
         <div class="lhy-player-list" id="ui-list"></div>
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-13</div>
+<div class="lhy-footer-filename">화목모임_260701-16</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -514,78 +525,82 @@
 
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-    // ----------------------------------------------------
-    // [3] 로그인 및 메뉴 제어 로직
-    // ----------------------------------------------------
-    function checkPassword() {
-        const pwInput = document.getElementById('pw-input').value;
-        const userSelect = document.getElementById('login-user-select').value;
+function checkPassword() {
+    const pwInput = document.getElementById('pw-input').value;
+    const userSelect = document.getElementById('login-user-select').value;
 
-        // [수정] 12번 관람모드 로그인 처리
-        if (pwInput === "12") {
-            loggedInUserId = "OBSERVER";
-            isCurrentUserAdmin = false;
-            isObserverMode = true; // 관람모드 활성화
-            
-            document.getElementById('auth-gate').style.display = 'none';
-            if (!globalAudioCtx) {
-                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                globalAudioCtx.resume();
-            }
-            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+    // [수정] 12번 관람모드 로그인 처리
+    if (pwInput === "12") {
+        loggedInUserId = "OBSERVER";
+        isCurrentUserAdmin = false;
+        isObserverMode = true; // 관람모드 활성화
+        
+        // --- [추가된 부분] UI 모드 변경 ---
+        updateObserverUI(true); 
+        // -------------------------------
+        
+        document.getElementById('auth-gate').style.display = 'none';
+        if (!globalAudioCtx) {
+            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            globalAudioCtx.resume();
+        }
+        if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
 
-            const statEl = document.getElementById('ui-stat');
-            if (statEl) {
-                statEl.style.display = 'block';
-                statEl.innerText = "관람모드";
-            }
-            
-            applyAccessControl(); 
-            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
-            console.log("관람모드 접속 성공");
+        const statEl = document.getElementById('ui-stat');
+        if (statEl) {
+            statEl.style.display = 'block';
+            statEl.innerText = "관람모드";
+        }
+        
+        applyAccessControl(); 
+        lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+        console.log("관람모드 접속 성공");
+        return;
+    }
+
+    // 정상 회원 로그인
+    if (pwInput === "34") {
+        if (!userSelect) {
+            alert("본인 이름을 선택해주세요.");
             return;
         }
+        
+        // --- [추가된 부분] 정상 로그인 시 UI 모드 초기화 ---
+        updateObserverUI(false);
+        // ----------------------------------------------
 
-        // 정상 회원 로그인
-        if (pwInput === "34") {
-            if (!userSelect) {
-                alert("본인 이름을 선택해주세요.");
-                return;
-            }
-            
-            // [수정] 성공 시 로그인 이름 저장
-            localStorage.setItem('savedLoginUserId', userSelect);
+        localStorage.setItem('savedLoginUserId', userSelect);
 
-            loggedInUserId = userSelect;
-            isObserverMode = false;
-            const m = DB.members.find(x => x.id === loggedInUserId);
-            isCurrentUserAdmin = m ? !!m.isAdmin : false;
-            
-            const totalAdmins = DB.members.filter(x => x.isAdmin).length;
-            if (totalAdmins === 0) { isCurrentUserAdmin = true; }
+        loggedInUserId = userSelect;
+        isObserverMode = false;
+        const m = DB.members.find(x => x.id === loggedInUserId);
+        isCurrentUserAdmin = m ? !!m.isAdmin : false;
+        
+        const totalAdmins = DB.members.filter(x => x.isAdmin).length;
+        if (totalAdmins === 0) { isCurrentUserAdmin = true; }
 
-            document.getElementById('auth-gate').style.display = 'none';
+        document.getElementById('auth-gate').style.display = 'none';
 
-            if (!globalAudioCtx) {
-                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                globalAudioCtx.resume();
-            }
-            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
-
-            const statEl = document.getElementById('ui-stat');
-            if (statEl) {
-                statEl.style.display = 'block';
-            }
-            
-            applyAccessControl(); 
-            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
-            console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
-
-        } else {
-            alert("비밀번호가 틀렸습니다.");
-            document.getElementById('pw-input').value = "";
+        if (!globalAudioCtx) {
+            globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            globalAudioCtx.resume();
         }
+        if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+
+        const statEl = document.getElementById('ui-stat');
+        if (statEl) {
+            statEl.style.display = 'block';
+        }
+        
+        applyAccessControl(); 
+        lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+        console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
+
+    } else {
+        alert("비밀번호가 틀렸습니다.");
+        document.getElementById('pw-input').value = "";
     }
+}
 
     function lhy_fnToggleAdminMode() {
         if (isCurrentUserAdmin) {
@@ -1369,7 +1384,35 @@ window.addEventListener('load', () => {
         });
     }
 });
-
+function logoutOrExit() {
+    // 1. 전역 변수 초기화
+    loggedInUserId = null;
+    isCurrentUserAdmin = false;
+    isObserverMode = false;
+    
+    // --- [추가된 부분] 나갈 때 메뉴 UI 복구 ---
+    updateObserverUI(false); 
+    // ------------------------------------
+    
+    // 2. 인증 화면(로그인 창) 다시 표시
+    const authGate = document.getElementById('auth-gate');
+    if (authGate) {
+        authGate.style.display = 'flex'; 
+    }
+    
+    console.log("시스템 초기화: 로그인 화면으로 복귀");
+}
+// --- 이 함수가 정의되어 있어야 에러가 나지 않습니다 ---
+function updateObserverUI(isObserver) {
+    const menuGrid = document.getElementById('ui-menu-grid');
+    if (!menuGrid) return;
+    
+    if (isObserver) {
+        menuGrid.classList.add('observer-mode');
+    } else {
+        menuGrid.classList.remove('observer-mode');
+    }
+}
 </script>
 
 </body>
