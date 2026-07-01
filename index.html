@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-7</title>
+    <title>화목모임_260701-9</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -388,7 +388,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-7</div>
+<div class="lhy-footer-filename">화목모임_260701-9</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -649,18 +649,55 @@
         });
     }
 
-    function lhy_syncToFirebase() {
+function lhy_syncToFirebase() {
         isSyncing = true;
+
+        // 1. [손님 자동 삭제] 출석하지 않은(isAtt: false) 손님(isG)을 명단에서 삭제
+        DB.members = DB.members.filter(m => !(m.isG && !m.isAtt));
+
         let safeBoardState = {};
-        for(let i=1; i<=6; i++) {
+        for(let i = 1; i <= 6; i++) {
             posOrder.forEach(p => {
-                let memberCId = boardState[`c${i}-${p}`] || null; safeBoardState[`c${i}-${p}`] = memberCId;
-                if (memberCId) { let m = DB.members.find(x => x.id === memberCId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
-                let memberWId = boardState[`w${i}-${p}`] || null; safeBoardState[`w${i}-${p}`] = memberWId;
-                if (memberWId) { let m = DB.members.find(x => x.id === memberWId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
+                // C (코트) 위치 확인
+                let memberCId = boardState[`c${i}-${p}`] || null;
+                
+                // 만약 명단에 없는 사람이 보드판에 있다면, 보드판에서 비우기
+                if (memberCId && !DB.members.find(x => x.id === memberCId)) {
+                    memberCId = null;
+                    boardState[`c${i}-${p}`] = null;
+                }
+                safeBoardState[`c${i}-${p}`] = memberCId;
+
+                if (memberCId) { 
+                    let m = DB.members.find(x => x.id === memberCId); 
+                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } 
+                }
+
+                // W (대기) 위치 확인
+                let memberWId = boardState[`w${i}-${p}`] || null;
+                
+                // 만약 명단에 없는 사람이 보드판에 있다면, 보드판에서 비우기
+                if (memberWId && !DB.members.find(x => x.id === memberWId)) {
+                    memberWId = null;
+                    boardState[`w${i}-${p}`] = null;
+                }
+                safeBoardState[`w${i}-${p}`] = memberWId;
+
+                if (memberWId) { 
+                    let m = DB.members.find(x => x.id === memberWId); 
+                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } 
+                }
             });
         }
-        database.ref('appData').set({ DB: JSON.parse(JSON.stringify(DB)), boardState: safeBoardState }).then(() => { isSyncing = false; }).catch(e => { isSyncing = false; });
+
+        database.ref('appData').set({ 
+            DB: JSON.parse(JSON.stringify(DB)), 
+            boardState: safeBoardState 
+        }).then(() => { 
+            isSyncing = false; 
+        }).catch(e => { 
+            isSyncing = false; 
+        });
     }
 
     function sendGlobalAction(memberIds) {
@@ -925,94 +962,94 @@ function lhy_toggleManualMode() {
     function lhy_getPureName(fullName) { if(!fullName) return ""; let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim(); }
     function lhy_getSexClass(memberObj) { if (memberObj.isG) return 'g-sex'; const nameData = memberObj.name || ""; const sexData = memberObj.sex || ""; if (sexData === '여' || nameData.includes('여')) return 'f-sex'; return 'm-sex'; }
 
-   function lhy_init() {
-    // 1. 날짜 설정 및 초기화
-    const d = new Date(); const days = ['일','월','화','수','목','금','토'];
-    const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
-    const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
-    document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
+function lhy_init() {
+        // 1. 날짜 설정 및 초기화
+        const d = new Date(); const days = ['일','월','화','수','목','금','토'];
+        const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
+        document.getElementById('ui-date').innerText = `${yy}/${mm}/${dd}/${days[d.getDay()]}`;
 
-    database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
-        const lastDate = snapshot.val();
-        if (lastDate !== todayStr) {
-            console.log("새로운 날짜, 로컬 초기화"); fallbackReset(todayStr); return;
-        }
-    });
+        database.ref('meta/lastAccessDate').once('value').then((snapshot) => {
+            const lastDate = snapshot.val();
+            if (lastDate !== todayStr) {
+                console.log("새로운 날짜, 로컬 초기화"); fallbackReset(todayStr); return;
+            }
+        });
 
-    // 2. Firebase 데이터 리스너 (데이터 변경 시 호출)
-    database.ref('appData').on('value', (snapshot) => {
-        if(isAppClosed) return; if(isSyncing) return; 
-        const data = snapshot.val();
-        
-        if (data) {
-            if (data.DB) {
-                DB = data.DB;
-                // 모드 설정 동기화
-                if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
-                    isManualMode = DB.config.isManualMode;
+        // 2. Firebase 데이터 리스너 (데이터 변경 시 호출)
+        database.ref('appData').on('value', (snapshot) => {
+            if(isAppClosed) return; if(isSyncing) return; 
+            const data = snapshot.val();
+            
+            if (data) {
+                if (data.DB) {
+                    DB = data.DB;
+                    // [핵심] 모드 설정 동기화: 서버 데이터를 기준으로 로컬 모드 변수 업데이트
+                    if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
+                        isManualMode = DB.config.isManualMode;
+                    }
                 }
-            }
-            
-            boardState = data.boardState || {};
-            for (let i = 1; i <= 6; i++) { 
-                ['L1', 'L2', 'R1', 'R2'].forEach(p => { 
-                    if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; 
-                    if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; 
-                }); 
-            }
-            
-            // 로그인 박스 업데이트
-            const select = document.getElementById('login-user-select');
-            if (select && !loggedInUserId) {
-                const currentVal = select.value;
-                select.innerHTML = '<option value="">본인 이름 선택</option>';
-                if (DB && DB.members && Array.isArray(DB.members)) {
-                    let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
-                    sorted.forEach(m => {
-                        let opt = document.createElement('option');
-                        opt.value = m.id;
-                        opt.textContent = m.name;
-                        select.appendChild(opt);
-                    });
-                    if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
+                
+                boardState = data.boardState || {};
+                for (let i = 1; i <= 6; i++) { 
+                    ['L1', 'L2', 'R1', 'R2'].forEach(p => { 
+                        if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; 
+                        if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; 
+                    }); 
                 }
-            }
+                
+                // 로그인 박스 업데이트
+                const select = document.getElementById('login-user-select');
+                if (select && !loggedInUserId) {
+                    const currentVal = select.value;
+                    select.innerHTML = '<option value="">본인 이름 선택</option>';
+                    if (DB && DB.members && Array.isArray(DB.members)) {
+                        let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+                        sorted.forEach(m => {
+                            let opt = document.createElement('option');
+                            opt.value = m.id;
+                            opt.textContent = m.name;
+                            select.appendChild(opt);
+                        });
+                        if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
+                    }
+                }
 
-            lhy_renderBoardFromState(); 
-            try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
-            lhy_updateResetButtonUI();
-            if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
-            
-        } else { 
-            lhy_loadDefaultDB(); 
-            for(let i=1; i<=6; i++) { 
-                posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); 
+                lhy_renderBoardFromState(); 
+                try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
+                lhy_updateResetButtonUI();
+                if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
+                
+            } else { 
+                lhy_loadDefaultDB(); 
+                for(let i=1; i<=6; i++) { 
+                    posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); 
+                } 
+                lhy_syncToFirebase(); 
+            }
+        });
+
+        // 3. UI 초기화 (최초 1회 실행)
+        initGlobalNotifications();
+
+        // 드래그 앤 드롭 초기화
+        new Sortable(document.getElementById('ui-list'), { 
+            ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
+            onAdd: (evt) => { 
+                if(evt.item) evt.item.remove(); 
+                lhy_syncBoardDOMToState(); 
+                // [안전장치] DB.config.isManualMode를 직접 사용하여 동기화된 값으로 판단
+                if (!DB.config.isManualMode) lhy_dominoShiftSystem(); 
+                lhy_syncToFirebase(); 
             } 
-            lhy_syncToFirebase(); 
-        }
-    });
+        });
 
-    // 3. UI 초기화 (최초 1회 실행)
-    initGlobalNotifications();
-
-    // 드래그 앤 드롭 초기화
-    new Sortable(document.getElementById('ui-list'), { 
-        ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
-        onAdd: (evt) => { 
-            if(evt.item) evt.item.remove(); 
-            lhy_syncBoardDOMToState(); 
-            if (!isManualMode) lhy_dominoShiftSystem(); 
-            lhy_syncToFirebase(); 
-        } 
-    });
-
-    // 4. 화면 그리기 및 설정 적용
-    lhy_drawBoard(); 
-    lhy_renderBoardFromState(); 
-    lhy_updateResetButtonUI(); 
-    lhy_applyOrientationLogic();
-
-} // <--- 이 닫는 괄호가 lhy_init의 끝입니다.
+        // 4. 화면 그리기 및 설정 적용
+        lhy_drawBoard(); 
+        lhy_renderBoardFromState(); 
+        lhy_updateResetButtonUI(); 
+        lhy_applyOrientationLogic();
+    }
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
 
@@ -1196,36 +1233,53 @@ function lhy_toggleManualMode() {
             triggerBlink('list-item-' + id);
         });
     }
-    function lhy_topBtnGoHome() {
+function lhy_topBtnGoHome() {
         if (selectedPopIds.length === 0) {
             alert("선수를 먼저 롱클릭으로 선택해주세요.");
             return;
         }
+        
         lhy_saveUndoState();
         let actionIds = [...selectedPopIds];
+        
         selectedPopIds.forEach(selId => {
             const m = DB.members.find(x => x.id === selId);
+            
+            // 1. 보드판(자리)에서 제거
             Object.keys(boardState).forEach(key => {
                 if (boardState[key] === selId) boardState[key] = null;
             });
+
             if (m) {
-                m.isAtt = false;
-                m.cnt = 0;
-                m.win = 0;
-                m.lose = 0;
-                delete m.attTime;
+                // 2. [수정됨] 손님(isG)이면 명단에서 완전히 삭제, 회원이면 상태 초기화
+                if (m.isG) {
+                    DB.members = DB.members.filter(x => x.id !== selId);
+                } else {
+                    m.isAtt = false;
+                    m.cnt = 0;
+                    m.win = 0;
+                    m.lose = 0;
+                    delete m.attTime;
+                }
             }
         });
+
+        // 3. 상태 동기화 및 화면 갱신
         sendGlobalAction(actionIds);
         selectedPopIds = [];
         isLongClicked = false;
+        
         document.querySelectorAll('.player').forEach(el => el.classList.remove('is-sel'));
+        
         lhy_renderBoardFromState();
         lhy_dominoShiftSystem();
+        
         try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { console.error(e); }
+        
         lhy_updateGroupDragBtnPosition();
         lhy_syncToFirebase();
 
+        // 시각 효과
         actionIds.forEach(id => {
             triggerBlink('player-' + id);
             triggerBlink('list-item-' + id);
@@ -1298,6 +1352,7 @@ window.addEventListener('load', () => {
         });
     }
 });
+
 </script>
 
 </body>
