@@ -939,49 +939,68 @@ function lhy_toggleManualMode() {
         });
         
 database.ref('appData').on('value', (snapshot) => {
-            if(isAppClosed) return; if(isSyncing) return; 
-            const data = snapshot.val();
-            if (data) {
-                if (data.DB) {
-                    DB = data.DB;
-                    // [수정] Firebase의 모드 설정을 로컬 변수에 동기화
-                    if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
-                        isManualMode = DB.config.isManualMode;
-                    }
+        if (isAppClosed || isSyncing) return;
+        const data = snapshot.val();
+
+        if (data) {
+            if (data.DB) {
+                DB = data.DB;
+                // 모드 설정 동기화
+                if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
+                    isManualMode = DB.config.isManualMode;
                 }
+            }
+
+            boardState = data.boardState || {};
+            for (let i = 1; i <= 6; i++) {
+                ['L1', 'L2', 'R1', 'R2'].forEach(p => {
+                    if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null;
+                    if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null;
+                });
+            }
+
+            // 인증 전이면 본인 이름 선택박스 업데이트 (안전장치 추가)
+            const select = document.getElementById('login-user-select');
+            if (select && !loggedInUserId) {
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">본인 이름 선택</option>';
                 
-                boardState = data.boardState || {};
-                for (let i = 1; i <= 6; i++) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { if (boardState[`c${i}-${p}`] === undefined) boardState[`c${i}-${p}`] = null; if (boardState[`w${i}-${p}`] === undefined) boardState[`w${i}-${p}`] = null; }); }
-                
-                // 인증 전이면 본인 이름 선택박스 업데이트
-                const select = document.getElementById('login-user-select');
-                if (select && !loggedInUserId) {
-                    const currentVal = select.value;
-                    select.innerHTML = '<option value="">본인 이름 선택</option>';
-                    let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+                // [수정] DB와 DB.members가 유효할 때만 실행
+                if (DB && DB.members && Array.isArray(DB.members)) {
+                    let sorted = [...DB.members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
                     sorted.forEach(m => {
                         let opt = document.createElement('option');
                         opt.value = m.id;
                         opt.textContent = m.name;
                         select.appendChild(opt);
                     });
-                    if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
+                    if (currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
                 }
-
-                lhy_renderBoardFromState(); 
-                try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
-                lhy_updateResetButtonUI();
-                
-                // [참고] 모드 변경 시 메뉴 UI도 갱신되도록 추가
-                if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
-                
-            } else { 
-                lhy_loadDefaultDB(); 
-                for(let i=1; i<=6; i++) { posOrder.forEach(p => { boardState[`c${i}-${p}`] = null; boardState[`w${i}-${p}`] = null; }); } 
-                lhy_syncToFirebase(); 
             }
-        });
 
+            lhy_renderBoardFromState();
+            try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch (e) { }
+            lhy_updateResetButtonUI();
+
+            if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
+
+        } else {
+            // 데이터가 없을 경우 기본 DB 로드
+            lhy_loadDefaultDB();
+            for (let i = 1; i <= 6; i++) {
+                posOrder.forEach(p => {
+                    boardState[`c${i}-${p}`] = null;
+                    boardState[`w${i}-${p}`] = null;
+                });
+            }
+            lhy_syncToFirebase();
+        }
+    }); 
+    // <--- 이 지점이 데이터베이스 리스너가 끝나는 곳입니다.
+
+    // 중요: lhy_init 함수가 완전히 끝났다는 것을 명시하는 괄호입니다.
+    // 이 괄호가 빠져있으면 "Unexpected end of input" 에러가 납니다.
+}
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
 
