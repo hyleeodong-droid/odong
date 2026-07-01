@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-10</title>
+    <title>화목모임_260701-12</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -57,27 +57,26 @@
         
         .lhy-menu-grid { display: grid; grid-template-columns: repeat(9, 1fr); background: #0f172a; gap: 4px; padding: 4px; flex-shrink: 0; }
         
-.lhy-menu-grid button { 
-    height: 34px; 
-    border: 1px solid rgba(0,0,0,0.6); 
-    color: #fff; 
-    font-weight: 950; 
-    /* 아래 줄을 수정하세요: 최소 8px, 최대 12px(0.75rem) 사이에서 자동 조절 */
-    font-size: clamp(0.5rem, 2.5vw, 0.75rem); 
-    padding: 0 2px; 
-    cursor: pointer; 
-    letter-spacing: -0.5px; 
-    border-radius: 4px; 
-    box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); 
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.6); 
-    transition: transform 0.1s, box-shadow 0.1s; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    transform-origin: center;
-}
+        .lhy-menu-grid button { 
+            height: 34px; 
+            border: 1px solid rgba(0,0,0,0.6); 
+            color: #fff; 
+            font-weight: 950; 
+            font-size: clamp(0.5rem, 2.5vw, 0.75rem); 
+            padding: 0 2px; 
+            cursor: pointer; 
+            letter-spacing: -0.5px; 
+            border-radius: 4px; 
+            box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4); 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6); 
+            transition: transform 0.1s, box-shadow 0.1s; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transform-origin: center;
+        }
         .lhy-menu-grid button:active { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1); }
 
         .lhy-player-list { flex: 1; display: grid; background: #cbd5e1; gap: 6px; padding: 6px; overflow-y: auto; overflow-x: hidden; min-height: 0; touch-action: pan-y; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
@@ -198,7 +197,7 @@
         .grid-wrapper.single-row .p-name { font-size: clamp(20px, 60cqh, 45px) !important; }
         .grid-wrapper .p-cnt { font-size: clamp(8px, 15cqi, 14px) !important; }
 
-        .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); }
+        .lhy-footer-filename { height: 16px; background: #000; color: #777; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; border-top: 1px solid #222; flex-shrink: 0; width: 100%; box-shadow: inset 0 2px 4px rgba(0,0,0,1); position: relative; z-index: 1000; }
 
         .lhy-mid-btn-space { width: clamp(50px, 15vw, 85px); display: flex; flex-direction: column; background: linear-gradient(90deg, #cbd5e1, #f8fafc, #cbd5e1); border-left: 1px solid #64748b; border-right: 1px solid #64748b; box-shadow: inset 0 0 6px rgba(0,0,0,0.2); flex-shrink: 0; height: 100%; gap: 6px; padding: 6px; overflow: visible; position: relative; z-index: 10; container-type: size; }
         .lhy-btn-act-end { flex: 1; border: none; font-weight: 950; font-size: clamp(1rem, 25cqh, 2rem); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0; transition: all 0.1s; z-index: 5; }
@@ -314,15 +313,18 @@
         }
         .dynamic-drag-btn.active { transform: translate(-50%, -50%) scale(1.1); background: #FFD700; opacity: 0.8; }
         .player.is-playing { opacity: 0.3; border: 15px solid #f1c40f !important; }
-        .color-swap-active .p-name { animation: blink-anim 0.5s 10 !important; }
-
-        @keyframes blink-anim {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+        
+        /* [수정] 깜빡임 애니메이션 개선 (글씨 색상 변화 1초 간격 5번) */
+        .color-swap-active .p-name { 
+            animation: text-color-blink 1s 5 !important; 
+        }
+        @keyframes text-color-blink {
+            0%, 100% { color: inherit; } 
+            50% { color: #ffffff !important; text-shadow: 0px 0px 8px #ffffff, 0px 0px 12px #ffffff !important; }
         }
 
         .limited-hide { display: none !important; }
-        /* 깜빡임 애니메이션 */
+        /* 기존 깜빡임 호환용 */
         @keyframes blink-fade { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .blink-animation { animation: blink-fade 1s infinite; }
     </style>
@@ -335,7 +337,7 @@
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
     background-size: cover; background-position: center; background-repeat: no-repeat;">
     
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; text-align: center;">
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; text-align: center; position: relative;">
 
     <div style="font-size:1.6rem; font-weight:950; margin-bottom: 25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
         오동 화목 모임 입니다~~<br>
@@ -343,8 +345,8 @@
         ~~^^~~
     </div>
     
-    <select id="login-user-select" style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:10px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3); color:#000; font-weight:bold; appearance:none; background:#fff;">
-        <option value="">본인 이름 선택 (로딩중)</option>
+    <select id="login-user-select" style="padding:15px; width:220px; font-size:1rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:10px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3); color:#000; font-weight:bold; appearance:none; background:#fff;">
+        <option value="">본인 이름</option>
     </select>
 
     <input type="password" id="pw-input" placeholder="비밀번호 입력" 
@@ -353,10 +355,8 @@
  
     <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-
-
+    <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-12</div>
 </div>
-<div class="lhy-footer-filename">화목모임_260701-10</div>
 </div>
 
 <header class="lhy-header">
@@ -391,7 +391,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-10</div>
+<div class="lhy-footer-filename">화목모임_260701-12</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -466,6 +466,7 @@
     // ----------------------------------------------------
     let loggedInUserId = null;
     let isCurrentUserAdmin = false;
+    let isObserverMode = false; // [추가] 관람모드 변수
     let isAppClosed = false;
     let isSyncing = false;
     let globalAudioCtx = null;
@@ -517,17 +518,46 @@
         const pwInput = document.getElementById('pw-input').value;
         const userSelect = document.getElementById('login-user-select').value;
 
+        // [수정] 12번 관람모드 로그인 처리
+        if (pwInput === "12") {
+            loggedInUserId = "OBSERVER";
+            isCurrentUserAdmin = false;
+            isObserverMode = true; // 관람모드 활성화
+            
+            document.getElementById('auth-gate').style.display = 'none';
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                globalAudioCtx.resume();
+            }
+            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+
+            const statEl = document.getElementById('ui-stat');
+            if (statEl) {
+                statEl.style.display = 'block';
+                statEl.innerText = "관람모드";
+            }
+            
+            applyAccessControl(); 
+            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            console.log("관람모드 접속 성공");
+            return;
+        }
+
+        // 정상 회원 로그인
         if (pwInput === "34") {
             if (!userSelect) {
                 alert("본인 이름을 선택해주세요.");
                 return;
             }
             
+            // [수정] 성공 시 로그인 이름 저장
+            localStorage.setItem('savedLoginUserId', userSelect);
+
             loggedInUserId = userSelect;
+            isObserverMode = false;
             const m = DB.members.find(x => x.id === loggedInUserId);
             isCurrentUserAdmin = m ? !!m.isAdmin : false;
             
-            // 만약 시스템상 관리자가 1명도 없다면 첫 로그인을 임시 관리자로 승격 (시스템 잠김 방지)
             const totalAdmins = DB.members.filter(x => x.isAdmin).length;
             if (totalAdmins === 0) { isCurrentUserAdmin = true; }
 
@@ -539,7 +569,6 @@
             }
             if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
 
-            // 로그인 성공 시 우측 상단 상태창 보이게 처리
             const statEl = document.getElementById('ui-stat');
             if (statEl) {
                 statEl.style.display = 'block';
@@ -571,11 +600,13 @@
             return;
         }
 
-        if (isCurrentUserAdmin) {
+        // [수정] 관람모드일 경우 모든 메뉴버튼 숨김 (화면만 보임)
+        if (isObserverMode) {
+            allButtons.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+        } else if (isCurrentUserAdmin) {
             allButtons.forEach(id => { 
                 const el = document.getElementById(id); 
                 if (el) {
-                    // 관리자는 '본인만 나가기' 숨김
                     if (id === 'btn-personal-exit') el.style.display = 'none';
                     else el.style.display = '';
                 }
@@ -584,7 +615,6 @@
             allButtons.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    // 일반 회원은 '본인만 나가기'만 표시
                     if (id === 'btn-personal-exit') el.style.display = '';
                     else el.style.display = 'none';
                 }
@@ -594,7 +624,7 @@
     }
 
     function lhy_enforceDragPermissions() {
-        // 일반 사용자의 경우 드래그 앤 드롭 이동 제한
+        // 관리자가 아니면(일반이거나 관람모드) 드래그 불가
         document.querySelectorAll('.lhy-slot, #ui-list').forEach(el => {
             if (Sortable && Sortable.get(el)) {
                 Sortable.get(el).option("disabled", !isCurrentUserAdmin);
@@ -644,63 +674,45 @@
         }
     }
 
+    // [수정] 5번 색상 변환 깜빡임 효과 (CSS animation 활용)
     function lhy_triggerColorSwapEffect(memberId) {
         const targetEls = document.querySelectorAll(`[data-id="${memberId}"]`); 
         targetEls.forEach(el => {
             el.classList.add('color-swap-active');
-            setTimeout(() => el.classList.remove('color-swap-active'), 5000); 
+            setTimeout(() => el.classList.remove('color-swap-active'), 5000); // 정확히 5초간 5번 유지
         });
     }
 
-function lhy_syncToFirebase() {
+    function lhy_syncToFirebase() {
         isSyncing = true;
 
-        // 1. [손님 자동 삭제] 출석하지 않은(isAtt: false) 손님(isG)을 명단에서 삭제
         DB.members = DB.members.filter(m => !(m.isG && !m.isAtt));
 
         let safeBoardState = {};
         for(let i = 1; i <= 6; i++) {
             posOrder.forEach(p => {
-                // C (코트) 위치 확인
                 let memberCId = boardState[`c${i}-${p}`] || null;
-                
-                // 만약 명단에 없는 사람이 보드판에 있다면, 보드판에서 비우기
                 if (memberCId && !DB.members.find(x => x.id === memberCId)) {
                     memberCId = null;
                     boardState[`c${i}-${p}`] = null;
                 }
                 safeBoardState[`c${i}-${p}`] = memberCId;
+                if (memberCId) { let m = DB.members.find(x => x.id === memberCId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
 
-                if (memberCId) { 
-                    let m = DB.members.find(x => x.id === memberCId); 
-                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } 
-                }
-
-                // W (대기) 위치 확인
                 let memberWId = boardState[`w${i}-${p}`] || null;
-                
-                // 만약 명단에 없는 사람이 보드판에 있다면, 보드판에서 비우기
                 if (memberWId && !DB.members.find(x => x.id === memberWId)) {
                     memberWId = null;
                     boardState[`w${i}-${p}`] = null;
                 }
                 safeBoardState[`w${i}-${p}`] = memberWId;
-
-                if (memberWId) { 
-                    let m = DB.members.find(x => x.id === memberWId); 
-                    if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } 
-                }
+                if (memberWId) { let m = DB.members.find(x => x.id === memberWId); if (m && !m.isAtt) { m.isAtt = true; m.attTime = Date.now(); } }
             });
         }
 
         database.ref('appData').set({ 
             DB: JSON.parse(JSON.stringify(DB)), 
             boardState: safeBoardState 
-        }).then(() => { 
-            isSyncing = false; 
-        }).catch(e => { 
-            isSyncing = false; 
-        });
+        }).then(() => { isSyncing = false; }).catch(e => { isSyncing = false; });
     }
 
     function sendGlobalAction(memberIds) {
@@ -788,39 +800,29 @@ function lhy_syncToFirebase() {
         if (btnOrient) { btnOrient.innerText = isLandscape ? "가로" : "세로"; btnOrient.style.background = isLandscape ? "linear-gradient(180deg, #5c0099, #4b0082)" : "linear-gradient(180deg, #99005c, #82004b)"; btnOrient.style.color = "#fff"; }
     }
 
-function lhy_toggleManualMode() {
-    // 1. 모드 토글
-    isManualMode = !isManualMode;
-
-    // [수정] Firebase 동기화를 위해 DB 객체에도 현재 상태를 저장
-    DB.config.isManualMode = isManualMode;
-
-    lhy_syncBoardDOMToState(); 
-    
-    if (isManualMode) {
-        DB.config.w = [true, true, true, true, false, false]; 
-        alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
-    } else {
-        let currentWaitCount = 0;
-        for (let i = 1; i <= 4; i++) { 
-            const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; 
-            if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } 
+    function lhy_toggleManualMode() {
+        isManualMode = !isManualMode;
+        DB.config.isManualMode = isManualMode;
+        lhy_syncBoardDOMToState(); 
+        
+        if (isManualMode) {
+            DB.config.w = [true, true, true, true, false, false]; 
+            alert("수동 배정 모드가 켜졌습니다.\n기존 배치 데이터는 유지됩니다.");
+        } else {
+            let currentWaitCount = 0;
+            for (let i = 1; i <= 4; i++) { 
+                const slots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; 
+                if (slots.some(s => boardState[s] !== null)) { currentWaitCount++; } 
+            }
+            const targetWaitCount = Math.max(1, currentWaitCount); 
+            DB.config.w = [false, false, false, false, false, false];
+            for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
+            alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`); 
+            lhy_dominoShiftSystem();
         }
-        const targetWaitCount = Math.max(1, currentWaitCount); 
-        DB.config.w = [false, false, false, false, false, false];
-        for (let i = 0; i < targetWaitCount; i++) { DB.config.w[i] = true; }
-        alert(`자동 배정 모드가 켜졌습니다.\n(대기팀 ${targetWaitCount}팀 유지)`); 
-        lhy_dominoShiftSystem();
+        
+        lhy_refreshMenuUI(); lhy_drawBoard(); lhy_renderBoardFromState(); lhy_syncToFirebase();
     }
-    
-    lhy_refreshMenuUI(); 
-    lhy_drawBoard(); 
-    lhy_renderBoardFromState(); 
-    
-    // 이 함수 내부에서 DB 객체 전체가 서버로 전송되므로, 
-    // 위에서 설정한 DB.config.isManualMode도 함께 저장됩니다.
-    lhy_syncToFirebase();
-}
 
     function lhy_fnToggleOrientationButton() {
         const isPhysicallyLandscape = (window.innerWidth > window.innerHeight);
@@ -965,8 +967,7 @@ function lhy_toggleManualMode() {
     function lhy_getPureName(fullName) { if(!fullName) return ""; let pure = fullName.split(',')[0]; pure = pure.replace(/\(여\)/g, '').replace(/\(남\)/g, ''); return pure.trim(); }
     function lhy_getSexClass(memberObj) { if (memberObj.isG) return 'g-sex'; const nameData = memberObj.name || ""; const sexData = memberObj.sex || ""; if (sexData === '여' || nameData.includes('여')) return 'f-sex'; return 'm-sex'; }
 
-function lhy_init() {
-        // 1. 날짜 설정 및 초기화
+    function lhy_init() {
         const d = new Date(); const days = ['일','월','화','수','목','금','토'];
         const yy = String(d.getFullYear()).substring(2); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0');
         const todayStr = `${d.getFullYear()}-${mm}-${dd}`;
@@ -979,7 +980,6 @@ function lhy_init() {
             }
         });
 
-        // 2. Firebase 데이터 리스너 (데이터 변경 시 호출)
         database.ref('appData').on('value', (snapshot) => {
             if(isAppClosed) return; if(isSyncing) return; 
             const data = snapshot.val();
@@ -987,7 +987,6 @@ function lhy_init() {
             if (data) {
                 if (data.DB) {
                     DB = data.DB;
-                    // [핵심] 모드 설정 동기화: 서버 데이터를 기준으로 로컬 모드 변수 업데이트
                     if (DB.config && typeof DB.config.isManualMode !== 'undefined') {
                         isManualMode = DB.config.isManualMode;
                     }
@@ -1001,11 +1000,10 @@ function lhy_init() {
                     }); 
                 }
                 
-                // 로그인 박스 업데이트
                 const select = document.getElementById('login-user-select');
                 if (select && !loggedInUserId) {
                     const currentVal = select.value;
-                    select.innerHTML = '<option value="">본인 이름 선택</option>';
+                    select.innerHTML = '<option value="">본인 이름 </option>';
                     if (DB && DB.members && Array.isArray(DB.members)) {
                         let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
                         sorted.forEach(m => {
@@ -1014,11 +1012,16 @@ function lhy_init() {
                             opt.textContent = m.name;
                             select.appendChild(opt);
                         });
-                        if(currentVal && sorted.find(x => x.id === currentVal)) select.value = currentVal;
+                        
+                        // [수정] localStorage 연동하여 기존 로그인 유저 자동 세팅
+                        let targetVal = currentVal || localStorage.getItem('savedLoginUserId');
+                        if(targetVal && sorted.find(x => x.id === targetVal)) select.value = targetVal;
                     }
                 }
 
+                lhy_drawBoard(); 
                 lhy_renderBoardFromState(); 
+                
                 try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} 
                 lhy_updateResetButtonUI();
                 if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
@@ -1032,27 +1035,24 @@ function lhy_init() {
             }
         });
 
-        // 3. UI 초기화 (최초 1회 실행)
         initGlobalNotifications();
 
-        // 드래그 앤 드롭 초기화
         new Sortable(document.getElementById('ui-list'), { 
             ...dragOpt, sort: true, filter: ".is-not, .is-playing", 
             onAdd: (evt) => { 
                 if(evt.item) evt.item.remove(); 
                 lhy_syncBoardDOMToState(); 
-                // [안전장치] DB.config.isManualMode를 직접 사용하여 동기화된 값으로 판단
                 if (!DB.config.isManualMode) lhy_dominoShiftSystem(); 
                 lhy_syncToFirebase(); 
             } 
         });
 
-        // 4. 화면 그리기 및 설정 적용
         lhy_drawBoard(); 
         lhy_renderBoardFromState(); 
         lhy_updateResetButtonUI(); 
         lhy_applyOrientationLogic();
     }
+
     function lhy_loadDefaultDB() { DB.members = NAMES.map(n => { const isFemale = n.includes('여'); return { id: 'p'+Math.random().toString(36).substr(2,5), name: n, sex: isFemale ? '여' : '남', age: '', grade: '', joinDate: '260101', isAtt: false, cnt: 0, win: 0, lose: 0, isG: false, isAdmin: (n === "이후열") }; }); DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; }
     function toggleUnit(t, i) { lhy_saveUndoState(); DB.config[t][i-1] = !DB.config[t][i-1]; if(!DB.config[t][i-1]) { ['L1', 'L2', 'R1', 'R2'].forEach(p => { boardState[`${t}${i}-${p}`] = null; }); } lhy_drawBoard(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); }
 
@@ -1074,7 +1074,7 @@ function lhy_init() {
                 }
             });
         }
-        document.querySelectorAll('.lhy-slot').forEach(el => { new Sortable(el, { ...dragOpt, onAdd: function(evt) { let items = evt.items && evt.items.length > 0 ? Array.from(evt.items) : [evt.item]; let toSlot = evt.to; let fromList = evt.from; if (toSlot.children.length > items.length) { let originalItems = Array.from(toSlot.children).filter(child => !items.includes(child)); originalItems.forEach(orig => fromList.appendChild(orig)); } items.forEach(el => { const pid = el.dataset.id; const m = DB.members.find(x => x.id === pid); if (m) { m.isAtt = true; if (!m.attTime) m.attTime = Date.now(); } el.classList.remove('is-sel'); }); selectedPopIds = []; lhy_syncBoardDOMToState(); try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} if (!isManualMode) lhy_autoEntrySystem(); } }); });
+        document.querySelectorAll('.lhy-slot').forEach(el => { new Sortable(el, { ...dragOpt, onAdd: function(evt) { let items = evt.items && evt.items.length > 0 ? Array.from(evt.items) : [evt.item]; let toSlot = evt.to; let fromList = evt.from; if (toSlot.children.length > items.length) { let originalItems = Array.from(toSlot.children).filter(child => !items.includes(child)); originalItems.forEach(orig => fromList.appendChild(orig)); } items.forEach(el => { const pid = el.dataset.id; const m = DB.members.find(x => x.id === pid); if (m) { m.isAtt = true; if (!m.attTime) m.attTime = Date.now(); } el.classList.remove('is-sel'); }); selectedPopIds = []; lhy_syncBoardDOMToState(); try { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } catch(e){} if (!DB.config.isManualMode) lhy_autoEntrySystem(); } }); });
         lhy_enforceDragPermissions();
     }
 
@@ -1087,19 +1087,40 @@ function lhy_init() {
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => { 
-            if (!isCurrentUserAdmin) return;
+            if (isObserverMode || !isCurrentUserAdmin) return;
             if (typeof isListDragging !== 'undefined' && isListDragging) return; isLongClicked = false; const touch = e.touches ? e.touches[0] : e; touchStartX = touch.clientX; touchStartY = touch.clientY; if (longClickTimer) clearTimeout(longClickTimer); longClickTimer = setTimeout(() => { isLongClicked = true; p.classList.toggle('is-sel'); if (p.classList.contains('is-sel')) { if (!selectedPopIds.includes(memberObj.id)) selectedPopIds.push(memberObj.id); } else { selectedPopIds = selectedPopIds.filter(id => id !== memberObj.id); } lhy_updateGroupDragBtnPosition(); }, 400); 
         };
         const moveHandler = (e) => { const touch = e.touches ? e.touches[0] : null; if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } } };
         const endHandler = () => { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } };
         p.addEventListener('mousedown', startHandler); p.addEventListener('touchstart', startHandler, { passive: true }); p.addEventListener('touchmove', moveHandler, { passive: false }); p.addEventListener('mouseup', endHandler); p.addEventListener('touchend', endHandler);
-        p.onclick = (e) => { if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; } if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } };
+        p.onclick = (e) => { if (isObserverMode) { e.preventDefault(); e.stopPropagation(); return; } if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; } if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } };
         slot.appendChild(p);
     }
 
     function lhy_renderBoardFromState() {
-        const occupancy = {}; Object.keys(boardState).forEach(key => { const container = key.split('-')[0]; if (!occupancy[container]) occupancy[container] = 0; if (boardState[key] !== null) occupancy[container]++; });
-        Object.keys(boardState).forEach(key => { const slot = document.getElementById(key); if (slot) { slot.innerHTML = ''; const pid = boardState[key]; if (pid) { const m = DB.members.find(x => x.id === pid); if (m) { lhy_insertPlayerToSlot(slot, m); if (!m.isAtt) { slot.classList.add('is-not-att'); } else { slot.classList.remove('is-not-att'); } const container = key.split('-')[0]; const count = occupancy[container] || 0; slot.classList.remove('slot-many', 'slot-single'); slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single'); } } } });
+        const occupancy = {};
+        Object.keys(boardState).forEach(key => {
+            const container = key.split('-')[0];
+            if (!occupancy[container]) occupancy[container] = 0;
+            if (boardState[key] !== null) occupancy[container]++;
+        });
+        Object.keys(boardState).forEach(key => {
+            const slot = document.getElementById(key);
+            if (!slot) return;
+            slot.innerHTML = '';
+            const pid = boardState[key];
+            if (pid && DB && DB.members) {
+                const m = DB.members.find(x => x.id === pid);
+                if (m) {
+                    lhy_insertPlayerToSlot(slot, m);
+                    if (!m.isAtt) { slot.classList.add('is-not-att'); } else { slot.classList.remove('is-not-att'); }
+                    const container = key.split('-')[0];
+                    const count = occupancy[container] || 0;
+                    slot.classList.remove('slot-many', 'slot-single');
+                    slot.classList.add(count >= 2 ? 'slot-many' : 'slot-single');
+                }
+            }
+        });
         lhy_enforceDragPermissions();
     }
 
@@ -1118,7 +1139,7 @@ function lhy_init() {
             d.innerHTML = `<div class="p-name" style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.0; width:100%; height:100%;"><span style="font-weight: 999; font-size: 1.1em; color: inherit;">${pureName}</span>${m.isAtt ? `<span class="p-cnt" style="font-size: clamp(15px, 1.2vh, 20px); margin-top:2px; font-weight:900; display:flex; gap:8px;"><span style="color: #2563eb; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.win || 0}승</span><span style="color: #e11d48; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${m.lose || 0}패</span></span>` : ''}</div>`;
             let touchStartX = 0; let touchStartY = 0;
             const startHandler = (e) => { 
-                if (!isCurrentUserAdmin) return;
+                if (isObserverMode || !isCurrentUserAdmin) return;
                 if (typeof isListDragging !== 'undefined' && isListDragging) return; isLongClicked = false; const touch = e.touches ? e.touches[0] : e; touchStartX = touch.clientX; touchStartY = touch.clientY; if (longClickTimer) clearTimeout(longClickTimer); longClickTimer = setTimeout(() => { isLongClicked = true; d.classList.toggle('is-sel'); if (d.classList.contains('is-sel')) { if (!selectedPopIds.includes(m.id)) selectedPopIds.push(m.id); } else { selectedPopIds = selectedPopIds.filter(id => id !== m.id); } lhy_updateGroupDragBtnPosition(); }, 400); 
             };
             const moveHandler = (e) => { const touch = e.touches ? e.touches[0] : null; if (touch) { if (Math.abs(touch.clientX - touchStartX) > 15 || Math.abs(touch.clientY - touchStartY) > 15) { if (longClickTimer) { clearTimeout(longClickTimer); longClickTimer = null; } } } };
@@ -1126,9 +1147,9 @@ function lhy_init() {
             d.addEventListener('mousedown', startHandler); d.addEventListener('touchstart', startHandler, { passive: true }); d.addEventListener('touchmove', moveHandler, { passive: false }); d.addEventListener('mouseup', endHandler); d.addEventListener('touchend', endHandler);
             
             d.onclick = (e) => {
+                if (isObserverMode) { e.preventDefault(); e.stopPropagation(); return; } // [수정] 관람모드는 클릭 무효화
                 if (typeof isListDragging !== 'undefined' && isListDragging) { e.preventDefault(); e.stopPropagation(); return; } if (isLongClicked) { e.preventDefault(); e.stopPropagation(); return; } 
                 
-                // 관리자가 아니면 본인 이름만 클릭 가능
                 if (!isCurrentUserAdmin && m.id !== loggedInUserId) {
                     alert("본인 이름만 클릭하여 상태를 변경할 수 있습니다.");
                     e.preventDefault(); e.stopPropagation();
@@ -1146,12 +1167,12 @@ function lhy_init() {
         });
         lhy_enforceDragPermissions();
 
-        // 🟢 [추가된 부분] 우측 상단 출석회원수 / 전체회원수 업데이트
         const statEl = document.getElementById('ui-stat');
         if (statEl) {
             const attCount = DB.members.filter(m => m.isAtt).length;
             const totalCount = DB.members.length;
-            const roleStr = isCurrentUserAdmin ? "관리자" : "일반";
+            // [수정] 관람모드 텍스트 분기 처리
+            const roleStr = isObserverMode ? "관람모드" : (isCurrentUserAdmin ? "관리자" : "일반");
             statEl.innerText = `${roleStr} [${attCount}/${totalCount}]`;
         }
     }
@@ -1248,13 +1269,11 @@ function lhy_topBtnGoHome() {
         selectedPopIds.forEach(selId => {
             const m = DB.members.find(x => x.id === selId);
             
-            // 1. 보드판(자리)에서 제거
             Object.keys(boardState).forEach(key => {
                 if (boardState[key] === selId) boardState[key] = null;
             });
 
             if (m) {
-                // 2. [수정됨] 손님(isG)이면 명단에서 완전히 삭제, 회원이면 상태 초기화
                 if (m.isG) {
                     DB.members = DB.members.filter(x => x.id !== selId);
                 } else {
@@ -1267,7 +1286,6 @@ function lhy_topBtnGoHome() {
             }
         });
 
-        // 3. 상태 동기화 및 화면 갱신
         sendGlobalAction(actionIds);
         selectedPopIds = [];
         isLongClicked = false;
@@ -1282,7 +1300,6 @@ function lhy_topBtnGoHome() {
         lhy_updateGroupDragBtnPosition();
         lhy_syncToFirebase();
 
-        // 시각 효과
         actionIds.forEach(id => {
             triggerBlink('player-' + id);
             triggerBlink('list-item-' + id);
@@ -1293,7 +1310,6 @@ function lhy_topBtnGoHome() {
         if(confirm("오늘 모임을 마감하시겠습니까? (출석 기록 및 보드판이 모두 초기화됩니다.)")) { 
             isAppClosed = true; 
             Object.keys(boardState).forEach(key => { boardState[key] = null; }); 
-            // 삭제 처리 대신 모두 미출석 및 기록 초기화
             DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }); 
             DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; 
             lhy_syncToFirebase(); 
@@ -1324,37 +1340,31 @@ function lhy_topBtnGoHome() {
     function lhy_lockOrientation() { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } }
     function lhy_toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
 
+    // [안정성 검토 수정] 기존에 window.addEventListener가 중복 선언되어 오류가 발생하던 것을 하나로 통합했습니다.
     window.addEventListener('load', () => { 
-        lhy_init(); initGroupDragEvents(); 
-    });
-// [자동 출석 기능 추가] 로그인 선택 시 자동 출석 및 동기화
-window.addEventListener('load', () => {
-    // 기존 초기화 함수들...
-    lhy_init(); lhy_lockOrientation(); initGroupDragEvents();
+        lhy_init(); 
+        initGroupDragEvents(); 
+        if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
 
-    // 아래 코드를 추가하세요!
-    const loginSelect = document.getElementById('login-user-select');
-    if (loginSelect) {
-        loginSelect.addEventListener('change', function() {
-            const selectedId = this.value;
-            if (!selectedId) return;
+        const loginSelect = document.getElementById('login-user-select');
+        if (loginSelect) {
+            loginSelect.addEventListener('change', function() {
+                const selectedId = this.value;
+                if (!selectedId) return;
 
-            // 회원 정보 찾아서 출석 처리
-            if (DB && DB.members) {
-                const member = DB.members.find(m => m.id === selectedId);
-                if (member) {
-                    member.isAtt = true; // 자동 출석
-                    console.log(member.name + "님 자동 출석 처리 완료");
-                    
-                    // Firebase에 즉시 동기화
-                    lhy_syncToFirebase();
-                    // 화면 갱신
-                    lhy_renderBoardFromState();
+                if (DB && DB.members) {
+                    const member = DB.members.find(m => m.id === selectedId);
+                    // 출석 상태가 아닐 때만 자동 출석 처리 (중복 방지)
+                    if (member && !member.isAtt) {
+                        member.isAtt = true; 
+                        console.log(member.name + "님 자동 출석 처리 완료");
+                        lhy_syncToFirebase();
+                        lhy_renderBoardFromState();
+                    }
                 }
-            }
-        });
-    }
-});
+            });
+        }
+    });
 
 </script>
 
