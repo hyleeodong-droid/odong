@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-12</title>
+    <title>화목모임_260701-13</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -336,27 +336,30 @@
     z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('배경애니메이션.gif');
     background-size: cover; background-position: center; background-repeat: no-repeat;">
-    
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; text-align: center; position: relative;">
 
-    <div style="font-size:1.6rem; font-weight:950; margin-bottom: 25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-        오동 화목 모임 입니다~~<br>
-        오늘도 즐거운 운동 되세요~~<br>
-        ~~^^~~
-    </div>
-    
-    <select id="login-user-select" style="padding:15px; width:220px; font-size:1rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:10px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3); color:#000; font-weight:bold; appearance:none; background:#fff;">
-        <option value="">본인 이름</option>
-    </select>
+    <form autocomplete="on" style="display: contents;" onsubmit="event.preventDefault(); checkPassword();">
+        
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; text-align: center; position: relative;">
 
-    <input type="password" id="pw-input" placeholder="비밀번호 입력" 
-           onkeydown="if(event.keyCode===13) checkPassword()" 
-           style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:15px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3);">
- 
-    <button onclick="checkPassword()" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
+            <div style="font-size:1.6rem; font-weight:950; margin-bottom: 25px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                오동 화목 모임 입니다~~<br>
+                오늘도 즐거운 운동 되세요~~<br>
+                ~~^^~~
+            </div>
+            
+            <select id="login-user-select" name="userName" autocomplete="name" style="padding:15px; width:220px; font-size:1rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:10px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3); color:#000; font-weight:bold; appearance:none; background:#fff;">
+                <option value="">본인 이름</option>
+            </select>
 
-    <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-12</div>
-</div>
+            <input type="password" id="pw-input" name="password" autocomplete="current-password" placeholder="비밀번호 입력" 
+                   onkeydown="if(event.keyCode===13) checkPassword()" 
+                   style="padding:15px; width:220px; font-size:1.2rem; border-radius:8px; border:2px solid #fff; text-align:center; margin-bottom:15px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.3);">
+         
+            <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
+
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-13</div>
+        </div>
+    </form>
 </div>
 
 <header class="lhy-header">
@@ -391,7 +394,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-12</div>
+<div class="lhy-footer-filename">화목모임_260701-13</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -1340,31 +1343,32 @@ function lhy_topBtnGoHome() {
     function lhy_lockOrientation() { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } }
     function lhy_toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
 
-    // [안정성 검토 수정] 기존에 window.addEventListener가 중복 선언되어 오류가 발생하던 것을 하나로 통합했습니다.
-    window.addEventListener('load', () => { 
-        lhy_init(); 
-        initGroupDragEvents(); 
-        if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
+window.addEventListener('load', () => {
+    // 1. 모든 초기화 함수는 한 번씩만 호출
+    lhy_init(); 
+    initGroupDragEvents(); 
+    if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
 
-        const loginSelect = document.getElementById('login-user-select');
-        if (loginSelect) {
-            loginSelect.addEventListener('change', function() {
-                const selectedId = this.value;
-                if (!selectedId) return;
+    // 2. 출석 기능 로직을 그 바로 아래에 배치
+    const loginSelect = document.getElementById('login-user-select');
+    if (loginSelect) {
+        loginSelect.addEventListener('change', function() {
+            const selectedId = this.value;
+            if (!selectedId) return;
 
-                if (DB && DB.members) {
-                    const member = DB.members.find(m => m.id === selectedId);
-                    // 출석 상태가 아닐 때만 자동 출석 처리 (중복 방지)
-                    if (member && !member.isAtt) {
-                        member.isAtt = true; 
-                        console.log(member.name + "님 자동 출석 처리 완료");
-                        lhy_syncToFirebase();
-                        lhy_renderBoardFromState();
-                    }
+            if (DB && DB.members) {
+                const member = DB.members.find(m => m.id === selectedId);
+                if (member && !member.isAtt) {
+                    member.isAtt = true; 
+                    console.log(member.name + "님 자동 출석 처리 완료");
+                    
+                    if (typeof lhy_syncToFirebase === 'function') lhy_syncToFirebase();
+                    if (typeof lhy_renderBoardFromState === 'function') lhy_renderBoardFromState();
                 }
-            });
-        }
-    });
+            }
+        });
+    }
+});
 
 </script>
 
