@@ -1020,7 +1020,11 @@
                 if (m.isAtt) { m.attTime = Date.now(); } else { delete m.attTime; Object.keys(boardState).forEach(key => { if(boardState[key] === m.id) boardState[key] = null; }); }
                 sendGlobalAction([m.id]); lhy_dominoShiftSystem(); lhy_applyOrientationLogic(); lhy_syncToFirebase();
             };
-// 🟢 [추가된 부분] 우측 상단 출석회원수 / 전체회원수 업데이트
+list.appendChild(d);
+        });
+        lhy_enforceDragPermissions();
+
+        // 🟢 [추가된 부분] 우측 상단 출석회원수 / 전체회원수 업데이트
         const statEl = document.getElementById('ui-stat');
         if (statEl) {
             const attCount = DB.members.filter(m => m.isAtt).length;
