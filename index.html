@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260701-16</title>
+    <title>화목모임_260701-17</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -367,7 +367,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-16</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260701-17</div>
         </div>
     </form>
 </div>
@@ -405,7 +405,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260701-16</div>
+<div class="lhy-footer-filename">화목모임_260701-17</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -529,17 +529,17 @@ function checkPassword() {
     const pwInput = document.getElementById('pw-input').value;
     const userSelect = document.getElementById('login-user-select').value;
 
-    // [수정] 12번 관람모드 로그인 처리
+    // [1] 12번 관람모드 로그인 처리
     if (pwInput === "12") {
         loggedInUserId = "OBSERVER";
         isCurrentUserAdmin = false;
         isObserverMode = true; // 관람모드 활성화
         
-        // --- [추가된 부분] UI 모드 변경 ---
+        // UI 모드 변경
         updateObserverUI(true); 
-        // -------------------------------
         
         document.getElementById('auth-gate').style.display = 'none';
+        
         if (!globalAudioCtx) {
             globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
             globalAudioCtx.resume();
@@ -558,26 +558,33 @@ function checkPassword() {
         return;
     }
 
-    // 정상 회원 로그인
+    // [2] 정상 회원 및 관리자 로그인
     if (pwInput === "34") {
         if (!userSelect) {
             alert("본인 이름을 선택해주세요.");
             return;
         }
         
-        // --- [추가된 부분] 정상 로그인 시 UI 모드 초기화 ---
+        // 정상 로그인 시 UI 모드 초기화
         updateObserverUI(false);
-        // ----------------------------------------------
 
+        // 로그인 정보 저장
         localStorage.setItem('savedLoginUserId', userSelect);
 
         loggedInUserId = userSelect;
         isObserverMode = false;
+        
         const m = DB.members.find(x => x.id === loggedInUserId);
         isCurrentUserAdmin = m ? !!m.isAdmin : false;
         
         const totalAdmins = DB.members.filter(x => x.isAdmin).length;
         if (totalAdmins === 0) { isCurrentUserAdmin = true; }
+
+        // [핵심] 로그인 성공 후 자동 출석 처리 함수 호출
+        if (loggedInUserId) {
+            console.log("로그인 성공! 자동 출석 시도:", loggedInUserId);
+            lhy_runAutoAttendance(loggedInUserId);
+        }
 
         document.getElementById('auth-gate').style.display = 'none';
 
@@ -1364,26 +1371,32 @@ window.addEventListener('load', () => {
     initGroupDragEvents(); 
     if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
 
-    // 2. 출석 기능 로직을 그 바로 아래에 배치
+    // 2. 출석 기능 로직 (공통 함수 사용)
     const loginSelect = document.getElementById('login-user-select');
     if (loginSelect) {
         loginSelect.addEventListener('change', function() {
-            const selectedId = this.value;
-            if (!selectedId) return;
-
-            if (DB && DB.members) {
-                const member = DB.members.find(m => m.id === selectedId);
-                if (member && !member.isAtt) {
-                    member.isAtt = true; 
-                    console.log(member.name + "님 자동 출석 처리 완료");
-                    
-                    if (typeof lhy_syncToFirebase === 'function') lhy_syncToFirebase();
-                    if (typeof lhy_renderBoardFromState === 'function') lhy_renderBoardFromState();
-                }
-            }
+            lhy_runAutoAttendance(this.value);
         });
     }
 });
+// 출석 처리 공통 함수
+function lhy_runAutoAttendance(selectedId) {
+    if (!selectedId) return;
+
+    if (DB && DB.members) {
+        const member = DB.members.find(m => m.id === selectedId);
+        if (member) {
+            console.log("출석 처리 실행:", member.name);
+            member.isAtt = true; 
+            
+            // Firebase 동기화 및 화면 갱신
+            lhy_syncToFirebase();
+            lhy_renderBoardFromState();
+        } else {
+            console.error("회원 정보를 찾을 수 없습니다:", selectedId);
+        }
+    }
+}
 function logoutOrExit() {
     // 1. 전역 변수 초기화
     loggedInUserId = null;
