@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260702-7</title>
+    <title>화목모임_260702-8</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -393,7 +393,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-7</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-8</div>
         </div>
     </form>
 </div>
@@ -431,7 +431,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260702-7</div>
+<div class="lhy-footer-filename">화목모임_260702-8</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -602,15 +602,25 @@
             return;
         }
 
-        // 3. 출석모드 (비번 34)
+ // 3. 출석모드 (비번 34)
         if (pwInput === "34") {
             if (!userSelect) {
                 alert("본인 이름을 선택해주세요.");
                 return;
             }
-            updateObserverUI(false);
+            if (typeof updateObserverUI === 'function') updateObserverUI(false);
             localStorage.setItem('savedLoginUserId', userSelect);
             loggedInUserId = userSelect;
+            
+            // [수정된 부분] "나가기" 버튼을 "귀가"로 변경하고 색상 강조
+            const btnExit = document.getElementById('btn-personal-exit');
+            if (btnExit) {
+                btnExit.innerText = "귀가";
+                // 귀가 버튼에 맞게 붉은색 그라데이션으로 변경 (선택사항)
+                btnExit.style.background = "linear-gradient(180deg, #ef4444, #b91c1c)";
+                btnExit.style.color = "#fff";
+            }
+
             isCurrentUserAdmin = true; 
             isObserverMode = false;
             
@@ -620,7 +630,9 @@
             const totalAdmins = DB.members.filter(x => x.isAdmin).length;
             if (totalAdmins === 0) { isCurrentUserAdmin = true; }
 
-            if (loggedInUserId) { lhy_runAutoAttendance(loggedInUserId); }
+            if (loggedInUserId && typeof lhy_runAutoAttendance === 'function') { 
+                lhy_runAutoAttendance(loggedInUserId); 
+            }
 
             document.getElementById('auth-gate').style.display = 'none';
             if (!globalAudioCtx) {
@@ -632,7 +644,9 @@
             if (statEl) { statEl.style.display = 'block'; statEl.innerText = ""; }
             
             applyAccessControl(); 
-            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            if (typeof lhy_renderListOnly === 'function') {
+                lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            }
             console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
         } else {
             alert("비밀번호가 틀렸습니다.");
@@ -1457,21 +1471,49 @@
         }
     }
 
-    // 5. 로그아웃 및 나가기
+// [신규/수정 부분] 나가기 및 본인 귀가 기능 통합 처리
     function logoutOrExit() {
-        if (typeof loggedInUserId !== 'undefined') loggedInUserId = null;
-        if (typeof isCurrentUserAdmin !== 'undefined') isCurrentUserAdmin = false;
-        if (typeof isObserverMode !== 'undefined') isObserverMode = false;
-        
-        updateObserverUI(false); 
-        
-        const authGate = document.getElementById('auth-gate');
-        if (authGate) { authGate.style.display = 'flex'; }
+        // 1. 관람모드(12) 또는 전체관리자(77)로 로그인한 경우 -> 단순 로그아웃(새로고침)
+        if (isObserverMode || loggedInUserId === "ADMIN") {
+            if (confirm("로그아웃 하시겠습니까?")) {
+                location.reload();
+            }
+            return;
+        }
 
-        const pwInput = document.getElementById('pw-input');
-        if (pwInput) pwInput.value = "";
-        
-        console.log("시스템 초기화: 로그인 화면으로 복귀");
+        // 2. 일반 회원(34) 로그인 상태인 경우 -> 본인 귀가 기능 수행
+        if (loggedInUserId) {
+            if (confirm("정말로 귀가(운동끝) 처리하시겠습니까?")) {
+                lhy_saveUndoState();
+                
+                // (1) DB 명단에서 본인 출석 상태 해제
+                const member = DB.members.find(m => m.id === loggedInUserId);
+                if (member) {
+                    member.isAtt = false;
+                }
+
+                // (2) 보드판(코트 및 대기열)에 본인이 배정되어 있다면 제거
+                for (let key in boardState) {
+                    if (boardState[key] === loggedInUserId) {
+                        boardState[key] = null;
+                    }
+                }
+
+                // (3) DOM 동기화 및 빈자리 자동 당기기(도미노) 실행
+                lhy_syncBoardDOMToState();
+                if (typeof lhy_dominoShiftSystem === 'function' && !isManualMode) {
+                    lhy_dominoShiftSystem();
+                }
+                
+                // (4) Firebase 서버에 변경 사항 적용
+                lhy_syncToFirebase();
+                
+                alert("귀가 처리가 완료되었습니다. 수고하셨습니다!");
+                location.reload(); // 초기 화면(로그인 폼)으로 복귀
+            }
+        } else {
+            location.reload();
+        }
     }
 
     // 6. Observer UI 복구용 함수
