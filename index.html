@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260702-8</title>
+    <title>화목모임_260702-9</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -393,7 +393,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-8</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-9</div>
         </div>
     </form>
 </div>
@@ -431,7 +431,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260702-8</div>
+<div class="lhy-footer-filename">화목모임_260702-9</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -556,11 +556,31 @@
 
     try { Sortable.mount(new Sortable.MultiDrag()); } catch (e) { console.log('MultiDrag module active'); }
 
-    function checkPassword() {
+function checkPassword() {
         const pwInput = document.getElementById('pw-input').value;
         const userSelect = document.getElementById('login-user-select').value;
 
-        // 1. 관람모드 (비번 12)
+        // [중복 로그인 방지 사전 체크] _260702-1
+        // 12번(관람모드)은 중복 허용이므로 체크하지 않음
+        if (pwInput === "34") {
+            if (!userSelect) {
+                alert("본인 이름을 선택해주세요.");
+                return;
+            }
+            const lhy_targetMember = DB.members.find(m => m.id === userSelect);
+            if (lhy_targetMember && lhy_targetMember.isAtt) {
+                alert("해당 회원은 이미 다른 기기에서 출석(로그인) 중입니다.\n귀가 처리 후 다시 접속해주세요.");
+                return;
+            }
+        } else if (pwInput === "77") {
+            const lhy_isAdminActive = DB.members.some(m => m.isAdmin && m.isAtt);
+            if (lhy_isAdminActive) {
+                alert("이미 다른 기기에서 관리자가 접속 중입니다.");
+                return;
+            }
+        }
+
+        // 1. 관람모드 (비번 12) - 중복 허용
         if (pwInput === "12") {
             loggedInUserId = "OBSERVER";
             isCurrentUserAdmin = false;
@@ -602,21 +622,18 @@
             return;
         }
 
- // 3. 출석모드 (비번 34)
+        // 3. 출석모드 (비번 34)
         if (pwInput === "34") {
-            if (!userSelect) {
-                alert("본인 이름을 선택해주세요.");
-                return;
-            }
+            // (위에서 중복 체크 완료됨)
+            
             if (typeof updateObserverUI === 'function') updateObserverUI(false);
             localStorage.setItem('savedLoginUserId', userSelect);
             loggedInUserId = userSelect;
             
-            // [수정된 부분] "나가기" 버튼을 "귀가"로 변경하고 색상 강조
+            // "나가기" 버튼을 "귀가"로 변경하고 색상 강조
             const btnExit = document.getElementById('btn-personal-exit');
             if (btnExit) {
                 btnExit.innerText = "귀가";
-                // 귀가 버튼에 맞게 붉은색 그라데이션으로 변경 (선택사항)
                 btnExit.style.background = "linear-gradient(180deg, #ef4444, #b91c1c)";
                 btnExit.style.color = "#fff";
             }
@@ -648,7 +665,9 @@
                 lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
             }
             console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
-        } else {
+        } 
+        // 4. 비밀번호 오류 처리
+        else if (pwInput !== "12" && pwInput !== "77") {
             alert("비밀번호가 틀렸습니다.");
             document.getElementById('pw-input').value = "";
         }
