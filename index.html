@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260702-1</title>
+    <title>화목모임_260702-3</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -208,12 +208,26 @@
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
         }
 
+        /* [수정 1] A팀 화살표 CSS 복구 */
+        .A-btn::before {
+            content: ""; position: absolute; top: 0; bottom: 0; left: -15px; width: 15px;
+            transform: translateZ(0); background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%);
+            clip-path: polygon(100% 0%, 0% 50%, 100% 100%); z-index: -1;
+        }
+
         .B-btn {
             position: relative; z-index: 1; width: 100%; height: 40px; display: flex; align-items: center;
             background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%);
             box-shadow: inset 2px 2px 4px rgba(255,255,255,0.8), inset -2px -2px 4px rgba(0,0,0,0.3);
             color: #000; text-shadow: 1px 1px 0 rgba(255,255,255,0.6); filter: drop-shadow(-3px 3px 4px rgba(0,0,0,0.7));
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
+        }
+
+        /* [수정 1] B팀 화살표 CSS 복구 */
+        .B-btn::after {
+            content: ""; position: absolute; top: 0; bottom: 0; right: -15px; width: 15px;
+            transform: translateZ(0); background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%);
+            clip-path: polygon(0% 0%, 100% 50%, 0% 100%); z-index: -1;
         }
 
         .lhy-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(2px); }
@@ -381,7 +395,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-1</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-3</div>
         </div>
     </form>
 </div>
@@ -419,7 +433,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260702-1</div>
+<div class="lhy-footer-filename">화목모임_260702-3</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -509,7 +523,42 @@
         7: { title: "7. 조편성 기준 및 알고리즘", steps: ["기본적으로 등급을 우선으로 하여 점수 균형을 맞춥니다.", "과거 같은 팀이었던 이력을 최소화하는 방향으로 매칭됩니다."] }
     };
 
-    const NAMES = ["강경순(여)", "강기호", "강송중", "고재선", "권혜진(여)", "금성옥(여)", "김기수", "김묘임(여)", "김정수", "김선주", "김성동", "김영민", "김영임(여)", "김영혜(여)", "도성학", "박명식", "박순이(여)", "박찬경", "백숙현(여)", "송재현", "신기흥", "신동윤", "안현욱", "양희동", "유영춘", "윤상철", "이근영", "이달주", "이명선", "이윤영", "이후열", "정노숙(여)", "정다영(여)", "조만희", "조윤진(여)", "천병웅", "최경숙(여)", "최재완", "최정열", "한순직"];
+// [수정] 깃허브에서 명단 불러오기 및 select 박스 업데이트 함수
+async function loadNamesFromGitHub() {
+    // 1. 여기에 깃허브 Raw 파일 URL을 넣으세요 (예: https://raw.githubusercontent.com/아이디/레포지토리/main/names.csv)
+    const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv'; 
+    
+    try {
+        const response = await fetch(CSV_URL);
+        const data = await response.text();
+        
+        // CSV 파싱 (줄바꿈으로 구분, 공백 제거)
+        const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
+        
+        // select 박스 업데이트
+        const loginSelect = document.getElementById('login-user-select');
+        if (loginSelect) {
+            loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.text = name;
+                loginSelect.appendChild(opt);
+            });
+            console.log("명단 로드 성공:", names.length, "명");
+        }
+    } catch (error) {
+        console.error("명단 불러오기 실패:", error);
+        alert("명단을 불러오는 데 실패했습니다. 인터넷 연결을 확인해주세요.");
+    }
+}
+
+// [수정] 페이지 로드 시 위 함수 실행
+document.addEventListener('DOMContentLoaded', () => {
+    loadNamesFromGitHub(); // 기존 NAMES 배열 대신 이 함수를 호출
+    
+    // ... 나머지 기존 초기화 코드들 ...
+});
     const posOrder = ['L1', 'L2', 'R1', 'R2'];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let boardState = {};
@@ -543,7 +592,6 @@
         const pwInput = document.getElementById('pw-input').value;
         const userSelect = document.getElementById('login-user-select').value;
 
-        // [요구사항 1] "12" 로그인 (이름 무관) 관람모드 처리
         if (pwInput === "12") {
             loggedInUserId = "OBSERVER";
             isCurrentUserAdmin = false;
@@ -571,7 +619,6 @@
             return;
         }
 
-        // [2] 정상 회원 및 관리자 로그인
         if (pwInput === "34") {
             if (!userSelect) {
                 alert("본인 이름을 선택해주세요.");
@@ -579,9 +626,7 @@
             }
             
             updateObserverUI(false);
-
             localStorage.setItem('savedLoginUserId', userSelect);
-
             loggedInUserId = userSelect;
             isObserverMode = false;
             
@@ -635,7 +680,6 @@
             return;
         }
 
-        // [요구사항 3] 모든 모드에서 '나가기' 버튼 100% 보이게 유지
         if (isObserverMode) {
             allButtons.forEach(id => { 
                 const el = document.getElementById(id); 
@@ -644,7 +688,7 @@
         } else if (isCurrentUserAdmin) {
             allButtons.forEach(id => { 
                 const el = document.getElementById(id); 
-                if (el) el.style.display = ''; // 관리자도 나가기 버튼 보임
+                if (el) el.style.display = ''; 
             });
         } else {
             allButtons.forEach(id => {
@@ -781,7 +825,11 @@
             btn.style.left = (touch.clientX - offsetX) + 'px'; btn.style.top = (touch.clientY - offsetY) + 'px';
         };
         const handleEnd = (e) => {
-            if (!isDragging) return; isDragging = false; isListDragging = false;
+            if (!isDragging) return; 
+            isDragging = false; 
+            isListDragging = false; 
+            isLongClicked = false; // [수정 2] 다중 선택 종료 후 롱클릭 상태 확실하게 해제
+            
             if (btn) {
                 btn.classList.remove('active'); btn.style.display = 'none';
                 const touch = e.changedTouches ? e.changedTouches[0] : e; const clientX = touch ? touch.clientX : 0; const clientY = touch ? touch.clientY : 0;
@@ -868,7 +916,13 @@
             if (isDuplicate) { alert("이미 다른 곳에 배정된 회원입니다!"); from.appendChild(item); return; }
             sendGlobalAction([memberId]); lhy_syncBoardDOMToState();
         },
-        onEnd: function(evt) { setTimeout(() => { isListDragging = false; }, 50); document.querySelectorAll('.player').forEach(p => { p.classList.remove('is-sel'); p.classList.remove('is-selected-target'); }); selectedPopIds = []; lhy_syncBoardDOMToState(); if (typeof lhy_renderListOnly === 'function') { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } lhy_syncToFirebase(); }    
+        onEnd: function(evt) { 
+            setTimeout(() => { isListDragging = false; isLongClicked = false; }, 50); // [수정 2] 기본 드래그 종료 시 롱클릭 해제 
+            document.querySelectorAll('.player').forEach(p => { p.classList.remove('is-sel'); p.classList.remove('is-selected-target'); }); 
+            selectedPopIds = []; lhy_syncBoardDOMToState(); 
+            if (typeof lhy_renderListOnly === 'function') { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } 
+            lhy_syncToFirebase(); 
+        }    
     };
 
     function lhy_saveUndoState() { const stateCopy = JSON.stringify({ DB: DB, boardState: boardState }); undoStack.push(stateCopy); if (undoStack.length > 20) { undoStack.shift(); } }
@@ -1098,8 +1152,8 @@
         if (slot.children.length > 0) return; const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name); const isLeft = slot.id.includes('-L'); const winCount = Number(memberObj.win || 0); const loseCount = Number(memberObj.lose || 0);
         const p = document.createElement('div'); p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id; Object.assign(p.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20 });
         const stats = document.createElement('div'); Object.assign(stats.style, { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end', flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px', fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal' }); stats.innerHTML = `<span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span><span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>`;
-        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260702-18"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
-        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260702-18"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
+        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260702-2"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
+        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260702-2"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => { 
@@ -1241,6 +1295,7 @@
     function lhy_kickMasterInline(id) { const m = DB.members.find(x => x.id === id); if(m && confirm(`정말로 [${lhy_getPureName(m.name)}] 회원을 탈퇴 처리하시겠습니까?`)) { DB.members = DB.members.filter(x => x.id !== id); lhy_renderMasterTable(); } }
     function lhy_switchHelpTab(tabIndex, btnEl) { document.querySelectorAll('.help-menu-btn').forEach(btn => btn.classList.remove('active')); btnEl.classList.add('active'); lhy_renderHelpViewer(tabIndex); }
     function lhy_renderHelpViewer(tabIndex) { const viewer = document.getElementById('help-viewer-content'); const data = HELP_DATA[tabIndex]; if(!viewer || !data) return; let html = `<div class="viewer-title">${data.title}</div><div class="viewer-step-list">`; data.steps.forEach((stepText, idx) => { html += `<div class="viewer-step-item"><div class="viewer-step-num">${idx + 1} 단계</div><div class="viewer-step-text">${stepText}</div></div>`; }); html += `</div>`; viewer.innerHTML = html; }
+    
     function lhy_topBtnCancelGame() {
         if (selectedPopIds.length === 0) {
             alert("선수를 먼저 롱클릭으로 선택해주세요.");
@@ -1272,6 +1327,7 @@
             triggerBlink('list-item-' + id);
         });
     }
+
     function lhy_topBtnGoHome() {
         if (selectedPopIds.length === 0) {
             alert("선수를 먼저 롱클릭으로 선택해주세요.");
@@ -1320,18 +1376,28 @@
             triggerBlink('list-item-' + id);
         });
     }
+
+    /* [수정 3] "운동끝" 버튼이 화면을 없애지 않고 데이터만 초기화하도록 변경 */
     function lhy_fnExit(event) { 
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까? (출석 기록 및 보드판이 모두 초기화됩니다.)")) { 
-            isAppClosed = true; 
             Object.keys(boardState).forEach(key => { boardState[key] = null; }); 
             DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }); 
-            DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }; DB.matchHistory = {}; 
+            DB.members = DB.members.filter(m => !m.isG); // 임시 등록된 손님 데이터 삭제
+            DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade', isManualMode: false }; 
+            isManualMode = false;
+            DB.matchHistory = {}; 
+            
             lhy_syncToFirebase(); 
-            if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); } 
-            setTimeout(() => { document.body.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:linear-gradient(135deg, #111, #222); color:#fff; font-family:sans-serif; text-align:center; position:fixed; top:0; left:0; z-index:99999;"><div style="font-size:1.6rem; font-weight:950; color:#2ecc71; margin-bottom:12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓ 오늘 모임 마감 완료</div><div style="font-size:1rem; color:#ccc; line-height:1.4;">현재 상태가 안전하게 초기화 및 저장되었습니다.<br>이 창(탭)을 닫으시거나 종료하셔도 됩니다.</div></div>`; }, 100); 
+            lhy_drawBoard();
+            lhy_renderBoardFromState();
+            lhy_applyOrientationLogic();
+            if (typeof lhy_refreshMenuUI === 'function') lhy_refreshMenuUI();
+            
+            alert("오늘 모임이 마감되고 모든 회원이 미출석 상태로 초기화되었습니다.");
         } 
     }
+
     function lhy_autoEntrySystem() { let moved = false; let assignedIds = []; for(let i=1; i<=6; i++) { if(!DB.config.w[i-1]) continue; const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; const isFull = waitSlots.every(s => boardState[s] !== null); if(isFull) { let targetCourt = null; for(let j=1; j<=6; j++) { if(!DB.config.c[j-1]) continue; const courtSlots = [`c${j}-L1`, `c${j}-L2`, `c${j}-R1`, `c${j}-R2`]; const isCourtEmpty = courtSlots.every(s => boardState[s] === null); if(isCourtEmpty) { targetCourt = j; break; } } if(targetCourt !== null) { const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`]; waitSlots.forEach((ws, idx) => { boardState[courtSlots[idx]] = boardState[ws]; boardState[ws] = null; const memberId = boardState[courtSlots[idx]]; if(memberId) assignedIds.push(memberId); }); moved = true; } } } if(assignedIds.length > 0) { sendGlobalAction(assignedIds); } if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); } }
     function lhy_lockOrientation() { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } }
     function lhy_toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
@@ -1365,7 +1431,6 @@
         }
     }
 
-    // [요구사항 3] 모든 권한(일반, 관람, 관리자) 범용 '나가기' 버튼 로직 (세션 초기화 및 로그인 창 복귀)
     function logoutOrExit() {
         loggedInUserId = null;
         isCurrentUserAdmin = false;
