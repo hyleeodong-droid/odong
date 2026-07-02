@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260702-4</title>
+    <title>화목모임_260702-7</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -208,7 +208,6 @@
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
         }
 
-        /* [수정 1] A팀 화살표 CSS 복구 */
         .A-btn::before {
             content: ""; position: absolute; top: 0; bottom: 0; left: -15px; width: 15px;
             transform: translateZ(0); background: linear-gradient(180deg, #fffdf0 0%, #FFD700 50%, #b8860b 100%);
@@ -223,7 +222,6 @@
             padding: 0 10px; border-radius: 4px; cursor: pointer; box-sizing: border-box;
         }
 
-        /* [수정 1] B팀 화살표 CSS 복구 */
         .B-btn::after {
             content: ""; position: absolute; top: 0; bottom: 0; right: -15px; width: 15px;
             transform: translateZ(0); background: linear-gradient(180deg, #f0faff 0%, #87CEEB 50%, #4682B4 100%);
@@ -395,7 +393,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-4</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-7</div>
         </div>
     </form>
 </div>
@@ -433,7 +431,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260702-4</div>
+<div class="lhy-footer-filename">화목모임_260702-7</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -463,7 +461,10 @@
             </table>
         </div>
 
-        <button class="lhy-modal-btn lhy-btn-cancel" onclick="lhy_closeMasterPop(true)">저장 및 닫기</button>
+       <div style="display:flex; gap:10px; padding: 10px;">
+           <button class="lhy-modal-btn lhy-btn-cancel" style="flex:1; background:linear-gradient(180deg, #1a237e, #0d1240); color:#fff; border:1px solid #000; margin-top:0;" onclick="lhy_saveAndCloseMaster()">저장 및 닫기</button>
+           <button class="lhy-modal-btn lhy-btn-cancel" style="flex:1; margin-top:0;" onclick="lhy_closeMasterPop(false)">저장안하고 닫기</button>
+       </div>
     </div>
 </div>
 
@@ -513,6 +514,9 @@
     let isSyncing = false;
     let globalAudioCtx = null;
 
+    // 만약을 대비한 기본 명단 변수
+    const NAMES = ["홍길동", "이후열", "회원1", "회원2"];
+
     const HELP_DATA = {
         1: { title: "1. 일반 출석 및 가변형 버튼", steps: ["우측 명단의 회원을 클릭하여 출석/미출석 상태를 변경합니다.", "모드 변경, 가로/세로 전환 등의 버튼으로 환경을 제어할 수 있습니다."] },
         2: { title: "2. 회원관리 인라인 제어 규칙", steps: ["관리자는 '회원관리' 버튼을 통해 회원 정보를 직접 수정할 수 있습니다.", "성별, 나이, 등급, 관리자 여부를 변경한 후 '저장 및 닫기'를 누르면 즉시 반영됩니다."] },
@@ -523,38 +527,6 @@
         7: { title: "7. 조편성 기준 및 알고리즘", steps: ["기본적으로 등급을 우선으로 하여 점수 균형을 맞춥니다.", "과거 같은 팀이었던 이력을 최소화하는 방향으로 매칭됩니다."] }
     };
 
-// 깃허브 CSV URL
-    const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv';
-
-    // [핵심] 깃허브에서 명단 불러오기 및 select 박스 업데이트 함수
-    async function loadNamesFromGitHub() {
-        try {
-            const response = await fetch(CSV_URL);
-            if (!response.ok) throw new Error("네트워크 응답 없음");
-            
-            const data = await response.text();
-            
-            // CSV 파싱 (줄바꿈으로 구분, 공백 제거)
-            const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
-            
-            // select 박스 업데이트
-            const loginSelect = document.getElementById('login-user-select');
-            if (loginSelect) {
-                loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
-                names.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.text = name;
-                    loginSelect.appendChild(opt);
-                });
-                console.log("명단 로드 성공:", names.length, "명");
-            }
-        } catch (error) {
-            console.error("명단 불러오기 실패:", error);
-            // 에러 시 사용자 알림
-            alert("명단을 불러오는 데 실패했습니다. 인터넷 연결을 확인해주세요.");
-        }
-    }
     const posOrder = ['L1', 'L2', 'R1', 'R2'];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let boardState = {};
@@ -588,42 +560,58 @@
         const pwInput = document.getElementById('pw-input').value;
         const userSelect = document.getElementById('login-user-select').value;
 
+        // 1. 관람모드 (비번 12)
         if (pwInput === "12") {
             loggedInUserId = "OBSERVER";
             isCurrentUserAdmin = false;
             isObserverMode = true; 
-            
             updateObserverUI(true); 
-            
             document.getElementById('auth-gate').style.display = 'none';
-            
             if (!globalAudioCtx) {
                 globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 globalAudioCtx.resume();
             }
             if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
-
             const statEl = document.getElementById('ui-stat');
-            if (statEl) {
-                statEl.style.display = 'block';
-                statEl.innerText = "관람모드";
-            }
-            
+            if (statEl) { statEl.style.display = 'block'; statEl.innerText = "관람모드"; }
             applyAccessControl(); 
             lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
             console.log("관람모드 접속 성공");
             return;
         }
 
+        // 2. 관리자모드 출석 없이 바로 입장 (비번 77)
+        if (pwInput === "77") {
+            loggedInUserId = "ADMIN";
+            isCurrentUserAdmin = true;
+            isObserverMode = false;
+
+            document.getElementById('auth-gate').style.display = 'none';
+
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                globalAudioCtx.resume();
+            }
+            if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
+            const statEl = document.getElementById('ui-stat');
+            if (statEl) { statEl.style.display = 'block'; statEl.innerText = "관리자모드"; }
+            
+            applyAccessControl(); 
+            lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
+            console.log("관리자모드(77) 접속 완료");
+            return;
+        }
+
+        // 3. 출석모드 (비번 34)
         if (pwInput === "34") {
             if (!userSelect) {
                 alert("본인 이름을 선택해주세요.");
                 return;
             }
-            
             updateObserverUI(false);
             localStorage.setItem('savedLoginUserId', userSelect);
             loggedInUserId = userSelect;
+            isCurrentUserAdmin = true; 
             isObserverMode = false;
             
             const m = DB.members.find(x => x.id === loggedInUserId);
@@ -632,28 +620,20 @@
             const totalAdmins = DB.members.filter(x => x.isAdmin).length;
             if (totalAdmins === 0) { isCurrentUserAdmin = true; }
 
-            if (loggedInUserId) {
-                console.log("로그인 성공! 자동 출석 시도:", loggedInUserId);
-                lhy_runAutoAttendance(loggedInUserId);
-            }
+            if (loggedInUserId) { lhy_runAutoAttendance(loggedInUserId); }
 
             document.getElementById('auth-gate').style.display = 'none';
-
             if (!globalAudioCtx) {
                 globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 globalAudioCtx.resume();
             }
             if (typeof lhy_safeLockOrientation === 'function') lhy_safeLockOrientation();
-
             const statEl = document.getElementById('ui-stat');
-            if (statEl) {
-                statEl.style.display = 'block';
-            }
+            if (statEl) { statEl.style.display = 'block'; statEl.innerText = ""; }
             
             applyAccessControl(); 
             lhy_renderListOnly(document.body.classList.contains('real-landscape')); 
             console.log("로그인 성공! 권한:", isCurrentUserAdmin ? "관리자" : "일반");
-
         } else {
             alert("비밀번호가 틀렸습니다.");
             document.getElementById('pw-input').value = "";
@@ -693,6 +673,12 @@
             });
         }
         lhy_enforceDragPermissions();
+    }
+
+    // 관리자 창 저장하고 메인화면 복귀
+    function lhy_saveAndCloseMaster() {
+        lhy_closeMasterPop(true);
+        console.log("관리자 작업 완료: 저장 및 닫기");
     }
 
     function lhy_enforceDragPermissions() {
@@ -824,7 +810,7 @@
             if (!isDragging) return; 
             isDragging = false; 
             isListDragging = false; 
-            isLongClicked = false; // [수정 2] 다중 선택 종료 후 롱클릭 상태 확실하게 해제
+            isLongClicked = false; 
             
             if (btn) {
                 btn.classList.remove('active'); btn.style.display = 'none';
@@ -913,7 +899,7 @@
             sendGlobalAction([memberId]); lhy_syncBoardDOMToState();
         },
         onEnd: function(evt) { 
-            setTimeout(() => { isListDragging = false; isLongClicked = false; }, 50); // [수정 2] 기본 드래그 종료 시 롱클릭 해제 
+            setTimeout(() => { isListDragging = false; isLongClicked = false; }, 50);
             document.querySelectorAll('.player').forEach(p => { p.classList.remove('is-sel'); p.classList.remove('is-selected-target'); }); 
             selectedPopIds = []; lhy_syncBoardDOMToState(); 
             if (typeof lhy_renderListOnly === 'function') { lhy_renderListOnly(document.body.classList.contains('real-landscape')); } 
@@ -1066,7 +1052,7 @@
                 const select = document.getElementById('login-user-select');
                 if (select && !loggedInUserId) {
                     const currentVal = select.value;
-                    select.innerHTML = '<option value="">본인 이름 </option>';
+                    select.innerHTML = '<option value="">본인 이름</option>';
                     if (DB && DB.members && Array.isArray(DB.members)) {
                         let sorted = [...DB.members].sort((a,b) => a.name.localeCompare(b.name, 'ko'));
                         sorted.forEach(m => {
@@ -1148,8 +1134,8 @@
         if (slot.children.length > 0) return; const sexClass = lhy_getSexClass(memberObj); const pureName = lhy_getPureName(memberObj.name); const isLeft = slot.id.includes('-L'); const winCount = Number(memberObj.win || 0); const loseCount = Number(memberObj.lose || 0);
         const p = document.createElement('div'); p.className = `player in-game ${sexClass}`; p.dataset.id = memberObj.id; Object.assign(p.style, { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', padding: '2px', position: 'relative', containerType: 'size', zIndex: 20 });
         const stats = document.createElement('div'); Object.assign(stats.style, { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isLeft ? 'flex-start' : 'flex-end', flex: '0 0 auto', width: 'auto', maxWidth: '35%', height: '100%', pointerEvents: 'none', padding: '0 2px', fontSize: 'clamp(9px, 35cqh, 14px)', lineHeight: 'normal' }); stats.innerHTML = `<span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #2563eb; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${winCount}승</span><span class="stat-item" style="flex: 1; display: flex; align-items: center; color: #e11d48; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">${loseCount}패</span>`;
-        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260702-2"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
-        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260702-2"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
+        const nameWrapper = document.createElement('div'); nameWrapper.className = "name-wrapper_260702-7"; nameWrapper.style.display = 'flex'; nameWrapper.style.flexDirection = 'column'; nameWrapper.style.alignItems = 'center'; nameWrapper.style.justifyContent = 'center'; nameWrapper.style.flex = '1'; nameWrapper.style.minWidth = '0'; nameWrapper.style.height = '70%'; nameWrapper.style.pointerEvents = 'none';
+        const nameDiv = document.createElement('div'); nameDiv.className = "p-name p-name_260702-7"; nameDiv.style.flex = 'none'; nameDiv.textContent = pureName; nameWrapper.appendChild(nameDiv);
         if (isLeft) { p.append(stats, nameWrapper); } else { p.append(nameWrapper, stats); }
         let touchStartX = 0; let touchStartY = 0;
         const startHandler = (e) => { 
@@ -1373,13 +1359,12 @@
         });
     }
 
-    /* [수정 3] "운동끝" 버튼이 화면을 없애지 않고 데이터만 초기화하도록 변경 */
     function lhy_fnExit(event) { 
         if(event) event.stopPropagation(); 
         if(confirm("오늘 모임을 마감하시겠습니까? (출석 기록 및 보드판이 모두 초기화됩니다.)")) { 
             Object.keys(boardState).forEach(key => { boardState[key] = null; }); 
             DB.members.forEach(m => { m.isAtt = false; m.cnt = 0; m.win = 0; m.lose = 0; delete m.attTime; }); 
-            DB.members = DB.members.filter(m => !m.isG); // 임시 등록된 손님 데이터 삭제
+            DB.members = DB.members.filter(m => !m.isG); 
             DB.config = { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade', isManualMode: false }; 
             isManualMode = false;
             DB.matchHistory = {}; 
@@ -1440,40 +1425,12 @@
         } 
     }
 
-    // 2. 깃허브에서 명단 불러오는 함수 (정의 추가)
-    async function loadNamesFromGitHub() {
-        const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv';
-        try {
-            const response = await fetch(CSV_URL);
-            const data = await response.text();
-            const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
-            
-            const loginSelect = document.getElementById('login-user-select');
-            if (loginSelect) {
-                loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
-                names.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.text = name;
-                    loginSelect.appendChild(opt);
-                });
-            }
-        } catch (error) {
-            console.error("명단 불러오기 실패:", error);
-        }
-    }
-
     // 3. 페이지 초기화 (이벤트 리스너 통합)
     document.addEventListener('DOMContentLoaded', () => {
-        // 기존 초기화 로직
         lhy_init(); 
         initGroupDragEvents(); 
         if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
-        
-        // 깃허브 명단 로드
-        loadNamesFromGitHub();
 
-        // 로그인 선택창 이벤트 연결
         const loginSelect = document.getElementById('login-user-select');
         if (loginSelect) {
             loginSelect.addEventListener('change', function() {
