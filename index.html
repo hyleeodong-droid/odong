@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>화목모임_260702-3</title>
+    <title>화목모임_260702-4</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -395,7 +395,7 @@
          
             <button type="submit" style="padding:12px 40px; font-size:1.1rem; font-weight:950; background:linear-gradient(180deg, #FFD700, #d4af37); border:1px solid #b8860b; border-radius:6px; cursor:pointer; color:#000; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 1px 1px 2px rgba(255,255,255,0.6); transition: transform 0.1s;">로그인</button>
 
-            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-3</div>
+            <div class="lhy-footer-filename" style="position: absolute; bottom: 10px; right: 10px; background: transparent; color: #ccc; border: none; box-shadow: none; font-size: 11px;">화목모임_260702-4</div>
         </div>
     </form>
 </div>
@@ -433,7 +433,7 @@
     </div>
 </div>
 
-<div class="lhy-footer-filename">화목모임_260702-3</div>
+<div class="lhy-footer-filename">화목모임_260702-4</div>
 
 <div class="lhy-modal-overlay" id="lhy-pop-master" onclick="lhy_closeMasterPop(false)">
     <div class="lhy-modal-content large-size" onclick="event.stopPropagation()">
@@ -523,42 +523,38 @@
         7: { title: "7. 조편성 기준 및 알고리즘", steps: ["기본적으로 등급을 우선으로 하여 점수 균형을 맞춥니다.", "과거 같은 팀이었던 이력을 최소화하는 방향으로 매칭됩니다."] }
     };
 
-// [수정] 깃허브에서 명단 불러오기 및 select 박스 업데이트 함수
-async function loadNamesFromGitHub() {
-    // 1. 여기에 깃허브 Raw 파일 URL을 넣으세요 (예: https://raw.githubusercontent.com/아이디/레포지토리/main/names.csv)
-    const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv'; 
-    
-    try {
-        const response = await fetch(CSV_URL);
-        const data = await response.text();
-        
-        // CSV 파싱 (줄바꿈으로 구분, 공백 제거)
-        const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
-        
-        // select 박스 업데이트
-        const loginSelect = document.getElementById('login-user-select');
-        if (loginSelect) {
-            loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
-            names.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.text = name;
-                loginSelect.appendChild(opt);
-            });
-            console.log("명단 로드 성공:", names.length, "명");
-        }
-    } catch (error) {
-        console.error("명단 불러오기 실패:", error);
-        alert("명단을 불러오는 데 실패했습니다. 인터넷 연결을 확인해주세요.");
-    }
-}
+// 깃허브 CSV URL
+    const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv';
 
-// [수정] 페이지 로드 시 위 함수 실행
-document.addEventListener('DOMContentLoaded', () => {
-    loadNamesFromGitHub(); // 기존 NAMES 배열 대신 이 함수를 호출
-    
-    // ... 나머지 기존 초기화 코드들 ...
-});
+    // [핵심] 깃허브에서 명단 불러오기 및 select 박스 업데이트 함수
+    async function loadNamesFromGitHub() {
+        try {
+            const response = await fetch(CSV_URL);
+            if (!response.ok) throw new Error("네트워크 응답 없음");
+            
+            const data = await response.text();
+            
+            // CSV 파싱 (줄바꿈으로 구분, 공백 제거)
+            const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
+            
+            // select 박스 업데이트
+            const loginSelect = document.getElementById('login-user-select');
+            if (loginSelect) {
+                loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
+                names.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.text = name;
+                    loginSelect.appendChild(opt);
+                });
+                console.log("명단 로드 성공:", names.length, "명");
+            }
+        } catch (error) {
+            console.error("명단 불러오기 실패:", error);
+            // 에러 시 사용자 알림
+            alert("명단을 불러오는 데 실패했습니다. 인터넷 연결을 확인해주세요.");
+        }
+    }
     const posOrder = ['L1', 'L2', 'R1', 'R2'];
     let DB = { members: [], config: { c: [true,true,false,false,false,false], w: [true,false,false,false,false,false], matchRule: 'grade' }, matchHistory: {} };
     let boardState = {};
@@ -1398,15 +1394,86 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     }
 
-    function lhy_autoEntrySystem() { let moved = false; let assignedIds = []; for(let i=1; i<=6; i++) { if(!DB.config.w[i-1]) continue; const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; const isFull = waitSlots.every(s => boardState[s] !== null); if(isFull) { let targetCourt = null; for(let j=1; j<=6; j++) { if(!DB.config.c[j-1]) continue; const courtSlots = [`c${j}-L1`, `c${j}-L2`, `c${j}-R1`, `c${j}-R2`]; const isCourtEmpty = courtSlots.every(s => boardState[s] === null); if(isCourtEmpty) { targetCourt = j; break; } } if(targetCourt !== null) { const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`]; waitSlots.forEach((ws, idx) => { boardState[courtSlots[idx]] = boardState[ws]; boardState[ws] = null; const memberId = boardState[courtSlots[idx]]; if(memberId) assignedIds.push(memberId); }); moved = true; } } } if(assignedIds.length > 0) { sendGlobalAction(assignedIds); } if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); } }
-    function lhy_lockOrientation() { if (screen.orientation && typeof screen.orientation.lock === 'function') { screen.orientation.lock('landscape').catch(() => {}); } }
-    function lhy_toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+// 1. 유틸리티 함수들
+    function lhy_autoEntrySystem() { 
+        let moved = false; 
+        let assignedIds = []; 
+        for(let i=1; i<=6; i++) { 
+            if(!DB.config.w[i-1]) continue; 
+            const waitSlots = [`w${i}-L1`, `w${i}-L2`, `w${i}-R1`, `w${i}-R2`]; 
+            const isFull = waitSlots.every(s => boardState[s] !== null); 
+            if(isFull) { 
+                let targetCourt = null; 
+                for(let j=1; j<=6; j++) { 
+                    if(!DB.config.c[j-1]) continue; 
+                    const courtSlots = [`c${j}-L1`, `c${j}-L2`, `c${j}-R1`, `c${j}-R2`]; 
+                    const isCourtEmpty = courtSlots.every(s => boardState[s] === null); 
+                    if(isCourtEmpty) { targetCourt = j; break; } 
+                } 
+                if(targetCourt !== null) { 
+                    const courtSlots = [`c${targetCourt}-L1`, `c${targetCourt}-L2`, `c${targetCourt}-R1`, `c${targetCourt}-R2`]; 
+                    waitSlots.forEach((ws, idx) => { 
+                        boardState[courtSlots[idx]] = boardState[ws]; 
+                        boardState[ws] = null; 
+                        const memberId = boardState[courtSlots[idx]]; 
+                        if(memberId) assignedIds.push(memberId); 
+                    }); 
+                    moved = true; 
+                } 
+            } 
+        } 
+        if(assignedIds.length > 0) { sendGlobalAction(assignedIds); } 
+        if(moved) { lhy_renderBoardFromState(); lhy_dominoShiftSystem(); lhy_syncToFirebase(); } 
+    }
 
-    window.addEventListener('load', () => {
+    function lhy_lockOrientation() { 
+        if (screen.orientation && typeof screen.orientation.lock === 'function') { 
+            screen.orientation.lock('landscape').catch(() => {}); 
+        } 
+    }
+
+    function lhy_toggleFullScreen() { 
+        if (!document.fullscreenElement) { 
+            document.documentElement.requestFullscreen().catch(err => { console.log(`전체화면 오류: ${err.message}`); }); 
+        } else { 
+            if (document.exitFullscreen) { document.exitFullscreen(); } 
+        } 
+    }
+
+    // 2. 깃허브에서 명단 불러오는 함수 (정의 추가)
+    async function loadNamesFromGitHub() {
+        const CSV_URL = 'https://raw.githubusercontent.com/hyleeodong-droid/odong/refs/heads/main/members.csv';
+        try {
+            const response = await fetch(CSV_URL);
+            const data = await response.text();
+            const names = data.split(/\r?\n/).filter(name => name.trim() !== "");
+            
+            const loginSelect = document.getElementById('login-user-select');
+            if (loginSelect) {
+                loginSelect.innerHTML = '<option value="">본인 이름을 선택하세요</option>';
+                names.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.text = name;
+                    loginSelect.appendChild(opt);
+                });
+            }
+        } catch (error) {
+            console.error("명단 불러오기 실패:", error);
+        }
+    }
+
+    // 3. 페이지 초기화 (이벤트 리스너 통합)
+    document.addEventListener('DOMContentLoaded', () => {
+        // 기존 초기화 로직
         lhy_init(); 
         initGroupDragEvents(); 
         if (typeof lhy_lockOrientation === 'function') lhy_lockOrientation();
+        
+        // 깃허브 명단 로드
+        loadNamesFromGitHub();
 
+        // 로그인 선택창 이벤트 연결
         const loginSelect = document.getElementById('login-user-select');
         if (loginSelect) {
             loginSelect.addEventListener('change', function() {
@@ -1415,33 +1482,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 4. 출석 처리 공통 함수
     function lhy_runAutoAttendance(selectedId) {
         if (!selectedId) return;
 
-        if (DB && DB.members) {
-            const member = DB.members.find(m => m.id === selectedId);
+        if (typeof DB !== 'undefined' && DB.members) {
+            const member = DB.members.find(m => m.id === selectedId || m.name === selectedId);
             if (member) {
                 console.log("출석 처리 실행:", member.name);
                 member.isAtt = true; 
-                lhy_syncToFirebase();
-                lhy_renderBoardFromState();
+                
+                if (typeof lhy_syncToFirebase === 'function') lhy_syncToFirebase();
+                if (typeof lhy_renderBoardFromState === 'function') lhy_renderBoardFromState();
             } else {
                 console.error("회원 정보를 찾을 수 없습니다:", selectedId);
             }
         }
     }
 
+    // 5. 로그아웃 및 나가기
     function logoutOrExit() {
-        loggedInUserId = null;
-        isCurrentUserAdmin = false;
-        isObserverMode = false;
+        if (typeof loggedInUserId !== 'undefined') loggedInUserId = null;
+        if (typeof isCurrentUserAdmin !== 'undefined') isCurrentUserAdmin = false;
+        if (typeof isObserverMode !== 'undefined') isObserverMode = false;
         
         updateObserverUI(false); 
         
         const authGate = document.getElementById('auth-gate');
-        if (authGate) {
-            authGate.style.display = 'flex'; 
-        }
+        if (authGate) { authGate.style.display = 'flex'; }
 
         const pwInput = document.getElementById('pw-input');
         if (pwInput) pwInput.value = "";
@@ -1449,6 +1517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("시스템 초기화: 로그인 화면으로 복귀");
     }
 
+    // 6. Observer UI 복구용 함수
     function updateObserverUI(isObserver) {
         const menuGrid = document.getElementById('ui-menu-grid');
         if (!menuGrid) return;
